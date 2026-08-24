@@ -1,0 +1,12 @@
+{
+  "name": "reforming-the-soul",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.125.0"
+  }
+}

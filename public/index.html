@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reforming the Soul — Soul Formation</title>
+<style>
+:root{
+  --navy:#06223a;
+  --navy2:#031d32;
+  --cream:#faf6ef;
+  --cream2:#f5efe5;
+  --gold:#c88a31;
+  --gold2:#e1b45f;
+  --text:#13263a;
+  --muted:#52606d;
+  --line:#d4bb91;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+.site-header{
+  height:104px;background:#fffdf9;border-bottom:1px solid #e6dccd;display:flex;align-items:center;
+  padding:0 34px;gap:34px;position:sticky;top:0;z-index:30
+}
+.brand{display:flex;align-items:center;gap:14px;min-width:275px}
+.brand img{width:74px;height:74px;object-fit:contain}
+.brand-title{font-family:Georgia,'Times New Roman',serif;color:var(--navy);line-height:.95}
+.brand-title .r{font-size:25px;letter-spacing:1.5px;display:block}
+.brand-title .the{font-size:19px;letter-spacing:2px;display:inline-block;margin-right:6px}
+.brand-title .soul{font-family:'Brush Script MT','Segoe Script',cursive;font-size:35px;color:#b87521;display:inline-block;transform:translateY(7px)}
+.main-nav{margin-left:auto;display:flex;align-items:center;gap:27px;font-size:12px;font-weight:700}
+.main-nav a{color:#13263a;text-decoration:none;white-space:nowrap}
+.cta{display:inline-flex;align-items:center;justify-content:center;padding:16px 22px;border-radius:8px;background:var(--navy);color:#efb34f!important;text-decoration:none;font-size:12px;font-weight:800;letter-spacing:.3px}
+.hero{
+  min-height:765px;position:relative;overflow:hidden;border-bottom:1px solid #e7dbc9;
+  background:linear-gradient(90deg,#fbf6ef 0%,#fbf6ef 39%,rgba(251,246,239,.87) 47%,rgba(251,246,239,.15) 64%,rgba(251,246,239,0) 75%);
+}
+.hero-photo{position:absolute;inset:0 0 0 31%;background:url('hero.svg') center center/cover no-repeat;z-index:0}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#fbf6ef 0%,rgba(251,246,239,.98) 33%,rgba(251,246,239,.72) 48%,rgba(251,246,239,.05) 68%);z-index:1;pointer-events:none}
+.hero-copy{position:relative;z-index:3;width:48%;padding:64px 0 80px 42px}
+.eyebrow{color:#b5731d;letter-spacing:1.6px;font-size:16px;margin-bottom:26px}
+.eyebrow:after{content:"";display:inline-block;width:72px;height:1px;background:#b5731d;margin-left:16px;vertical-align:middle}
+h1{font-family:Georgia,'Times New Roman',serif;color:var(--navy);font-size:60px;line-height:1.08;font-weight:400;margin:0 0 24px}
+.lead{font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.45;font-style:italic;color:#a9681c;margin-bottom:34px}
+.bodycopy{font-size:16px;line-height:1.9;max-width:540px;margin-bottom:34px}
+.hero-btns{display:flex;gap:16px;align-items:center}
+.hero-btns .cta{padding:18px 22px}
+.side-map{
+  position:absolute;z-index:4;right:16px;top:0;width:210px;min-height:100%;background:rgba(2,31,54,.96);
+  color:white;padding:28px 22px 24px;border-left:1px solid rgba(218,165,78,.5)
+}
+.side-map .sprig{font-size:46px;color:#d99a33;margin-bottom:10px}
+.side-map h3{font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:400;margin:16px 0 4px}
+.side-map p{font-size:12px;line-height:1.55;margin:0;color:#f3f3f3}
+.side-map hr{border:0;border-top:1px solid rgba(207,157,67,.55);margin:18px 0}
+.journey{padding:34px 24px 36px;background:#fbf8f2}
+.section-title{text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:26px;letter-spacing:2px;color:var(--navy);margin:0 0 28px}
+.section-title:before,.section-title:after{content:"";display:inline-block;width:105px;height:1px;background:#b77a25;margin:0 22px;vertical-align:middle}
+.journey-row{display:grid;grid-template-columns:repeat(4,1fr) 245px;gap:18px;align-items:start;max-width:1180px;margin:0 auto}
+.stage{text-align:center;position:relative}
+.stage img{width:145px;height:165px;object-fit:cover;border-radius:48%}
+.stage h3{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;margin:9px 0 7px}
+.stage p{font-size:13px;line-height:1.55;margin:0 auto;max-width:150px}
+.path-card{border:1px solid #cf9b52;border-radius:10px;padding:30px 22px;background:#fffaf1;min-height:250px}
+.path-card h3{font-family:Georgia,'Times New Roman',serif;font-size:21px;line-height:1.4;font-weight:400;margin:0 0 18px}
+.path-card p{font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.6;margin-bottom:28px}
+.bottom{background:var(--navy2);color:white;padding:38px 52px;display:grid;grid-template-columns:190px 1fr 250px;align-items:center;gap:30px;min-height:220px}
+.bottom img{width:150px;height:150px;object-fit:contain;filter:none}
+.bottom .quote{border-left:1px solid #c88a31;padding-left:34px}
+.bottom h2{font-family:Georgia,'Times New Roman',serif;font-size:33px;font-weight:400;line-height:1.25;margin:0 0 14px}
+.bottom h2 em{color:#e6a640;font-weight:400}
+.bottom p{font-size:14px;line-height:1.55;max-width:560px}
+.bottom .gold-btn{background:#dfad61;color:#1d2630;text-decoration:none;font-weight:800;padding:17px 20px;border-radius:7px;text-align:center}
+@media(max-width:900px){
+  .site-header{height:auto;padding:18px 20px;flex-wrap:wrap}
+  .main-nav{display:none}
+  .hero{min-height:auto;padding-bottom:0}
+  .hero-photo{position:relative;inset:auto;width:100%;height:420px;background-position:center}
+  .hero::after{display:none}
+  .hero-copy{width:100%;padding:40px 24px;background:var(--cream)}
+  h1{font-size:46px}
+  .side-map{position:relative;right:auto;top:auto;width:100%;min-height:auto;padding:28px 24px}
+  .journey-row{grid-template-columns:1fr 1fr}
+  .path-card{grid-column:1/-1}
+  .bottom{grid-template-columns:1fr;text-align:left}
+  .bottom .quote{border-left:0;padding-left:0}
+}
+@media(max-width:560px){
+  .brand{min-width:0}
+  .brand-title .r{font-size:19px}
+  .brand-title .the{font-size:15px}
+  .brand-title .soul{font-size:28px}
+  .site-header>.cta{margin-left:auto;padding:12px 14px}
+  h1{font-size:38px}
+  .lead{font-size:19px}
+  .journey-row{grid-template-columns:1fr}
+  .section-title:before,.section-title:after{display:none}
+  .stage img{width:180px;height:190px}
+  .bottom{padding:34px 24px}
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">
+    <img src="rts-logo.png" alt="Reforming the Soul mark">
+    <div class="brand-title">
+      <span class="r">REFORMING</span>
+      <span class="the">THE</span><span class="soul">Soul</span>
+    </div>
+  </div>
+  <nav class="main-nav">
+    <a href="#">TEACHINGS</a><a href="#">WRITINGS</a><a href="#">BOOKS</a>
+    <a href="#">MUSIC</a><a href="#">SPIRITUAL DIRECTION</a><a href="#">ABOUT</a>
+  </nav>
+  <a class="cta" href="#journey">BEGIN THE JOURNEY</a>
+</header>
+
+<main>
+<section class="hero">
+  <div class="hero-photo" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <div class="eyebrow">SOUL FORMATION</div>
+    <h1>Formation that<br>changes the way<br>you see.</h1>
+    <div class="lead">A journey from inherited faith<br>to a lived relationship with God.</div>
+    <div class="bodycopy">
+      You were made for more than knowing about God.<br>
+      This curriculum will help you notice what has shaped you,<br>
+      look again with God, and learn to live from what He shows you.
+    </div>
+    <div class="hero-btns"><a class="cta" href="#journey">BEGIN WITH AWAKEN&nbsp;&nbsp;→</a></div>
+  </div>
+
+  <aside class="side-map">
+    <div class="sprig">⌁</div>
+    <hr>
+    <h3>Look again.</h3>
+    <p>Open your eyes to what God is already showing you.</p>
+    <hr>
+    <h3>Respond in faith.</h3>
+    <p>Trust His character and follow where He leads.</p>
+    <hr>
+    <h3>Become more like Him.</h3>
+    <p>Allow His life to shape your heart and character.</p>
+    <hr>
+    <h3>Participate in what<br>He is doing in the world.</h3>
+    <p>Join Him in His work of love and restoration.</p>
+    <hr>
+  </aside>
+</section>
+
+<section class="journey" id="journey">
+  <h2 class="section-title">A JOURNEY OF FORMATION</h2>
+  <div class="journey-row">
+    <article class="stage">
+      <img src="awaken.svg" alt="Awaken">
+      <h3>AWAKEN</h3>
+      <p>Become aware of what has shaped you.</p>
+    </article>
+    <article class="stage">
+      <img src="see-clearly.svg" alt="See Clearly">
+      <h3>SEE CLEARLY</h3>
+      <p>Learn to see God and reality more clearly.</p>
+    </article>
+    <article class="stage">
+      <img src="become.svg" alt="Become">
+      <h3>BECOME</h3>
+      <p>Allow His life to transform your heart and character.</p>
+    </article>
+    <article class="stage">
+      <img src="join.svg" alt="Join">
+      <h3>JOIN</h3>
+      <p>Participate with God in what He is doing in the world.</p>
+    </article>
+    <aside class="path-card">
+      <h3>This is a path,<br>not a menu.</h3>
+      <p>We'll walk with you<br>one step at a time.</p>
+      <a class="cta" href="#">BEGIN WITH AWAKEN&nbsp;&nbsp;→</a>
+    </aside>
+  </div>
+</section>
+
+<section class="bottom">
+  <img src="rts-logo.png" alt="Reforming the Soul">
+  <div class="quote">
+    <h2>It’s not about doing more.<br><em>It’s about becoming more like Him.</em></h2>
+    <p>Soul Formation is not a quick fix. It is a lifelong journey of seeing, being, and doing—together with the One who formed you.</p>
+  </div>
+  <a class="gold-btn" href="#journey">EXPLORE THE JOURNEY&nbsp;&nbsp;→</a>
+</section>
+</main>
+</body>
+</html>
