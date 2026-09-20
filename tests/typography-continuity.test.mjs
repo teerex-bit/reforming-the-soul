@@ -128,6 +128,13 @@ test('Fruit closing rules target actual articles even with the curriculum note a
   assert.equal(style(sheets.become, '.fruit-field article:nth-of-type(n+5)', 768)['border-bottom'], '1px solid #cfc2b1');
 });
 
+test('Fruit overview vertically balances the original text columns', () => {
+  assert.equal(style(sheets.become, '.fruit-overview', 1440)['align-items'], 'center');
+  assert.equal(style(sheets.become, '.fruit-overview', 1440)['grid-template-columns'], '.85fr 1.15fr');
+  assert.equal(style(sheets.become, '.fruit-overview>p', 1440)['font-size'], '1.08rem');
+  assert.equal(style(sheets.become, '.fruit-overview h2', 1440)['max-width'], '10ch');
+});
+
 test('Operational labels and text navigation stay readable and touchable across all 11 pages', () => {
   const controls = { awaken1: '.next-link', awaken2: '.next-link', see: '.see-next__copy a', yourself: '.next a', god: '.button', integration: '.button', become: '.button' };
   for (const [name, selector] of Object.entries(controls)) {
