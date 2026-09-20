@@ -15,4 +15,6 @@ These items are intentionally not programmed in the Phase 1 vertical slice:
 - Public website redesign or changes to approved Overview pages.
 - Production deployment choice until Cloudflare compatibility is proved.
 - Export/account-deletion operations beyond the item-level deletion needed by the slice; schema must not prevent later implementation.
-
+- Reopen or duplicate a closed practice.
+- Production-grade notifications/reminders; Phase 1 only surfaces an existing unfinished practice on dashboard return.
+- Live-provider AI evaluation beyond a synthetic, non-sensitive contract smoke test.
