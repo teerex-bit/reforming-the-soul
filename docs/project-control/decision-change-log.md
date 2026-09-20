@@ -5,10 +5,12 @@
 | 2026-09-20 | Overview site is the app design and UX authority; old site and Done folder are content sources only. | 0 | Controls all visual implementation. | Locked |
 | 2026-09-20 | Approved primary journey is Awaken → See Clearly → Become → Join. | 0 | Prevents Walk becoming a fifth stage. | Locked |
 | 2026-09-20 | Phase 1 is limited to one end-to-end vertical slice. | 1 | Full curriculum remains unauthorized. | Locked |
-| 2026-09-20 | Propose Next.js/React/TypeScript + PostgreSQL/Supabase Auth/RLS + server-side OpenAI. | 1 | Establishes prototype technical baseline. | Proposed in ADR-001 |
-| 2026-09-20 | Propose normalized `ai_artifact_sources` and `ai_context_grants` instead of JSON ID lists. | 1 | Makes deletion, revocation, RLS, and tests relationally enforceable. | Proposed in ADR-001 |
-| 2026-09-20 | Propose hard deletion of all AI artifacts dependent on a deleted source entry. | 1 | Gives deterministic privacy behavior; curriculum state remains. | Proposed in ADR-001 |
-| 2026-09-20 | Canonical prototype palette follows Overview/Formation/Awaken values; later-page token drift is not adopted. | 1 | Freezes prototype token direction. | Proposed pending design audit approval |
-| 2026-09-20 | Phase 1 does not persist full AI transcripts; explicitly saved AI material uses normalized artifact sources. | 1 | Makes deletion dependencies deterministic and minimizes retained sensitive text. | Proposed in ADR-001 |
-| 2026-09-20 | Same-owner child relationships use composite foreign keys; cross-stage links use typed columns. | 1 | Enforces ownership integrity below the service layer. | Proposed in ADR-001 |
-| 2026-09-20 | Practice transitions use a locked, versioned database function; reopen/duplicate is deferred. | 1 | Prevents invalid or concurrent lifecycle changes. | Proposed in ADR-001 |
+| 2026-09-20 | Next.js/React/TypeScript + PostgreSQL/Supabase Auth/RLS + server-side OpenAI accepted. | 1 | Establishes prototype technical baseline. | Locked for Phase 1 |
+| 2026-09-20 | Normalized `ai_artifact_sources` and `ai_context_grants` replace JSON ID lists. | 1 | Makes deletion, revocation, RLS, and tests relationally enforceable. | Locked for Phase 1 |
+| 2026-09-20 | Hard-delete all application AI artifacts dependent on a deleted source entry. | 1 | Gives deterministic privacy behavior; curriculum state remains. | Locked for Phase 1 |
+| 2026-09-20 | Canonical prototype palette follows Overview/Formation/Awaken values; later-page token drift is not adopted. | 1 | Freezes prototype token direction. | Approved |
+| 2026-09-20 | Phase 1 does not persist full AI transcripts; explicitly saved AI material uses normalized artifact sources. | 1 | Makes deletion dependencies deterministic and minimizes retained sensitive text. | Locked for Phase 1 |
+| 2026-09-20 | Same-owner child relationships use composite foreign keys; cross-stage links use typed columns. | 1 | Enforces ownership integrity below the service layer. | Locked for Phase 1 |
+| 2026-09-20 | Practice transitions use a locked, versioned database function; reopen/duplicate is deferred. | 1 | Prevents invalid or concurrent lifecycle changes. | Locked for Phase 1 |
+| 2026-09-20 | `shared-assets.json` is an obsolete machine-local input, not a missing canonical source file. It will not be recreated; the preview harness will be made self-contained against existing `src/assets` under test. | 1 | Preserves the Overview source while making visual authority reproducible. Visual baselines remain blocked until the repair passes. | Approved planning resolution |
+| 2026-09-20 | Detailed TDD plan, bounded agent work packages, test matrix, exact seed inventory, and definition of done established before implementation. | 1 | Fixes implementation order, ownership, gates, and completion evidence. | Awaiting implementation-checkpoint approval |
