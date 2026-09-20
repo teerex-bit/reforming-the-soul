@@ -1,6 +1,6 @@
 # ADR-001: Phase 1 Prototype Stack and Boundaries
 
-- Status: Proposed for approval
+- Status: Accepted for Phase 1 planning; implementation requires plan checkpoint approval
 - Date: 2026-09-20
 - Phase: Phase 1 — Technical Architecture & Vertical Slice
 - Decision owners: RTS product owner and engineering lead
