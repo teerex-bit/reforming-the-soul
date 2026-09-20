@@ -18,8 +18,8 @@ for (const [name, html] of Object.entries(pages)) {
   assert.match(html, /rts-tree-wordmark/, `${name} retains the Tree of Life wordmark`);
 }
 
-assert.match(pages.intro, /become-ordinary-life-hero-v2\.png/, 'intro uses the younger-woman hero');
-assert.ok(existsSync(new URL('public/assets/page-become/become-ordinary-life-hero-v2.png', root)), 'new hero exists');
+assert.match(pages.intro, /become-ordinary-life-hero-v2\.jpg/, 'intro uses the younger-woman hero');
+assert.ok(existsSync(new URL('public/assets/page-become/become-ordinary-life-hero-v2.jpg', root)), 'new hero exists');
 assert.match(pages.intro, /Live With God<sup[^>]*>\*<\/sup>/, 'intro marks Live With God preview');
 assert.match(pages.intro, /The Whole Person<sup[^>]*>\*<\/sup>/, 'intro marks Whole Person preview');
 assert.equal((pages.intro.match(/Explored more fully in the deeper-dive curriculum\./g) || []).length, 1, 'intro has one shared curriculum note');
