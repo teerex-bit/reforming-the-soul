@@ -12,7 +12,7 @@ const pages = {
 };
 
 for (const [name, html] of Object.entries(pages)) {
-  assert.match(html, /become\.css\?v=9[1-5]/, `${name} uses the redesigned shared stylesheet`);
+  assert.match(html, /become\.css\?v=9[1-6]/, `${name} uses the redesigned shared stylesheet`);
   assert.match(html, /context-nav/, `${name} retains breadcrumb navigation`);
   assert.match(html, /rts-tree-wordmark/, `${name} retains the Tree of Life wordmark`);
 }
