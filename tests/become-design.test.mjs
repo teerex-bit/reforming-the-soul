@@ -12,7 +12,7 @@ const pages = {
 };
 
 for (const [name, html] of Object.entries(pages)) {
-  assert.match(html, /become\.css\?v=9[1-4]/, `${name} uses the redesigned shared stylesheet`);
+  assert.match(html, /become\.css\?v=9[1-5]/, `${name} uses the redesigned shared stylesheet`);
   assert.match(html, /context-nav/, `${name} retains breadcrumb navigation`);
   assert.match(html, /rts-tree-wordmark/, `${name} retains the Tree of Life wordmark`);
 }
@@ -23,7 +23,7 @@ assert.match(pages.intro, /Live With God<sup[^>]*>\*<\/sup>/, 'intro marks Live 
 assert.match(pages.intro, /The Whole Person<sup[^>]*>\*<\/sup>/, 'intro marks Whole Person preview');
 assert.equal((pages.intro.match(/Explored more fully in the deeper-dive curriculum\./g) || []).length, 1, 'intro has one shared curriculum note');
 
-assert.match(pages.live, /Formation happens in<br>the life you are already<br>living\./, 'live hero has intentional line breaks');
+assert.match(pages.live, /Formation happens in<br>\s*the life you are already<br>\s*living\./, 'live hero has intentional line breaks');
 assert.match(pages.live, /growth-motif--rhythm/, 'live page uses four-point rhythm motif');
 assert.match(pages.practice, /growth-motif--practice/, 'practice page uses strengthened repeating motif');
 assert.match(pages.whole, /class="whole-hero"/, 'whole-person opens with a distinct editorial hero');
