@@ -13,8 +13,7 @@
       <p>Choose any completed page below. Upcoming pages will become active as they are finished.</p>
     </div>
     <nav class="page-grid" aria-label="Overview Website pages">
-      <button class="page-card is-current" data-url="/"><b>00</b><span>Overview Home<small>Website</small></span></button>
-      <button class="page-card" data-url="/formation/"><b>01</b><span>Formation Introduction<small>Formation</small></span></button>
+      <button class="page-card is-current" data-url="/formation/"><b>01</b><span>Formation Overview<small>Formation</small></span></button>
       <button class="page-card" data-url="/overview/"><b>02</b><span>Overview Statement<small>Start Here</small></span></button>
       <button class="page-card" data-url="/awaken/lesson-1/"><b>03</b><span>Awaken 1<small>Awaken</small></span></button>
       <button class="page-card" data-url="/awaken/lesson-2/"><b>04</b><span>Awaken 2<small>Awaken</small></span></button>
@@ -30,13 +29,13 @@
     </nav>
     <div class="review-controls">
       <button id="previous-page" type="button" aria-label="Previous completed page">← Previous</button>
-      <span class="viewing">Viewing <strong id="current-page">Overview Home</strong></span>
+      <span class="viewing">Viewing <strong id="current-page">Formation Overview</strong></span>
       <button id="next-page" type="button" aria-label="Next completed page">Next →</button>
-      <a id="open-page" href="/" target="_blank" rel="noopener">Open page</a>
+      <a id="open-page" href="/formation/" target="_blank" rel="noopener">Open page</a>
     </div>
   </header>
   <main class="review-stage">
-    <iframe id="page-frame" title="Selected RTS Overview page" src="/"></iframe>
+    <iframe id="page-frame" title="Selected RTS Overview page" src="/formation/"></iframe>
   </main>
   <script>
     const cards = [...document.querySelectorAll('.page-card[data-url]')];
@@ -72,7 +71,7 @@
     });
 
     const requested = new URLSearchParams(location.search).get('page');
-    showPage(completed.some(page => page.url === requested) ? requested : '/', false);
+    showPage(completed.some(page => page.url === requested) ? requested : '/formation/', false);
   </script>
 </body>
 </html>
