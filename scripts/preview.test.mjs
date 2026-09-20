@@ -1,6 +1,67 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const source = path.join(project, 'src');
+
+async function withPreview(run) {
+  const { createPreviewServer } = await import('./preview.mjs');
+  const server = createPreviewServer();
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await run(`http://127.0.0.1:${server.address().port}`);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+}
+
+function authoritativeAssetReferences() {
+  const references = new Set();
+  const visit = directory => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(absolute);
+      if (!entry.isFile() || !/\.(?:css|html)$/.test(entry.name)) continue;
+      const contents = fs.readFileSync(absolute, 'utf8');
+      for (const match of contents.matchAll(/(?:\.\.\/)*assets\/[A-Za-z0-9._/-]+/g)) {
+        references.add('/' + match[0].replace(/^(?:\.\.\/)*|^\//g, ''));
+      }
+    }
+  };
+  visit(source);
+  return [...references].sort();
+}
+
+test('preview imports without external machine-local configuration', async () => {
+  const preview = await import('./preview.mjs');
+  assert.equal(typeof preview.createPreviewServer, 'function');
+});
+
+test('every asset referenced by authoritative Overview source resolves from the preview', async () => {
+  const references = authoritativeAssetReferences();
+  assert(references.length > 0, 'authoritative source should reference assets');
+  await withPreview(async root => {
+    for (const reference of references) {
+      const response = await fetch(root + reference);
+      assert.equal(response.status, 200, reference);
+      assert((await response.arrayBuffer()).byteLength > 0, reference);
+    }
+  });
+});
+
+test('HEAD returns GET metadata without a response body', async () => {
+  await withPreview(async root => {
+    const get = await fetch(`${root}/overview/`);
+    const head = await fetch(`${root}/overview/`, { method: 'HEAD' });
+    assert.equal(head.status, 200);
+    assert.equal(head.headers.get('content-type'), get.headers.get('content-type'));
+    assert.equal(head.headers.get('cache-control'), 'no-store');
+    assert.equal(await head.text(), '');
+  });
+});
 
 test('preview serves the editable lesson and assets but rejects writes and unrelated original files', async () => {
   assert(fs.existsSync(new URL('./preview.mjs', import.meta.url)), 'Isolated preview is not implemented yet');
