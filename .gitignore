@@ -4,4 +4,10 @@ dist/
 .next/
 .wrangler/
 next-env.d.ts
-
+.env
+.env.*
+!.env.test.example
+playwright-report/
+test-results/
+coverage/
+.supabase/
