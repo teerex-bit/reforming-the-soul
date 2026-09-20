@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RTS Overview Website Review</title>
+  <link rel="stylesheet" href="../assets/css/review-switcher.css">
+</head>
+<body>
+  <header class="review-bar">
+    <div class="review-heading">
+      <div class="review-title"><span>EDITABLE OVERVIEW WEBSITE REVIEW</span><strong>Overview Pages</strong></div>
+      <p>Choose any completed page below. Upcoming pages will become active as they are finished.</p>
+    </div>
+    <nav class="page-grid" aria-label="Overview Website pages">
+      <button class="page-card is-current" data-url="/"><b>00</b><span>Overview Home<small>Website</small></span></button>
+      <button class="page-card" data-url="/formation/"><b>01</b><span>Formation Introduction<small>Formation</small></span></button>
+      <button class="page-card" data-url="/overview/"><b>02</b><span>Overview Statement<small>Start Here</small></span></button>
+      <button class="page-card" data-url="/awaken/lesson-1/"><b>03</b><span>Awaken 1<small>Awaken</small></span></button>
+      <button class="page-card" data-url="/awaken/lesson-2/"><b>04</b><span>Awaken 2<small>Awaken</small></span></button>
+      <button class="page-card" data-url="/see-clearly/"><b>05</b><span>See Clearly 1<small>See Clearly</small></span></button>
+      <button class="page-card" disabled><b>06</b><span>See Clearly 2<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>07</b><span>Become 1<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>08</b><span>Become 2<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>09</b><span>Join 1<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>10</b><span>Join 2<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>11</b><span>Conversations<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>12</b><span>Books<small>Upcoming</small></span></button>
+      <button class="page-card" disabled><b>13</b><span>Music<small>Upcoming</small></span></button>
+    </nav>
+    <div class="review-controls">
+      <button id="previous-page" type="button" aria-label="Previous completed page">← Previous</button>
+      <span class="viewing">Viewing <strong id="current-page">Overview Home</strong></span>
+      <button id="next-page" type="button" aria-label="Next completed page">Next →</button>
+      <a id="open-page" href="/" target="_blank" rel="noopener">Open page</a>
+    </div>
+  </header>
+  <main class="review-stage">
+    <iframe id="page-frame" title="Selected RTS Overview page" src="/"></iframe>
+  </main>
+  <script>
+    const cards = [...document.querySelectorAll('.page-card[data-url]')];
+    const frame = document.querySelector('#page-frame');
+    const title = document.querySelector('#current-page');
+    const open = document.querySelector('#open-page');
+    const previous = document.querySelector('#previous-page');
+    const next = document.querySelector('#next-page');
+    const completed = cards.map(card => ({ url: card.dataset.url, label: card.querySelector('span').childNodes[0].textContent.trim() }));
+
+    function showPage(url, updateHistory = true) {
+      const index = completed.findIndex(page => page.url === url);
+      if (index < 0) return;
+      const freshUrl = `${url}${url.includes('?') ? '&' : '?'}review_refresh=${Date.now()}`;
+      frame.src = freshUrl;
+      frame.dataset.route = url;
+      title.textContent = completed[index].label;
+      open.href = freshUrl;
+      previous.disabled = index === 0;
+      next.disabled = index === completed.length - 1;
+      cards.forEach(card => card.classList.toggle('is-current', card.dataset.url === url));
+      if (updateHistory) history.replaceState(null, '', `?page=${encodeURIComponent(url)}`);
+    }
+
+    cards.forEach(card => card.addEventListener('click', () => showPage(card.dataset.url)));
+    previous.addEventListener('click', () => {
+      const index = completed.findIndex(page => page.url === frame.dataset.route);
+      if (index > 0) showPage(completed[index - 1].url);
+    });
+    next.addEventListener('click', () => {
+      const index = completed.findIndex(page => page.url === frame.dataset.route);
+      if (index < completed.length - 1) showPage(completed[index + 1].url);
+    });
+
+    const requested = new URLSearchParams(location.search).get('page');
+    showPage(completed.some(page => page.url === requested) ? requested : '/', false);
+  </script>
+</body>
+</html>

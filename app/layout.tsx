@@ -1,0 +1,1 @@
+﻿export const metadata = { title: 'Reforming the Soul — Overview', description: 'Overview Website review site' }; export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang='en'><body>{children}</body></html>; }
