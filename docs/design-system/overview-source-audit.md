@@ -1,6 +1,6 @@
 # RTS Overview Source Design-System Audit
 
-- Status: Proposed design baseline
+- Status: Approved design baseline
 - Date: 2026-09-20
 - Source branch: `overview-review` at `26ebefc`
 - Design authority: `/overview/`, reinforced by Formation and Awaken
@@ -130,7 +130,8 @@ Acceptance screenshots are fixed at 375px, 768px, and 1536px. Every one must sho
 6. The `/` working-page directory palette and card layout.
 7. The old 41-page curriculum shell or sidebar.
 
-## Audit limitation and risk
+## Preview-authority limitation and resolution
 
-The source audit is complete, but the branch's documented `npm run preview` currently fails because `shared-assets.json` is absent from the branch. Static public files remain inspectable, and source-contract tests pass, but reproducible visual baselines must be repaired or replaced before prototype visual-regression screenshots are treated as authoritative.
+The branch's documented `npm run preview` currently fails because `scripts/preview.mjs` synchronously requires `shared-assets.json`. History and branch inspection found no source-controlled copy and no repository generator. The manifest was manually configured machine-local input for an earlier shared-original-assets workflow, not a generated or source-controlled artifact. Every `/assets/...` reference in the current `src` authority tree has an exact project-local file under `src/assets`; there are no referenced-but-missing assets.
 
+Therefore `shared-assets.json` should not exist on this branch, has no canonical repository location, and must not be recreated with a machine-specific root. Task 0 of the implementation plan will test-first remove the obsolete manifest dependency and serve the existing project-local authority assets without changing the Overview source. Restoration requires successful module import, every existing route test, every referenced asset returning successfully, traversal protection, and GET/HEAD-only behavior. Until that task passes, visual-regression screenshots are exploratory and non-authoritative.
