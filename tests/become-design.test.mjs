@@ -12,7 +12,7 @@ const pages = {
 };
 
 for (const [name, html] of Object.entries(pages)) {
-  assert.match(html, /become\.css\?v=91/, `${name} uses the redesigned shared stylesheet`);
+  assert.match(html, /become\.css\?v=9[12]/, `${name} uses the redesigned shared stylesheet`);
   assert.match(html, /class="growth-motif/, `${name} carries the Become growth motif`);
   assert.match(html, /context-nav/, `${name} retains breadcrumb navigation`);
   assert.match(html, /rts-tree-wordmark/, `${name} retains the Tree of Life wordmark`);
@@ -36,6 +36,7 @@ assert.match(pages.fruit, /growth-motif--fruit/, 'fruit motif resolves into leaf
 const css = read('public/become/become.css');
 assert.match(css, /\.hero--become-intro \.growth-motif--seed\{display:none\}/, 'intro photograph is unobstructed');
 assert.match(css, /\.section\.light \.section-head\{align-items:center\}/, 'intro explanation is vertically centered');
+assert.match(css, /\.reflection-slab__ring\{display:none!important\}/, 'practice quote has no decorative rings');
 assert.match(css, /\.growth-motif/, 'shared CSS styles the growth motif');
 assert.match(css, /\.curriculum-note/, 'shared CSS styles the curriculum note');
 assert.match(css, /\.hero--fruit/, 'shared CSS styles the fruit culmination hero');
