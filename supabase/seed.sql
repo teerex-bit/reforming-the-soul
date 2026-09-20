@@ -1,0 +1,1 @@
+-- Task 1 harness plumbing only. Application fixtures begin with their authorized feature tasks.
