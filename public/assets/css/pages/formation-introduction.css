@@ -60,3 +60,4 @@
 @media(max-width:700px){.scripture{padding-left:16px}.scripture p,.recognition-moment>div .scripture p{font-size:18px}.deeper .sequence-meaning{display:grid;gap:18px}.rhythm .scripture--destination{max-width:none;margin-top:28px}.journey-grid{margin-top:26px}}
 .hero-title-spread{display:inline-block;letter-spacing:.04em;white-space:nowrap}
 \n.overview-context{display:grid;grid-template-columns:minmax(190px,.45fr) minmax(0,1.55fr);gap:clamp(28px,6vw,90px);align-items:start;padding-top:clamp(38px,5vw,64px);padding-bottom:clamp(38px,5vw,64px)}.overview-context .eyebrow{margin:5px 0 0}.overview-context>p:last-child{max-width:760px;margin:0;font-size:clamp(17px,1.35vw,20px);line-height:1.65}@media(max-width:700px){.overview-context{grid-template-columns:1fr;gap:14px}.overview-context .eyebrow{margin:0}}\n
+.closing .curriculum-note{max-width:760px;margin:22px auto 0;color:rgba(255,255,255,.78);font-size:clamp(15px,1.2vw,17px);line-height:1.6;text-align:center}
