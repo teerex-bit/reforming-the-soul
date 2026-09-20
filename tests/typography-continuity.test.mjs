@@ -103,6 +103,17 @@ test('Integration keeps scripture and copy together and chain statements readabl
   assert.equal(style(sheets.integration, '.chain-lines', 1440)['grid-template-columns'], 'repeat(3,1fr)');
 });
 
+test('Integration teaching previews use four asterisks and one shared curriculum note', () => {
+  const html = read('see-clearly/integration/index.html');
+  const rows = [...html.matchAll(/<article class="truth-row">([\s\S]*?)<\/article>/g)];
+  assert.equal(rows.length, 4);
+  for (const [, row] of rows) {
+    assert.match(row, /<h3>[\s\S]*?<sup class="preview-mark"[^>]*>\*<\/sup><\/h3>/);
+  }
+  assert.equal((html.match(/class="curriculum-note"/g) ?? []).length, 1);
+  assert.match(html, /\* Explored more fully in the deeper-dive curriculum\./);
+});
+
 test('Become tablet safeguards preserve cinematic and editorial desktop layouts', () => {
   assert.equal(style(sheets.become, '.hero--become-intro__content', 800).width, '78%');
   assert.equal(style(sheets.become, '.hero--become-intro__content', 375).width, '100%');

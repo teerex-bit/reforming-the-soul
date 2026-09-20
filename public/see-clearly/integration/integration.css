@@ -8,3 +8,6 @@
 /* Readable wayfinding, scoped to this journey page (not the shared doorway). */
 body .context-nav{font-size:12px}
 body .context-nav a{display:inline-flex;align-items:center;min-height:44px}
+
+.preview-mark{margin-left:.08em;color:var(--gold);font-size:.62em;vertical-align:super}
+.curriculum-note{margin:22px 0 0;color:#6e6559;font:italic .92rem/1.5 Georgia,serif}
