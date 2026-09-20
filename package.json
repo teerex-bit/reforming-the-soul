@@ -1,42 +1,60 @@
 {
-    "name":  "sites-project",
-    "version":  "0.1.0",
-    "private":  true,
-    "engines":  {
-                    "node":  "\u003e=22.13.0"
-                },
-    "scripts":  {
-                    "build":  "vinext build",
-                    "preview":  "node scripts/preview.mjs",
-                    "lint":  "eslint . --ignore-pattern dist --ignore-pattern .next",
-                    "verify:originals":  "node scripts/original-state.mjs verify",
-                    "start":  "vinext start",
-                    "dev":  "vinext dev",
-                    "test":  "node --test scripts/preview.test.mjs"
-                },
-    "dependencies":  {
-                         "next":  "16.2.6",
-                         "react":  "19.2.6",
-                         "react-dom":  "19.2.6"
-                     },
-    "devDependencies":  {
-                            "@cloudflare/vite-plugin":  "1.37.1",
-                            "@cloudflare/workers-types":  "4.20260515.1",
-                            "@openai/sites-vite-plugin":  "^0.1.0 || ^0.2.0",
-                            "@tailwindcss/postcss":  "4.2.1",
-                            "@types/node":  "22.19.19",
-                            "@types/react":  "19.2.14",
-                            "@types/react-dom":  "19.2.3",
-                            "@vitejs/plugin-react":  "6.0.2",
-                            "@vitejs/plugin-rsc":  "0.5.26",
-                            "eslint":  "9.39.4",
-                            "eslint-config-next":  "16.2.6",
-                            "react-server-dom-webpack":  "19.2.6",
-                            "tailwindcss":  "4.2.1",
-                            "typescript":  "5.9.3",
-                            "vinext":  "1.0.0-beta.3",
-                            "vite":  "8.0.13",
-                            "wrangler":  "4.92.0"
-                        },
-    "type":  "module"
+    "name": "sites-project",
+    "version": "0.1.0",
+    "private": true,
+    "engines": {
+        "node": ">=22.13.0"
+    },
+    "scripts": {
+        "build": "vinext build",
+        "preview": "node scripts/preview.mjs",
+        "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+        "verify:originals": "node scripts/original-state.mjs verify",
+        "start": "vinext start",
+        "dev": "vinext dev",
+        "test": "node --test scripts/preview.test.mjs",
+        "test:harness": "node --test tests/harness/*.test.mjs",
+        "typecheck": "tsc --noEmit -p tsconfig.tests.json",
+        "test:unit": "vitest run --config vitest.config.ts",
+        "test:integration": "node --env-file-if-exists=.env.test scripts/verify-test-environment.mjs && vitest run --config vitest.integration.config.ts",
+        "test:db": "node --env-file-if-exists=.env.test scripts/run-local-db-tests.mjs",
+        "test:e2e": "playwright test",
+        "test:a11y": "playwright test --grep @a11y",
+        "test:concurrency": "node --env-file-if-exists=.env.test scripts/verify-test-environment.mjs && vitest run --config vitest.integration.config.ts -t concurrency --repeats 19",
+        "test:all": "npm run typecheck && npm test && npm run test:harness && npm run test:unit && npm run test:integration && npm run test:db && npm run test:concurrency && npm run test:e2e && npm run test:a11y"
+    },
+    "dependencies": {
+        "next": "16.2.6",
+        "react": "19.2.6",
+        "react-dom": "19.2.6"
+    },
+    "devDependencies": {
+        "@axe-core/playwright": "^4.13.0",
+        "@cloudflare/vite-plugin": "1.37.1",
+        "@cloudflare/workers-types": "4.20260515.1",
+        "@openai/sites-vite-plugin": "^0.1.0 || ^0.2.0",
+        "@playwright/test": "^1.63.0",
+        "@tailwindcss/postcss": "4.2.1",
+        "@testing-library/jest-dom": "^7.0.1",
+        "@testing-library/react": "^16.3.3",
+        "@types/node": "22.19.19",
+        "@types/pg": "^8.23.1",
+        "@types/react": "19.2.14",
+        "@types/react-dom": "19.2.3",
+        "@vitejs/plugin-react": "6.0.2",
+        "@vitejs/plugin-rsc": "0.5.26",
+        "eslint": "9.39.4",
+        "eslint-config-next": "16.2.6",
+        "jsdom": "^30.1.0",
+        "pg": "^8.23.0",
+        "react-server-dom-webpack": "19.2.6",
+        "supabase": "^2.117.0",
+        "tailwindcss": "4.2.1",
+        "typescript": "5.9.3",
+        "vinext": "1.0.0-beta.3",
+        "vite": "8.0.13",
+        "vitest": "^5.0.1",
+        "wrangler": "4.92.0"
+    },
+    "type": "module"
 }
