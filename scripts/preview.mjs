@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.join(project, 'src');
-const config = JSON.parse(fs.readFileSync(path.join(project, 'shared-assets.json'), 'utf8'));
 const localRoutes = new Map([
   ['/', 'index.html'],
   ['/index.html', 'index.html'],
@@ -42,7 +41,6 @@ const localRoutes = new Map([
   ['/assets/icons/rts-stage-become.svg', 'assets/icons/rts-stage-become.svg'],
   ['/assets/icons/rts-stage-join.svg', 'assets/icons/rts-stage-join.svg'],
 ]);
-const sharedRoutes = new Map(config.files.map(file => [`/assets/${file}`, path.join(config.root, file)]));
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 
 export function createPreviewServer() {
@@ -54,7 +52,7 @@ export function createPreviewServer() {
     const route = new URL(request.url, 'http://127.0.0.1').pathname;
     if (route === '/favicon.ico') { response.writeHead(204).end(); return; }
     const local = localRoutes.get(route);
-    const file = local ? path.join(source, local) : sharedRoutes.get(route);
+    const file = local ? path.join(source, local) : undefined;
     if (!file) { response.writeHead(404).end('Not included in this one-page preview'); return; }
     fs.readFile(file, (error, data) => {
       if (error) { response.writeHead(404).end('Missing file'); return; }
