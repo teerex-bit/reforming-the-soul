@@ -78,6 +78,17 @@ test('Awaken paired introductions stack before tablet columns become narrow', ()
   assert.equal(style(sheets.awaken1, '.title-deck', 1440).display, 'grid');
 });
 
+test('Awaken moment uses one content-centered transition without a duplicate divider', () => {
+  const html = read('awaken/lesson-1/index.html');
+  assert.match(html, /class="moment-flow"/);
+  assert.equal((html.match(/class="moment-step"/g) ?? []).length, 2);
+  assert.equal((html.match(/class="moment-arrow"/g) ?? []).length, 1);
+  assert.doesNotMatch(html, /class="moment-details"/);
+  assert.equal(style(sheets.awaken1, '.moment-flow', 1440)['grid-template-columns'], 'minmax(0,1fr) auto minmax(0,1fr)');
+  assert.equal(style(sheets.awaken1, '.moment-flow', 375)['grid-template-columns'], '1fr');
+  assert.equal(style(sheets.awaken1, '.moment-step p', 1440)['font-size'], '17px');
+});
+
 test('See Clearly paired heroes receive tablet room without changing wide compositions', () => {
   assert.equal(style(sheets.yourself, '.part-hero', 900)['grid-template-columns'], '1fr');
   assert.equal(style(sheets.god, '.hero', 900)['grid-template-columns'], '1fr');
