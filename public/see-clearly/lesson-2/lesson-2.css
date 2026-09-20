@@ -57,18 +57,18 @@ h1, h2, p { margin-top: 0; }
 h1 {
   max-width: 620px;
   margin-bottom: 34px;
-  font: 400 clamp(3.4rem, 4.8vw, 5.35rem)/.98 Georgia, serif;
-  letter-spacing: -.035em;
+  font: 400 clamp(2.75rem, 3.85vw, 4.3rem)/1.08 Georgia, serif;
+  letter-spacing: -.012em;
 }
 h1 span {
   display: block;
-  white-space: nowrap;
+  white-space: normal;
 }
 .lede {
   max-width: 620px;
   padding-top: 26px;
   border-top: 1px solid #bda97f;
-  font: 1.22rem/1.62 Georgia, serif;
+  font: 1.25rem/1.65 Georgia, serif;
 }
 .hero-art { min-height: 620px; margin: 0; overflow: hidden; }
 .hero-art img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.06) saturate(.92); }
@@ -160,6 +160,9 @@ h1 span {
 .closing .eyebrow { color: #edc57c; }
 .closing h2 { color: white; }
 .back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   width: max-content;
   margin-top: 8px;
   color: #b8d3e4;
@@ -206,8 +209,20 @@ footer p { margin: 0; }
   .brand { width: 150px; }
   .site-header > p span { display: block; margin: 5px 0 0; text-align: right; }
   .hero-copy, .formed-view, .jesus-copy, .jesus blockquote, .receive, .closing { padding: 58px 22px; }
-  h1 { font-size: clamp(2.75rem, 13vw, 3.35rem); line-height: 1; letter-spacing: -.03em; }
+  h1 { font-size: clamp(2.5rem, 10.5vw, 3rem); line-height: 1.08; letter-spacing: -.012em; }
   h1 span { white-space: normal; }
   .hero-art { min-height: 360px; }
   footer { flex-direction: column; }
 }
+
+/* Give only the hero an earlier transition; retain the content-pair rhythm. */
+@media (min-width: 881px) and (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-art { min-height: 450px; }
+}
+.site-header > p, .eyebrow, .jesus cite, .back-link, .button, footer { font-size: 12px; }
+.button { min-height: 44px; align-items: center; }
+
+/* Readable wayfinding, scoped to this journey page (not the shared doorway). */
+body .context-nav{font-size:12px}
+body .context-nav a{display:inline-flex;align-items:center;min-height:44px}
