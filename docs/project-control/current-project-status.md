@@ -1,10 +1,10 @@
 # Current Project Status
 
 - Current phase: Phase 1 — Technical Architecture & Vertical Slice
-- Current milestone: Detailed TDD implementation checkpoint
+- Current milestone: Task 0 complete; Task 1 harness implemented with external runtime verification pending
 - Git branch: `prototype/phase-1-vertical-slice`
 - Full curriculum implementation: Not authorized
-- Application/curriculum coding: Not started; blocked pending checkpoint approval
+- Application/curriculum coding: Not started; Task 2 remains unauthorized
 
 ## Completed
 
@@ -15,7 +15,9 @@
 - Defined the mandatory automated test matrix, exact minimal seed curriculum, and pre-implementation definition of done.
 - Root-caused `shared-assets.json`: it never existed in accessible source history, was intended as a local shared-asset mapping, and is obsolete because every current Overview source asset reference is present under `src/assets`.
 - Formally isolated visual baselines until test-first preview repair passes; no Overview design source was changed.
-- Existing source contract suite remains 15/15 passing; the existing preview test remains expected-red on the obsolete manifest dependency until implementation Task 0 is authorized.
+- Existing source contract suite remains 15/15 passing.
+- Task 0 completed test-first: the Overview preview is self-contained, all referenced authority assets resolve, and GET/HEAD/method/traversal behavior passes without changing `src`.
+- Task 1 installed deterministic unit, integration, pgTAP/Supabase, Playwright, accessibility, viewport, fake-AI, concurrency, and environment-safety foundations without feature or application-schema work.
 
 ## Approved architecture retained
 
@@ -27,10 +29,11 @@
 
 ## Current blockers and gates
 
-- Product owner must approve the implementation plan checkpoint before any Task 0 or application work starts.
-- Visual regression is non-authoritative until Task 0 repairs the preview harness and tests pass.
+- Real database integration and pgTAP smokes require Docker/local Supabase, which is unavailable in the current execution environment.
+- Browser/a11y smokes require Playwright Chromium; repeated downloads timed out or produced a truncated archive in the current environment.
+- Task 2 should not begin until those Task 1 runtime smokes pass in suitable infrastructure.
 - Deployment/user testing remains blocked on verified OpenAI organization/project retention configuration and disclosure.
 
-## Next controlled step after approval
+## Next controlled step
 
-Execute Task 0 (Overview preview authority) and Task 1 (test infrastructure) with red-green-refactor. Do not begin feature implementation until both gates are green. The engineering lead reviews and integrates every agent handoff.
+Complete the remaining Task 1 runtime checks in an environment with Docker and Playwright browser-download access. Then present the checkpoint for Task 2 authorization. Do not begin Task 2 automatically.
