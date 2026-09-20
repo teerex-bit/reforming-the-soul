@@ -69,7 +69,7 @@ h1 {
 .text-link {
   display: inline-block;
   margin-top: 14px;
-  color: #b8d3e4;
+  color: var(--blue);
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .11em;
@@ -168,7 +168,7 @@ h1 {
 .back-link {
   width: max-content;
   margin-top: 8px;
-  color: var(--blue);
+  color: #b8d3e4;
   font-size: .75rem;
   font-weight: 700;
   letter-spacing: .07em;
