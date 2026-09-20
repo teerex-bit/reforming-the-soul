@@ -45,7 +45,7 @@
 .fruit-hero-new h1{max-width:none;margin:0;color:#fff;font:400 clamp(3.25rem,5.4vw,5.8rem)/1.07 Georgia,serif;letter-spacing:-.012em}
 .fruit-hero-new__copy{padding-left:clamp(28px,3vw,48px);border-left:1px solid rgba(226,175,88,.62)}
 .fruit-hero-new__copy p{margin:0;color:#dbe5eb;font:1.2rem/1.75 Georgia,serif}.fruit-hero-new__copy strong{display:block;margin-top:42px;color:#f2d59e;font:italic 1.35rem/1.5 Georgia,serif}
-.fruit-overview{padding:clamp(72px,8vw,116px) clamp(24px,8vw,126px);display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(60px,10vw,160px);align-items:end;background:#f1ebe1}
+.fruit-overview{padding:clamp(72px,8vw,116px) clamp(24px,8vw,126px);display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(60px,10vw,160px);align-items:center;background:#f1ebe1}
 .fruit-overview h2{max-width:10ch;margin:0}.fruit-overview>p{max-width:720px;margin:0;color:var(--muted);font-size:1.08rem;line-height:1.78}
 .fruit-field{padding:0 clamp(24px,8vw,126px) clamp(78px,9vw,132px);display:grid;grid-template-columns:repeat(3,1fr);background:#f1ebe1}
 .fruit-field article{min-height:270px;padding:36px;border-top:1px solid var(--gold);border-right:1px solid #cfc2b1}
