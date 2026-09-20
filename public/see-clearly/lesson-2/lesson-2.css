@@ -69,7 +69,7 @@ h1 {
 .text-link {
   display: inline-block;
   margin-top: 14px;
-  color: var(--blue);
+  color: #b8d3e4;
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .11em;
@@ -160,7 +160,11 @@ h1 {
   grid-template-columns: .62fr 1.38fr;
   gap: clamp(50px, 8vw, 130px);
   align-items: start;
+  color: white;
+  background: var(--navy);
 }
+.closing .eyebrow { color: #edc57c; }
+.closing h2 { color: white; }
 .back-link {
   width: max-content;
   margin-top: 8px;
@@ -171,14 +175,14 @@ h1 {
   text-decoration: none;
   text-transform: uppercase;
 }
-.closing > div > p:not(.eyebrow) { max-width: 720px; color: var(--muted); line-height: 1.75; }
+.closing > div > p:not(.eyebrow) { max-width: 720px; color: #dbe5eb; line-height: 1.75; }
 .button {
   display: inline-flex;
   gap: 16px;
   margin-top: 18px;
   padding: 16px 21px;
   color: white;
-  background: var(--blue);
+  background: #687b48;
   font-size: .7rem;
   font-weight: 700;
   letter-spacing: .09em;
