@@ -39,11 +39,11 @@ h1, h2, p { margin-top: 0; }
 .hero {
   min-height: 620px;
   display: grid;
-  grid-template-columns: minmax(400px, 46%) 1fr;
+  grid-template-columns: minmax(460px, 48%) 1fr;
   background: var(--cream);
 }
 .hero-copy {
-  padding: clamp(70px, 9vw, 126px) clamp(34px, 7vw, 110px);
+  padding: clamp(70px, 8vw, 118px) clamp(34px, 5vw, 76px);
   align-self: center;
 }
 .eyebrow {
@@ -55,26 +55,20 @@ h1, h2, p { margin-top: 0; }
   text-transform: uppercase;
 }
 h1 {
-  max-width: 680px;
-  margin-bottom: 30px;
-  font: 400 clamp(3.5rem, 5.6vw, 6.2rem)/.93 Georgia, serif;
-  letter-spacing: -.055em;
+  max-width: 620px;
+  margin-bottom: 34px;
+  font: 400 clamp(3.4rem, 4.8vw, 5.35rem)/.98 Georgia, serif;
+  letter-spacing: -.035em;
+}
+h1 span {
+  display: block;
+  white-space: nowrap;
 }
 .lede {
   max-width: 620px;
   padding-top: 26px;
   border-top: 1px solid #bda97f;
   font: 1.22rem/1.62 Georgia, serif;
-}
-.text-link {
-  display: inline-block;
-  margin-top: 14px;
-  color: var(--blue);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .11em;
-  text-decoration: none;
-  text-transform: uppercase;
 }
 .hero-art { min-height: 620px; margin: 0; overflow: hidden; }
 .hero-art img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.06) saturate(.92); }
@@ -212,7 +206,8 @@ footer p { margin: 0; }
   .brand { width: 150px; }
   .site-header > p span { display: block; margin: 5px 0 0; text-align: right; }
   .hero-copy, .formed-view, .jesus-copy, .jesus blockquote, .receive, .closing { padding: 58px 22px; }
-  h1 { font-size: 3.35rem; }
+  h1 { font-size: clamp(2.75rem, 13vw, 3.35rem); line-height: 1; letter-spacing: -.03em; }
+  h1 span { white-space: normal; }
   .hero-art { min-height: 360px; }
   footer { flex-direction: column; }
 }
