@@ -60,4 +60,4 @@
 @media(max-width:700px){.scripture{padding-left:16px}.scripture p,.recognition-moment>div .scripture p{font-size:18px}.deeper .sequence-meaning{display:grid;gap:18px}.rhythm .scripture--destination{max-width:none;margin-top:28px}.journey-grid{margin-top:26px}}
 .hero-title-spread{display:inline-block;letter-spacing:.04em;white-space:nowrap}
 
-.closing .curriculum-note{max-width:800px;margin:24px auto 0;color:rgba(255,255,255,.82);font-family:Georgia,"Times New Roman",serif;font-size:clamp(17px,1.35vw,20px);font-style:italic;letter-spacing:.01em;line-height:1.55;text-align:center}
+.closing .curriculum-note{max-width:740px;margin:22px auto 0;color:rgba(255,255,255,.8);font-family:Georgia,"Times New Roman",serif;font-size:clamp(15px,1.05vw,17px);font-style:italic;font-weight:400;letter-spacing:.015em;line-height:1.65;text-align:center}
