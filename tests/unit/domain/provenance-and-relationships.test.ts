@@ -180,7 +180,7 @@ function validAiArtifact() {
   return {
     kind: 'ai_artifact', id: 'artifact-a', userId: 'user-a', threadId: 'thread-a',
     artifactType: 'suggested_tag', status: 'suggested', category: 'ai_suggested_structured',
-    provenance: 'ai_suggested', confirmation: 'unconfirmed', modelId: 'test-model',
+    provenance: 'ai_suggested', confirmation: 'unconfirmed', curriculumVersionId: 'phase-1-v1', modelId: 'test-model',
     globalPolicyVersion: 'global-v1', stagePolicyVersion: 'awaken-v1', modePolicyVersion: 'reflect-v1',
     outputSchemaVersion: 'reflect-v1',
     sources: [{ sourceRole: 'current', journalEntryId: 'entry-a', contextGrantId: null, grantRevision: null }],

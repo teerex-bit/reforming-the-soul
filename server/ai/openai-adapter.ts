@@ -11,7 +11,7 @@ function providerPayload(payload: ReflectProviderRequest) {
   return {
     model: payload.model, store: false,
     input: payload.input.map(block => ({
-      role: block.label === 'CURRENT_USER_ENTRY_UNTRUSTED_DATA' ? 'user' : 'developer',
+      role: block.label.endsWith('_USER_ENTRY_UNTRUSTED_DATA') ? 'user' : 'developer',
       content: [{ type: 'input_text', text: `[${block.label}]\n${typeof block.content === 'string' ? block.content : JSON.stringify(block.content)}` }],
     })),
     text: payload.text,

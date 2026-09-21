@@ -49,19 +49,19 @@ select throws_like(
   $$insert into public.ai_artifact_sources (user_id, artifact_id, journal_entry_id, source_role)
     values ('00000000-0000-4000-8000-0000000000a1', '60000000-0000-4000-8000-0000000000a1',
       '30000000-0000-4000-8000-0000000000b2', 'current')$$,
-  '%foreign key%', 'AI artifact sources cannot reference another owner journal'
+  '%permission denied%', 'authenticated clients cannot write AI artifact source provenance'
 );
 select throws_like(
   $$insert into public.ai_artifact_sources (user_id, artifact_id, journal_entry_id, context_grant_id, grant_revision, source_role)
     values ('00000000-0000-4000-8000-0000000000a1', '60000000-0000-4000-8000-0000000000a1',
       '30000000-0000-4000-8000-0000000000a2', '70000000-0000-4000-8000-0000000000a1', 1, 'selected_prior')$$,
-  '%foreign key%', 'selected-prior source grant must be for the same journal entry'
+  '%permission denied%', 'authenticated clients cannot fabricate selected-prior provenance'
 );
 select throws_like(
   $$insert into public.ai_artifact_sources (user_id, artifact_id, journal_entry_id, context_grant_id, grant_revision, source_role)
     values ('00000000-0000-4000-8000-0000000000a1', '60000000-0000-4000-8000-0000000000a1',
       '30000000-0000-4000-8000-0000000000a2', '70000000-0000-4000-8000-0000000000b2', 1, 'selected_prior')$$,
-  '%foreign key%', 'AI artifact sources cannot cite another owner grant'
+  '%permission denied%', 'authenticated clients cannot cite grants in fabricated AI provenance'
 );
 select throws_like(
   $$insert into public.formation_links (user_id, link_type, source_journal_entry_id, target_formation_record_id)

@@ -25,6 +25,7 @@ export interface AiArtifact {
   readonly category: 'ai_suggested_structured' | 'ai_derived_artifact';
   readonly provenance: 'ai_suggested' | 'user_confirmed_ai';
   readonly confirmation: 'unconfirmed' | 'user_confirmed';
+  readonly curriculumVersionId: string;
   readonly modelId: string;
   readonly globalPolicyVersion: string;
   readonly stagePolicyVersion: string;
@@ -78,7 +79,7 @@ export function validateAiPermission(value: Record<string, unknown>): string[] {
 export function validateAiArtifact(value: Record<string, unknown>): string[] {
   const allowed = [
     'kind', 'id', 'userId', 'threadId', 'artifactType', 'status', 'category', 'provenance', 'confirmation',
-    'modelId', 'globalPolicyVersion', 'stagePolicyVersion', 'modePolicyVersion', 'outputSchemaVersion', 'sources',
+    'curriculumVersionId', 'modelId', 'globalPolicyVersion', 'stagePolicyVersion', 'modePolicyVersion', 'outputSchemaVersion', 'sources',
   ];
   const issues = Object.keys(value).filter(key => !allowed.includes(key)).map(key => `AI artifact contains unsupported field: ${key}`);
   if (value.kind !== 'ai_artifact') issues.push('AI artifact kind is invalid');
@@ -135,7 +136,7 @@ export function validateAiArtifact(value: Record<string, unknown>): string[] {
       }
     }
   }
-  for (const field of ['id', 'userId', 'threadId', 'modelId', 'globalPolicyVersion', 'stagePolicyVersion', 'modePolicyVersion', 'outputSchemaVersion']) {
+  for (const field of ['id', 'userId', 'threadId', 'curriculumVersionId', 'modelId', 'globalPolicyVersion', 'stagePolicyVersion', 'modePolicyVersion', 'outputSchemaVersion']) {
     if (typeof value[field] !== 'string' || value[field] === '') issues.push(`AI artifact ${field} is required`);
   }
   return issues;

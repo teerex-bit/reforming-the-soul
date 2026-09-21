@@ -4,7 +4,7 @@ export type HistoryJournal = Readonly<{ id: string; nodeId: string; entryKind: s
 export type HistoryRecord = Readonly<{ id: string; recordType: string; value: string; provenance: 'user_authored' | 'user_confirmed_ai'; createdAt: string }>;
 export type HistoryArtifact = Readonly<{
   id: string; artifactType: string; content: Readonly<Record<string, unknown>>; status: 'suggested' | 'confirmed' | 'invalidated';
-  provenance: 'ai_suggested' | 'user_confirmed_ai'; modelId: string;
+  provenance: 'ai_suggested' | 'user_confirmed_ai'; modelId: string; curriculumVersionId: string;
   policy: Readonly<{ global: string; stage: string; mode: string; outputSchema: string }>;
   sources: readonly Readonly<{ journalEntryId: string; role: 'current' | 'selected_prior'; contextGrantId: string | null; grantRevision: number | null }>[]; createdAt: string;
 }>;
@@ -36,7 +36,7 @@ export function formationHistoryRepository({ pool }: Readonly<{ pool?: pg.Pool }
           from public.journal_entries where user_id=$1 order by created_at asc, id asc`, [actorId]),
         client.query(`select id, source_journal_entry_id, record_type::text, value_text, provenance::text, created_at
           from public.formation_records where user_id=$1 order by created_at asc, id asc`, [actorId]),
-        client.query(`select a.id, a.artifact_type::text, a.content, a.status::text, a.provenance::text, a.model_id,
+        client.query(`select a.id, a.artifact_type::text, a.content, a.status::text, a.provenance::text, a.model_id, a.curriculum_version_id,
             a.global_policy_version, a.stage_policy_version, a.mode_policy_version, a.output_schema_version, a.created_at,
             coalesce(jsonb_agg(jsonb_build_object('journalEntryId', s.journal_entry_id, 'role', s.source_role,
               'contextGrantId', s.context_grant_id, 'grantRevision', s.grant_revision)
@@ -59,7 +59,7 @@ export function formationHistoryRepository({ pool }: Readonly<{ pool?: pg.Pool }
         if (!sources[0]) continue;
         const values = artifactMap.get(sources[0].journalEntryId) ?? [];
         values.push({ id: row.id, artifactType: row.artifact_type, content: row.content, status: row.status, provenance: row.provenance,
-          modelId: row.model_id, policy: { global: row.global_policy_version, stage: row.stage_policy_version, mode: row.mode_policy_version, outputSchema: row.output_schema_version },
+          modelId: row.model_id, curriculumVersionId: row.curriculum_version_id, policy: { global: row.global_policy_version, stage: row.stage_policy_version, mode: row.mode_policy_version, outputSchema: row.output_schema_version },
           sources, createdAt: row.created_at.toISOString() });
         artifactMap.set(sources[0].journalEntryId, values);
       }

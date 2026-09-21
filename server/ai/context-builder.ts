@@ -4,7 +4,7 @@ import { AWAKEN_POLICY_VERSION, AWAKEN_REFLECTION_POLICY } from './policies/stag
 import { REFLECT_JSON_SCHEMA, REFLECT_OUTPUT_SCHEMA_VERSION } from './schemas';
 
 export type CurrentJournalEntry = Readonly<{ id: string; kind: string; body: string }>;
-export type CurrentReflectContext = Readonly<{ entries: readonly CurrentJournalEntry[] }>;
+export type CurrentReflectContext = Readonly<{ entries: readonly CurrentJournalEntry[]; selectedPrior?: CurrentJournalEntry }>;
 
 export const REFLECT_MODEL = 'gpt-5-mini';
 export const REFLECT_VERSIONS = Object.freeze({
@@ -23,6 +23,9 @@ export function buildReflectRequest(context: CurrentReflectContext) {
       { label: 'MODE_POLICY', content: REFLECT_MODE_POLICY },
       { label: 'AUTHORED_CURRICULUM', content: 'Awaken — Pay Attention: notice what happened, what happened inside, and one body cue.' },
       { label: 'CURRENT_USER_ENTRY_UNTRUSTED_DATA', content: context.entries.map(entry => ({ id: entry.id, kind: entry.kind, exactUserWording: entry.body })) },
+      ...(context.selectedPrior ? [{ label: 'SELECTED_PRIOR_USER_ENTRY_UNTRUSTED_DATA', content: {
+        id: context.selectedPrior.id, kind: context.selectedPrior.kind, exactUserWording: context.selectedPrior.body,
+      } }] : []),
     ],
     text: { format: { type: 'json_schema', name: 'rts_reflect', strict: true, schema: REFLECT_JSON_SCHEMA } },
   };

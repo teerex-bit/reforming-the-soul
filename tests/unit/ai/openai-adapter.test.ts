@@ -18,6 +18,18 @@ describe('OpenAI adapter', () => {
     expect(body.input.at(-1).role).toBe('user');
   });
 
+  it('keeps selected prior journal wording in an untrusted user-role block', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      status: 'completed', output: [{ content: [{ type: 'output_text', text: '{"questions":["What did you notice?"]}' }] }],
+    }), { status: 200 }));
+    await openAiProvider({ apiKey: 'test-key', fetch }).respond(buildReflectRequest({
+      entries: [{ id: 'current', kind: 'practice_review', body: 'current' }],
+      selectedPrior: { id: 'prior', kind: 'event', body: 'prior' },
+    }));
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.input.find((block: { content: { text: string }[] }) => block.content[0].text.includes('SELECTED_PRIOR')).role).toBe('user');
+  });
+
   it('maps refusal, incomplete, invalid, timeout, and provider failures explicitly', async () => {
     const cases = [
       [new Response(JSON.stringify({ output: [{ content: [{ type: 'refusal' }] }] }), { status: 200 }), 'refusal'],

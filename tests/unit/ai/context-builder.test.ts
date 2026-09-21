@@ -21,3 +21,13 @@ describe('Reflect context assembly', () => {
     expect(JSON.stringify(request)).not.toContain('PRIOR_ENTRY');
   });
 });
+
+it('labels exactly one explicitly selected prior entry separately from the current entry', () => {
+  const request = buildReflectRequest({
+    entries: [{ id: 'current', kind: 'practice_review', body: 'Current review' }],
+    selectedPrior: { id: 'prior', kind: 'event', body: 'Earlier observation' },
+  });
+  expect(request.input.filter(block => block.label === 'SELECTED_PRIOR_USER_ENTRY_UNTRUSTED_DATA')).toEqual([
+    { label: 'SELECTED_PRIOR_USER_ENTRY_UNTRUSTED_DATA', content: { id: 'prior', kind: 'event', exactUserWording: 'Earlier observation' } },
+  ]);
+});
