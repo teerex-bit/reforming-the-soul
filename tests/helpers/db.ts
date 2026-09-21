@@ -1,17 +1,35 @@
 import pg from 'pg';
 import { validateTestEnvironment } from '../../scripts/verify-test-environment.mjs';
 
-export function createConcurrencyBarrier(participants: number) {
+export function createConcurrencyBarrier(participants: number, timeoutMs = 5_000) {
   if (!Number.isInteger(participants) || participants < 1) {
     throw new Error('participants must be a positive integer');
   }
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1) {
+    throw new Error('timeoutMs must be a positive integer');
+  }
   let arrivals = 0;
   let release: (() => void) | undefined;
-  const released = new Promise<void>(resolve => { release = resolve; });
+  let rejectRelease: ((error: Error) => void) | undefined;
+  const released = new Promise<void>((resolve, reject) => {
+    release = resolve;
+    rejectRelease = reject;
+  });
+  const timeout = setTimeout(() => {
+    rejectRelease?.(new Error(
+      `concurrency barrier timed out after ${timeoutMs}ms: ${arrivals} of ${participants} participants arrived`,
+    ));
+  }, timeoutMs);
   return {
     async arriveAndWait() {
       arrivals += 1;
-      if (arrivals === participants) release?.();
+      if (arrivals > participants) {
+        throw new Error(`concurrency barrier received more than ${participants} participants`);
+      }
+      if (arrivals === participants) {
+        clearTimeout(timeout);
+        release?.();
+      }
       await released;
     },
   };
