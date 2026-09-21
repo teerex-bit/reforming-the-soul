@@ -1,10 +1,10 @@
 # Current Project Status
 
 - Current phase: Phase 1 — Technical Architecture & Vertical Slice
-- Current milestone: Task 0 complete; Task 1 harness implemented with external runtime verification pending
+- Current milestone: Task 1 certified; Task 2 domain contracts and minimal seed implemented for review
 - Git branch: `prototype/phase-1-vertical-slice`
 - Full curriculum implementation: Not authorized
-- Application/curriculum coding: Not started; Task 2 remains unauthorized
+- Application/curriculum coding: Domain contracts and the exact minimal seed only; Task 3 remains unauthorized
 
 ## Completed
 
@@ -19,6 +19,8 @@
 - Task 0 completed test-first: the Overview preview is self-contained, all referenced authority assets resolve, and GET/HEAD/method/traversal behavior passes without changing `src`.
 - Task 1 installed deterministic unit, integration, pgTAP/Supabase, Playwright, accessibility, viewport, fake-AI, concurrency, and environment-safety foundations without feature or application-schema work.
 - Task 1 certification hardening now rejects arbitrary reused preview servers, bounds concurrency barriers with actionable timeouts, verifies simultaneous actor contexts, adds a rollback-only authenticated A/B RLS probe, and captures successful non-baseline browser evidence when Chromium is available.
+- Task 1 runtime certification passed on a Docker-capable GitHub-hosted runner, including local Supabase, RLS, 20 concurrency repetitions, Chromium, accessibility, and all three required viewports.
+- Task 2 defines framework-independent domain contracts, the canonical interaction and lifecycle taxonomies, provenance/permission/dependency boundaries, and the exact 16-node vertical-slice seed with runtime validation.
 
 ## Approved architecture retained
 
@@ -30,11 +32,9 @@
 
 ## Current blockers and gates
 
-- Real database integration and pgTAP smokes require Docker/local Supabase; this Work container has no Docker/Podman runtime and lacks nested-container capabilities.
-- Browser/a11y smokes require Playwright Chromium; the configured CDN currently returns no browser payload to this Work container, and no system Chromium is installed.
-- Task 2 should not begin until those Task 1 runtime smokes pass in suitable infrastructure.
+- Task 3 remains unauthorized until the Task 2 checkpoint is reviewed.
 - Deployment/user testing remains blocked on verified OpenAI organization/project retention configuration and disclosure.
 
 ## Next controlled step
 
-Complete the remaining Task 1 runtime checks in an environment with Docker and Playwright browser-download access. Then present the checkpoint for Task 2 authorization. Do not begin Task 2 automatically.
+Review the Task 2 contracts and exact seed checkpoint. Do not begin Task 3 without explicit authorization.
