@@ -65,6 +65,27 @@ jobs:
       - name: Concurrency tests
         run: npm run test:concurrency
 
+      - name: Stop local Supabase with persisted state
+        run: npx supabase stop --workdir .
+
+      - name: Restart designated local Supabase with persisted state
+        run: npx supabase start --workdir .
+
+      - name: Actor resolver after persisted restart
+        run: npx vitest run --config vitest.integration.config.ts tests/integration/00-task3-privilege-preflight.test.ts
+
+      - name: PostgreSQL and RLS tests after persisted restart
+        run: npm run test:db
+
+      - name: Clean migration reset and reapply
+        run: npx supabase db reset --local --workdir .
+
+      - name: Actor resolver after clean migration reapply
+        run: npx vitest run --config vitest.integration.config.ts tests/integration/00-task3-privilege-preflight.test.ts
+
+      - name: PostgreSQL and RLS tests after clean migration reapply
+        run: npm run test:db
+
       - name: Browser and visual-authority tests
         run: npm run test:e2e
 

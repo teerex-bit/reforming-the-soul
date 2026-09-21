@@ -73,7 +73,7 @@ describe('Task 3 concurrency boundaries', () => {
         async client => {
           const result = await client.query<{ state: string; lock_version: number }>(
             `select state::text, lock_version
-             from public.transition_practice($1, 'draft', 0, 'open')`,
+             from rts_private.transition_practice($1, 'draft', 0, 'open')`,
             [practiceId],
           );
           return result.rows[0];
@@ -120,7 +120,7 @@ describe('Task 3 concurrency boundaries', () => {
           async client => {
             const result = await client.query<{ grant_id: string; revision: number }>(
               `select grant_id::text, revision
-               from public.grant_ai_context($1, 'single_entry_reflect')`,
+               from rts_private.grant_ai_context($1, 'single_entry_reflect')`,
               [journalId],
             );
             return result.rows[0];
@@ -134,7 +134,7 @@ describe('Task 3 concurrency boundaries', () => {
       const originalGrantId = firstRace[0].grant_id;
 
       await runAuthenticatedTransaction(testActors.userA.id, null, async client => {
-        await client.query('select * from public.revoke_ai_context($1, 1)', [originalGrantId]);
+        await client.query('select * from rts_private.revoke_ai_context($1, 1)', [originalGrantId]);
       });
 
       const regrantRace = await raceGrant();

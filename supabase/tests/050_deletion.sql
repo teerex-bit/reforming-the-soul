@@ -31,12 +31,12 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000b2', true);
 select results_eq(
   $$select deleted_entry_id, dependent_artifact_count, dependent_record_count, dependent_link_count, grant_count
-    from public.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000001')$$,
+    from rts_private.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000001')$$,
   $$values (null::uuid, 0, 0, 0, 0)$$, 'other-owner IDs produce the same neutral result as missing IDs');
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1', true);
 select results_eq(
   $$select dependent_artifact_count, dependent_record_count, grant_count
-    from public.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000001')$$,
+    from rts_private.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000001')$$,
   $$values (1, 1, 1)$$, 'deletion reports content-free dependent counts');
 select is((select count(*)::integer from public.journal_entries where id = '91000000-0000-4000-8000-000000000001'), 0,
   'source journal is hard deleted');
@@ -55,7 +55,7 @@ select is((select count(*)::integer from public.audit_events where object_id = '
   'one content-free deletion audit event is written');
 select results_eq(
   $$select deleted_entry_id, dependent_artifact_count, dependent_record_count, dependent_link_count, grant_count
-    from public.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000099')$$,
+    from rts_private.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000099')$$,
   $$values (null::uuid, 0, 0, 0, 0)$$, 'missing IDs return a neutral result');
 
 select * from finish();

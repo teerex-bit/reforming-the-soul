@@ -1,4 +1,10 @@
-create function public.transition_practice(
+do $$
+begin
+  execute format('grant rts_privileged_owner to %I with set true', current_user);
+end
+$$;
+
+create function rts_private.transition_practice(
   p_practice_id uuid,
   p_expected_state public.practice_state,
   p_expected_lock_version integer,
@@ -10,7 +16,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_practice public.practices%rowtype;
 begin
   if v_actor is null then
@@ -54,7 +60,7 @@ begin
 end
 $$;
 
-create function public.record_practice_return(
+create function rts_private.record_practice_return(
   p_practice_id uuid,
   p_expected_lock_version integer,
   p_outcome_text text
@@ -65,7 +71,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_practice public.practices%rowtype;
   v_outcome_id uuid;
   v_return_id uuid;
@@ -112,7 +118,7 @@ begin
 end
 $$;
 
-create function public.review_practice(
+create function rts_private.review_practice(
   p_practice_id uuid,
   p_expected_lock_version integer,
   p_review_text text
@@ -123,7 +129,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_practice public.practices%rowtype;
   v_return public.practice_returns%rowtype;
   v_review_id uuid;
@@ -180,7 +186,7 @@ begin
 end
 $$;
 
-create function public.grant_ai_context(
+create function rts_private.grant_ai_context(
   p_journal_entry_id uuid,
   p_scope public.ai_grant_scope
 )
@@ -190,7 +196,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_grant public.ai_context_grants%rowtype;
 begin
   if v_actor is null then
@@ -224,7 +230,7 @@ begin
 end
 $$;
 
-create function public.revoke_ai_context(
+create function rts_private.revoke_ai_context(
   p_grant_id uuid,
   p_expected_revision integer
 )
@@ -234,7 +240,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_grant public.ai_context_grants%rowtype;
 begin
   if v_actor is null then
@@ -265,7 +271,7 @@ begin
 end
 $$;
 
-create function public.delete_journal_entry_with_dependencies(p_journal_entry_id uuid)
+create function rts_private.delete_journal_entry_with_dependencies(p_journal_entry_id uuid)
 returns table (
   deleted_entry_id uuid,
   dependent_artifact_count integer,
@@ -278,7 +284,7 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  v_actor uuid := auth.uid();
+  v_actor uuid := rts_private.current_actor();
   v_entry public.journal_entries%rowtype;
   v_artifact_count integer := 0;
   v_record_count integer := 0;
@@ -361,38 +367,26 @@ begin
 end
 $$;
 
-grant create on schema public to rts_privileged_owner;
-do $$
-begin
-  execute format('grant rts_privileged_owner to %I with set true', current_user);
-end
-$$;
+alter function rts_private.transition_practice(uuid, public.practice_state, integer, public.practice_state) owner to rts_privileged_owner;
+alter function rts_private.record_practice_return(uuid, integer, text) owner to rts_privileged_owner;
+alter function rts_private.review_practice(uuid, integer, text) owner to rts_privileged_owner;
+alter function rts_private.grant_ai_context(uuid, public.ai_grant_scope) owner to rts_privileged_owner;
+alter function rts_private.revoke_ai_context(uuid, integer) owner to rts_privileged_owner;
+alter function rts_private.delete_journal_entry_with_dependencies(uuid) owner to rts_privileged_owner;
 
-alter function public.transition_practice(uuid, public.practice_state, integer, public.practice_state) owner to rts_privileged_owner;
-alter function public.record_practice_return(uuid, integer, text) owner to rts_privileged_owner;
-alter function public.review_practice(uuid, integer, text) owner to rts_privileged_owner;
-alter function public.grant_ai_context(uuid, public.ai_grant_scope) owner to rts_privileged_owner;
-alter function public.revoke_ai_context(uuid, integer) owner to rts_privileged_owner;
-alter function public.delete_journal_entry_with_dependencies(uuid) owner to rts_privileged_owner;
+revoke all on function rts_private.transition_practice(uuid, public.practice_state, integer, public.practice_state) from public, anon, authenticated;
+revoke all on function rts_private.record_practice_return(uuid, integer, text) from public, anon, authenticated;
+revoke all on function rts_private.review_practice(uuid, integer, text) from public, anon, authenticated;
+revoke all on function rts_private.grant_ai_context(uuid, public.ai_grant_scope) from public, anon, authenticated;
+revoke all on function rts_private.revoke_ai_context(uuid, integer) from public, anon, authenticated;
+revoke all on function rts_private.delete_journal_entry_with_dependencies(uuid) from public, anon, authenticated;
 
-revoke create on schema public from rts_privileged_owner;
-
-revoke all on function public.transition_practice(uuid, public.practice_state, integer, public.practice_state) from public, anon;
-revoke all on function public.record_practice_return(uuid, integer, text) from public, anon;
-revoke all on function public.review_practice(uuid, integer, text) from public, anon;
-revoke all on function public.grant_ai_context(uuid, public.ai_grant_scope) from public, anon;
-revoke all on function public.revoke_ai_context(uuid, integer) from public, anon;
-revoke all on function public.delete_journal_entry_with_dependencies(uuid) from public, anon;
-
-grant execute on function public.transition_practice(uuid, public.practice_state, integer, public.practice_state) to authenticated;
-grant execute on function public.record_practice_return(uuid, integer, text) to authenticated;
-grant execute on function public.review_practice(uuid, integer, text) to authenticated;
-grant execute on function public.grant_ai_context(uuid, public.ai_grant_scope) to authenticated;
-grant execute on function public.revoke_ai_context(uuid, integer) to authenticated;
-grant execute on function public.delete_journal_entry_with_dependencies(uuid) to authenticated;
-
-grant usage on schema auth to rts_privileged_owner;
-grant execute on function auth.uid() to rts_privileged_owner;
+grant execute on function rts_private.transition_practice(uuid, public.practice_state, integer, public.practice_state) to authenticated;
+grant execute on function rts_private.record_practice_return(uuid, integer, text) to authenticated;
+grant execute on function rts_private.review_practice(uuid, integer, text) to authenticated;
+grant execute on function rts_private.grant_ai_context(uuid, public.ai_grant_scope) to authenticated;
+grant execute on function rts_private.revoke_ai_context(uuid, integer) to authenticated;
+grant execute on function rts_private.delete_journal_entry_with_dependencies(uuid) to authenticated;
 
 do $$
 begin

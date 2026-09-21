@@ -6,8 +6,58 @@ begin
 end
 $$;
 
-grant usage on schema public, auth to rts_privileged_owner;
-grant execute on function auth.uid() to rts_privileged_owner;
+do $$
+begin
+  execute format('grant rts_privileged_owner to %I with set true', current_user);
+end
+$$;
+
+create schema rts_private authorization rts_privileged_owner;
+revoke all on schema rts_private from public, anon, authenticated;
+grant usage on schema rts_private to authenticated;
+
+create function rts_private.current_actor()
+returns uuid
+language plpgsql
+stable
+set search_path = pg_catalog
+as $$
+declare
+  v_claims text;
+  v_subject text;
+begin
+  v_claims := nullif(current_setting('request.jwt.claims', true), '');
+
+  if v_claims is not null then
+    begin
+      v_subject := (v_claims::jsonb)->>'sub';
+    exception when invalid_text_representation then
+      return null;
+    end;
+  else
+    v_subject := nullif(current_setting('request.jwt.claim.sub', true), '');
+  end if;
+
+  if v_subject is null then
+    return null;
+  end if;
+
+  begin
+    return v_subject::uuid;
+  exception when invalid_text_representation then
+    return null;
+  end;
+end
+$$;
+
+alter function rts_private.current_actor() owner to rts_privileged_owner;
+revoke all on function rts_private.current_actor() from public, anon, authenticated;
+
+do $$
+begin
+  execute format('revoke rts_privileged_owner from %I', current_user);
+end
+$$;
 
 create function public.reject_user_id_change()
 returns trigger
@@ -68,7 +118,7 @@ begin
       v_table || '_owner_select', v_table
     );
     execute format(
-      'create policy %I on public.%I for all to rts_privileged_owner using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id)',
+      'create policy %I on public.%I for all to rts_privileged_owner using ((select rts_private.current_actor()) = user_id) with check ((select rts_private.current_actor()) = user_id)',
       v_table || '_privileged_owner', v_table
     );
     execute format(
