@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(20);
 insert into auth.users (id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at)
 values ('90000000-0000-4000-8000-0000000000a1','00000000-0000-0000-0000-000000000000','authenticated','authenticated','slice-practice@example.test','',now(),'{}','{}',now(),now());
 set local role authenticated;
@@ -30,7 +30,8 @@ select throws_ok($$select * from rts_private.review_practice((select id from pub
 select results_eq(
   $$select state::text,lock_version from rts_private.transition_practice((select id from public.practices),'reviewed',2,'closed')$$,
   $$values ('closed'::text,3)$$,'reviewed practice closes');
-select results_eq($$select current_node_id,state::text from public.user_curriculum_state$$,$$values('become.practice.review'::text,'completed'::text)$$,'close completes curriculum while retaining the approved terminal node');
+select is((select current_node_id from public.user_curriculum_state),'become.practice.review'::text,'close retains the approved terminal curriculum node');
+select is((select state::text from public.user_curriculum_state),'completed'::text,'close completes the curriculum session');
 select is((select body from public.journal_entries where entry_kind='practice_outcome'),' outcome ','outcome wording remains exact');
 select is((select body from public.journal_entries where entry_kind='practice_review'),' review ','review wording remains exact');
 select is((select count(*)::integer from public.journal_entries where entry_kind in ('practice_outcome','practice_review')),2,'rejected blank writes leave no partial journal entries');
