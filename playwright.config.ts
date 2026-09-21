@@ -18,10 +18,18 @@ export default defineConfig({
     { name: 'tablet-768', use: { viewport: { width: 768, height: 1024 } } },
     { name: 'desktop-1536', use: { viewport: { width: 1536, height: 960 } } },
   ],
-  webServer: {
-    command: 'npm run preview',
-    url: 'http://127.0.0.1:4186/overview/',
-    reuseExistingServer: false,
-    timeout: 30_000,
-  },
+  webServer: [
+    {
+      command: 'npm run preview',
+      url: 'http://127.0.0.1:4186/overview/',
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command: 'npm run build && npm run start -- --port 4187',
+      url: 'http://127.0.0.1:4187/sign-in',
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+  ],
 });
