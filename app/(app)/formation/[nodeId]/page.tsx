@@ -4,6 +4,8 @@ import { AppShell } from '../../../../components/design-system/AppShell';
 import { PHASE_1_NODES } from '../../../../content/phase-1/v1/curriculum';
 import { getCurriculumNode } from '../../../../server/services/curriculum-service';
 import { saveAwakenObservation } from '../../../../server/services/observation-service';
+import { AIReflectPanel } from '../../../../components/ai/AIReflectPanel';
+import { saveConfirmedReflectInsight } from '../../../../server/services/ai-reflect-service';
 
 const awakenObservationIds = ['awaken.pay-attention.observe', 'awaken.pay-attention.inside', 'awaken.pay-attention.body'];
 
@@ -25,7 +27,15 @@ export default async function FormationNodePage({ params }: { params: Promise<{ 
   const observationNodes = nodeId === 'awaken.pay-attention.observe'
     ? PHASE_1_NODES.filter(candidate => awakenObservationIds.includes(candidate.id))
     : undefined;
+  async function saveInsight(input: { threadId: string | null; insightText: string }) {
+    'use server';
+    await saveConfirmedReflectInsight(input);
+    redirect('/formation/bridge.awaken-see-clearly');
+  }
+
   return <AppShell stage={node.stage === 'see-clearly' ? 'See Clearly' : node.stage === 'become' ? 'Become' : 'Awaken'}>
-    <CurriculumRenderer node={node} nodes={observationNodes} onSubmit={observationNodes ? save : undefined} />
+    {nodeId === 'awaken.pay-attention.reflect'
+      ? <AIReflectPanel saveInsight={saveInsight} />
+      : <CurriculumRenderer node={node} nodes={observationNodes} onSubmit={observationNodes ? save : undefined} />}
   </AppShell>;
 }
