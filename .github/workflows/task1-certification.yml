@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - prototype/phase-1-vertical-slice
-    paths:
-      - '.github/workflows/task1-certification.yml'
   workflow_dispatch:
 
 permissions:
