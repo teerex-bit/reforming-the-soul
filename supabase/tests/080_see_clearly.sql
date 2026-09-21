@@ -15,7 +15,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-0000000000d1',true);
 select * from rts_private.save_awaken_observation('source','inside','body');
 update public.user_curriculum_state set current_node_id='bridge.awaken-see-clearly' where user_id='00000000-0000-4000-8000-0000000000d1';
-select results_eq($$select current_node_id from rts_private.save_see_clearly('  fact  ','  meaning  ','expectation','  outcome expected  ')$$, $$values('bridge.see-clearly-become'::text)$$, 'save advances to Become bridge');
+select is((select current_node_id from rts_private.save_see_clearly('  fact  ','  meaning  ','expectation','  outcome expected  ')), 'bridge.see-clearly-become'::text, 'save advances to Become bridge');
 select results_eq($$select entry_kind::text,body from public.journal_entries where node_id like 'see-clearly.%' order by created_at$$, $$values ('observable_fact'::text,'  fact  '::text),('interpretation'::text,'  meaning  '::text),('belief_expectation'::text,'  outcome expected  '::text)$$, 'exact wording remains separate');
 select results_eq($$select record_type::text from public.formation_records where node_id like 'see-clearly.%' order by created_at$$, $$values ('observable_fact'::text),('interpretation'::text),('expectation'::text)$$, 'exactly one belief-or-expectation typed record is created');
 select is((select count(*)::integer from public.formation_links where link_type='awaken_to_see_clearly'),1,'one identity-only lineage link is created');

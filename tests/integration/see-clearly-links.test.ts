@@ -128,7 +128,7 @@ describe('See Clearly lineage', () => {
     });
     const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[3]]);
     const target = await pool.query("select id from public.formation_records where user_id=$1 and record_type='observable_fact'", [actors[4]]);
-    await expect(withAuthenticatedActor(pool, actors[4], client => client.query(`insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id) values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[4], source.rows[0].id, target.rows[0].id]))).rejects.toMatchObject({ code: '23514' });
+    await expect(withAuthenticatedActor(pool, actors[4], client => client.query(`insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id) values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[4], source.rows[0].id, target.rows[0].id]))).rejects.toMatchObject({ code: '23503' });
   });
 
   it('rejects structurally valid owner-matched lineage with the wrong source or target node', async () => {
