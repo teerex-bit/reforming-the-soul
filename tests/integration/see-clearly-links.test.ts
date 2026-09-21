@@ -6,7 +6,7 @@ import { saveAwakenObservation } from '../../server/services/observation-service
 import { saveSeeClearly } from '../../server/services/see-clearly-service';
 
 const pool = createTestPool();
-const actors = [randomUUID(), randomUUID(), randomUUID()];
+const actors = Array.from({ length: 7 }, () => randomUUID());
 const alternateVersion = `see-clearly-test-${randomUUID()}`;
 
 function actorClient(actor: string) {
@@ -36,6 +36,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await pool.query('delete from auth.users where id = any($1::uuid[])', [actors]);
+  await pool.query('delete from public.curriculum_nodes where version_id=$1', [alternateVersion]);
   await pool.query('delete from public.curriculum_versions where id=$1', [alternateVersion]);
   await pool.end();
 });
@@ -43,8 +44,15 @@ afterAll(async () => {
 describe('See Clearly lineage', () => {
   it('atomically stores exact wording, separate typed records, identity-only lineage, and advances to Become', async () => {
     const values = ['  The door closed.\n', ' I concluded she was angry. ', 'belief', ' Conflict means rejection. '];
+    const repository = curriculumRepository({ pool });
+    await saveSeeClearly({
+      observableFactText: values[0], interpretationText: values[1],
+      beliefExpectationType: 'belief', beliefExpectationText: values[3],
+    }, {
+      repository: { saveSeeClearly: input => repository.transaction(transaction => transaction.saveSeeClearly(input)) },
+      actorClient: actorClient(actors[0]),
+    });
     await withAuthenticatedActor(pool, actors[0], async client => {
-      await expect(client.query('select * from rts_private.save_see_clearly($1,$2,$3,$4)', values)).resolves.toMatchObject({ rows: [{ current_node_id: 'bridge.see-clearly-become' }] });
       const journals = await client.query("select entry_kind::text, body from public.journal_entries where user_id=$1 and node_id like 'see-clearly.%' order by created_at", [actors[0]]);
       expect(journals.rows).toEqual([{ entry_kind: 'observable_fact', body: values[0] }, { entry_kind: 'interpretation', body: values[1] }, { entry_kind: 'belief_expectation', body: values[3] }]);
       const records = await client.query("select record_type::text, value_text from public.formation_records where user_id=$1 and node_id like 'see-clearly.%' order by created_at", [actors[0]]);
@@ -58,18 +66,26 @@ describe('See Clearly lineage', () => {
   });
 
   it('rejects a stale repeat without partial writes', async () => {
+    const repository = curriculumRepository({ pool });
+    await saveSeeClearly({
+      observableFactText: 'original fact', interpretationText: 'original meaning',
+      beliefExpectationType: 'expectation', beliefExpectationText: 'original expectation',
+    }, {
+      repository: { saveSeeClearly: input => repository.transaction(transaction => transaction.saveSeeClearly(input)) },
+      actorClient: actorClient(actors[1]),
+    });
     const before = await pool.query(
       `select
         (select count(*)::integer from public.journal_entries where user_id=$1) journals,
         (select count(*)::integer from public.formation_records where user_id=$1) records,
-        (select count(*)::integer from public.formation_links where user_id=$1) links`, [actors[0]],
+        (select count(*)::integer from public.formation_links where user_id=$1) links`, [actors[1]],
     );
-    await expect(withAuthenticatedActor(pool, actors[0], client => client.query("select * from rts_private.save_see_clearly('new','new','expectation','new')"))).rejects.toMatchObject({ code: '40001' });
+    await expect(withAuthenticatedActor(pool, actors[1], client => client.query("select * from rts_private.save_see_clearly('new','new','expectation','new')"))).rejects.toMatchObject({ code: '40001' });
     const after = await pool.query(
       `select
         (select count(*)::integer from public.journal_entries where user_id=$1) journals,
         (select count(*)::integer from public.formation_records where user_id=$1) records,
-        (select count(*)::integer from public.formation_links where user_id=$1) links`, [actors[0]],
+        (select count(*)::integer from public.formation_links where user_id=$1) links`, [actors[1]],
     );
     expect(after.rows).toEqual(before.rows);
   });
@@ -105,48 +121,53 @@ describe('See Clearly lineage', () => {
   });
 
   it('prevents cross-owner lineage even through direct authenticated insertion', async () => {
-    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[1]]);
-    const target = await pool.query("select id from public.formation_records where user_id=$1 and record_type='observable_fact'", [actors[0]]);
-    await expect(withAuthenticatedActor(pool, actors[0], client => client.query(`insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id) values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[0], source.rows[0].id, target.rows[0].id]))).rejects.toMatchObject({ code: '23514' });
+    const repository = curriculumRepository({ pool });
+    await saveSeeClearly({ observableFactText: 'owned target', interpretationText: 'owned meaning', beliefExpectationType: 'belief', beliefExpectationText: 'owned belief' }, {
+      repository: { saveSeeClearly: input => repository.transaction(transaction => transaction.saveSeeClearly(input)) },
+      actorClient: actorClient(actors[4]),
+    });
+    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[3]]);
+    const target = await pool.query("select id from public.formation_records where user_id=$1 and record_type='observable_fact'", [actors[4]]);
+    await expect(withAuthenticatedActor(pool, actors[4], client => client.query(`insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id) values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[4], source.rows[0].id, target.rows[0].id]))).rejects.toMatchObject({ code: '23514' });
   });
 
   it('rejects structurally valid owner-matched lineage with the wrong source or target node', async () => {
-    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[1]]);
-    const wrongSource = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='internal_response'", [actors[1]]);
-    const wrongTarget = await pool.query("select id from public.formation_records where user_id=$1 and record_type='reaction'", [actors[1]]);
+    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[5]]);
+    const wrongSource = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='internal_response'", [actors[5]]);
+    const wrongTarget = await pool.query("select id from public.formation_records where user_id=$1 and record_type='reaction'", [actors[5]]);
     const targetJournal = await pool.query<{ id: string }>(
       `insert into public.journal_entries(user_id,curriculum_version_id,node_id,entry_kind,body)
-       values ($1,'phase-1-v1','see-clearly.fact','observable_fact','valid target fact') returning id`, [actors[1]],
+       values ($1,'phase-1-v1','see-clearly.fact','observable_fact','valid target fact') returning id`, [actors[5]],
     );
     const validTarget = await pool.query<{ id: string }>(
       `insert into public.formation_records(user_id,curriculum_version_id,node_id,record_type,value_text,source_journal_entry_id,provenance)
        values ($1,'phase-1-v1','see-clearly.fact','observable_fact','valid target fact',$2,'user_authored') returning id`,
-      [actors[1], targetJournal.rows[0].id],
+      [actors[5], targetJournal.rows[0].id],
     );
-    await expect(withAuthenticatedActor(pool, actors[1], client => client.query(
+    await expect(withAuthenticatedActor(pool, actors[5], client => client.query(
       `insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id)
-       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[1], source.rows[0].id, wrongTarget.rows[0].id],
+       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[5], source.rows[0].id, wrongTarget.rows[0].id],
     ))).rejects.toMatchObject({ code: '23514' });
-    await expect(withAuthenticatedActor(pool, actors[1], client => client.query(
+    await expect(withAuthenticatedActor(pool, actors[5], client => client.query(
       `insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id)
-       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[1], wrongSource.rows[0].id, validTarget.rows[0].id],
+       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[5], wrongSource.rows[0].id, validTarget.rows[0].id],
     ))).rejects.toMatchObject({ code: '23514' });
   });
 
   it('rejects owner-matched source and target identities from different curriculum versions', async () => {
-    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[1]]);
+    const source = await pool.query("select id from public.journal_entries where user_id=$1 and entry_kind='event'", [actors[6]]);
     const targetJournal = await pool.query<{ id: string }>(
       `insert into public.journal_entries(user_id,curriculum_version_id,node_id,entry_kind,body)
-       values ($1,$2,'see-clearly.fact','observable_fact','alternate fact') returning id`, [actors[1], alternateVersion],
+       values ($1,$2,'see-clearly.fact','observable_fact','alternate fact') returning id`, [actors[6], alternateVersion],
     );
     const targetRecord = await pool.query<{ id: string }>(
       `insert into public.formation_records(user_id,curriculum_version_id,node_id,record_type,value_text,source_journal_entry_id,provenance)
        values ($1,$2,'see-clearly.fact','observable_fact','alternate fact',$3,'user_authored') returning id`,
-      [actors[1], alternateVersion, targetJournal.rows[0].id],
+      [actors[6], alternateVersion, targetJournal.rows[0].id],
     );
-    await expect(withAuthenticatedActor(pool, actors[1], client => client.query(
+    await expect(withAuthenticatedActor(pool, actors[6], client => client.query(
       `insert into public.formation_links(user_id,link_type,source_journal_entry_id,target_formation_record_id)
-       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[1], source.rows[0].id, targetRecord.rows[0].id],
+       values ($1,'awaken_to_see_clearly',$2,$3)`, [actors[6], source.rows[0].id, targetRecord.rows[0].id],
     ))).rejects.toMatchObject({ code: '23514' });
   });
 });
