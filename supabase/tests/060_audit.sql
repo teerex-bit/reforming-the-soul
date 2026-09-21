@@ -1,5 +1,5 @@
 begin;
-select plan(23);
+select plan(25);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -34,6 +34,28 @@ select ok(
       'grant_ai_context', 'revoke_ai_context', 'delete_journal_entry_with_dependencies'
     ) and r.rolcanlogin
   ), 'privileged functions are owned by a non-login role'
+);
+select is(
+  (select count(*)::integer
+   from pg_proc function_row
+   join pg_namespace namespace on namespace.oid = function_row.pronamespace
+   join pg_roles owner_role on owner_role.oid = function_row.proowner
+   where namespace.nspname = 'public'
+     and function_row.proname in (
+       'transition_practice', 'record_practice_return', 'review_practice',
+       'grant_ai_context', 'revoke_ai_context', 'delete_journal_entry_with_dependencies'
+     )
+     and owner_role.rolname = 'rts_privileged_owner'),
+  6, 'all privileged functions are owned specifically by rts_privileged_owner'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_auth_members membership
+    join pg_roles granted_role on granted_role.oid = membership.roleid
+    where granted_role.rolname = 'rts_privileged_owner'
+  ),
+  'temporary ownership-transfer membership is fully revoked after migration'
 );
 select ok(
   not exists (

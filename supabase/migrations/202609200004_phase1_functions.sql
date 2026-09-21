@@ -362,6 +362,11 @@ end
 $$;
 
 grant create on schema public to rts_privileged_owner;
+do $$
+begin
+  execute format('grant rts_privileged_owner to %I with set true', current_user);
+end
+$$;
 
 alter function public.transition_practice(uuid, public.practice_state, integer, public.practice_state) owner to rts_privileged_owner;
 alter function public.record_practice_return(uuid, integer, text) owner to rts_privileged_owner;
@@ -385,3 +390,9 @@ grant execute on function public.review_practice(uuid, integer, text) to authent
 grant execute on function public.grant_ai_context(uuid, public.ai_grant_scope) to authenticated;
 grant execute on function public.revoke_ai_context(uuid, integer) to authenticated;
 grant execute on function public.delete_journal_entry_with_dependencies(uuid) to authenticated;
+
+do $$
+begin
+  execute format('revoke rts_privileged_owner from %I', current_user);
+end
+$$;
