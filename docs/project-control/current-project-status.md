@@ -18,6 +18,7 @@
 - Existing source contract suite remains 15/15 passing.
 - Task 0 completed test-first: the Overview preview is self-contained, all referenced authority assets resolve, and GET/HEAD/method/traversal behavior passes without changing `src`.
 - Task 1 installed deterministic unit, integration, pgTAP/Supabase, Playwright, accessibility, viewport, fake-AI, concurrency, and environment-safety foundations without feature or application-schema work.
+- Task 1 certification hardening now rejects arbitrary reused preview servers, bounds concurrency barriers with actionable timeouts, verifies simultaneous actor contexts, adds a rollback-only authenticated A/B RLS probe, and captures successful non-baseline browser evidence when Chromium is available.
 
 ## Approved architecture retained
 
@@ -29,8 +30,8 @@
 
 ## Current blockers and gates
 
-- Real database integration and pgTAP smokes require Docker/local Supabase, which is unavailable in the current execution environment.
-- Browser/a11y smokes require Playwright Chromium; repeated downloads timed out or produced a truncated archive in the current environment.
+- Real database integration and pgTAP smokes require Docker/local Supabase; this Work container has no Docker/Podman runtime and lacks nested-container capabilities.
+- Browser/a11y smokes require Playwright Chromium; the configured CDN currently returns no browser payload to this Work container, and no system Chromium is installed.
 - Task 2 should not begin until those Task 1 runtime smokes pass in suitable infrastructure.
 - Deployment/user testing remains blocked on verified OpenAI organization/project retention configuration and disclosure.
 
