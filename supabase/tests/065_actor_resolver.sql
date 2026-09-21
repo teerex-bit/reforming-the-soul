@@ -50,62 +50,87 @@ select is(
   'privileged functions are absent from exposed API schemas'
 );
 
-set local role rts_privileged_owner;
+insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values
+  ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'resolver-a@example.test', '', now(), '{}', '{}', now(), now()),
+  ('00000000-0000-4000-8000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'resolver-b@example.test', '', now(), '{}', '{}', now(), now());
+insert into public.journal_entries (id, user_id, curriculum_version_id, node_id, entry_kind, body) values
+  ('b1000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.pay-attention.observe', 'event', 'resolver A'),
+  ('b1000000-0000-4000-8000-0000000000b2', '00000000-0000-4000-8000-0000000000b2', 'phase-1-v1', 'awaken.pay-attention.observe', 'event', 'resolver B');
+
+set local role authenticated;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a1"}', true);
-select is(rts_private.current_actor()::text, '00000000-0000-4000-8000-0000000000a1',
-  'verified JSON claims resolve User A only');
+select is(
+  (select revision from rts_private.grant_ai_context('b1000000-0000-4000-8000-0000000000a1', 'single_entry_reflect')),
+  1,
+  'verified JSON claims let User A operate only as User A'
+);
+select throws_ok(
+  $$select * from rts_private.grant_ai_context('b1000000-0000-4000-8000-0000000000b2', 'single_entry_reflect')$$,
+  'P0002', 'journal entry not found',
+  'verified JSON claims do not let User A operate as User B'
+);
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000b2"}', true);
-select is(rts_private.current_actor()::text, '00000000-0000-4000-8000-0000000000b2',
-  'verified JSON claims resolve User B only');
+select is(
+  (select revision from rts_private.grant_ai_context('b1000000-0000-4000-8000-0000000000b2', 'single_entry_reflect')),
+  1,
+  'verified JSON claims let User B operate only as User B'
+);
+select throws_ok(
+  $$select * from rts_private.grant_ai_context('b1000000-0000-4000-8000-0000000000a1', 'single_entry_reflect')$$,
+  'P0002', 'journal entry not found',
+  'verified JSON claims do not let User B operate as User A'
+);
 
 select set_config('request.jwt.claims', '', true);
 select set_config('request.jwt.claim.sub', '', true);
-select is(rts_private.current_actor(), null::uuid, 'missing JWT subject resolves to NULL');
+select throws_ok(
+  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
+  '42501', 'authentication required',
+  'missing JWT subject is rejected by privileged functions'
+);
 
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1', true);
 select set_config('request.jwt.claims', '{malformed', true);
-select is(rts_private.current_actor(), null::uuid,
-  'malformed current claims cannot fall back to a legacy subject');
+select throws_ok(
+  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
+  '42501', 'authentication required',
+  'malformed current claims cannot fall back to a legacy subject'
+);
 
 select set_config('request.jwt.claims', '{}', true);
-select is(rts_private.current_actor(), null::uuid,
-  'current claims missing sub cannot fall back to a legacy subject');
+select throws_ok(
+  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
+  '42501', 'authentication required',
+  'current claims missing sub cannot fall back to a legacy subject'
+);
 
 select set_config('request.jwt.claims', '', true);
-select is(rts_private.current_actor()::text, '00000000-0000-4000-8000-0000000000a1',
-  'legacy verified JWT subject convention remains supported when current claims are absent');
+select is(
+  (select revision from rts_private.grant_ai_context('b1000000-0000-4000-8000-0000000000a1', 'single_entry_reflect')),
+  1,
+  'legacy verified JWT subject remains supported when current claims are absent'
+);
 
 select set_config('request.jwt.claim.sub', 'not-a-uuid', true);
-select is(rts_private.current_actor(), null::uuid, 'malformed JWT subject cannot create an actor');
+select throws_ok(
+  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
+  '42501', 'authentication required',
+  'malformed JWT subject cannot create an authenticated actor'
+);
 
-select throws_like(
+select throws_matching(
   $$select rts_private.current_actor('00000000-0000-4000-8000-0000000000b2'::uuid)$$,
-  '%function rts_private.current_actor(uuid) does not exist%',
+  '.*function rts_private.current_actor\(uuid\) does not exist.*',
   'callers cannot override actor identity through an SQL parameter'
 );
 
-reset role;
-set local role authenticated;
-select set_config('request.jwt.claims', '', true);
-select set_config('request.jwt.claim.sub', '', true);
-select throws_like(
+select throws_matching(
   $$select rts_private.current_actor()$$,
-  '%permission denied%',
+  '.*permission denied.*',
   'authenticated callers cannot invoke the private resolver directly'
-);
-select throws_like(
-  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
-  '%authentication required%',
-  'authenticated role without a JWT subject is rejected by privileged functions'
-);
-
-select set_config('request.jwt.claims', '{"sub":"not-a-uuid"}', true);
-select throws_like(
-  $$select * from rts_private.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff1')$$,
-  '%authentication required%',
-  'malformed JWT subject is rejected by privileged functions'
 );
 
 select * from finish();

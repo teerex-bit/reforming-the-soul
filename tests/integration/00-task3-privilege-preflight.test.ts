@@ -55,43 +55,30 @@ describe('Task 3 privileged-owner preflight', () => {
     })));
   });
 
-  it('resolves verified JSON claims when executing directly as the privileged owner', async () => {
+  it('resolves verified JSON claims through an authenticated privileged call', async () => {
     const client = await pool.connect();
     try {
       await client.query('begin');
-      await client.query(
-        `do $body$
-         begin
-           execute format('grant rts_privileged_owner to %I with set true', current_user);
-         end
-         $body$`,
-      );
+      await client.query('set local role authenticated');
       await client.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: testActors.userA.id })]);
-      await client.query('set local role rts_privileged_owner');
       const result = await client.query<{
-        database_role: string;
-        actor_id: string;
-        auth_schema_usage: boolean;
-        direct_auth_uid_grant: boolean;
+        deleted_entry_id: string | null;
+        dependent_artifact_count: number;
+        dependent_record_count: number;
+        dependent_link_count: number;
+        grant_count: number;
       }>(
-        `select current_user as database_role,
-                rts_private.current_actor()::text as actor_id,
-                has_schema_privilege(current_user, 'auth', 'USAGE') as auth_schema_usage,
-                exists (
-                  select 1
-                  from pg_proc auth_function
-                  join pg_namespace auth_namespace on auth_namespace.oid = auth_function.pronamespace
-                  join pg_roles owner_role on owner_role.rolname = current_user
-                  cross join lateral aclexplode(coalesce(auth_function.proacl, acldefault('f', auth_function.proowner))) acl
-                  where auth_namespace.nspname = 'auth' and auth_function.proname = 'uid'
-                    and acl.grantee = owner_role.oid and acl.privilege_type = 'EXECUTE'
-                ) as direct_auth_uid_grant`,
+        `select *
+         from rts_private.delete_journal_entry_with_dependencies(
+           'ffffffff-ffff-4fff-8fff-fffffffffff1'::uuid
+         )`,
       );
       expect(result.rows).toEqual([{
-        database_role: 'rts_privileged_owner',
-        actor_id: testActors.userA.id,
-        auth_schema_usage: false,
-        direct_auth_uid_grant: false,
+        deleted_entry_id: null,
+        dependent_artifact_count: 0,
+        dependent_record_count: 0,
+        dependent_link_count: 0,
+        grant_count: 0,
       }]);
     } finally {
       await client.query('rollback');

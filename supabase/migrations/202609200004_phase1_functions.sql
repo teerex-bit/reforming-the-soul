@@ -389,7 +389,17 @@ grant execute on function rts_private.revoke_ai_context(uuid, integer) to authen
 grant execute on function rts_private.delete_journal_entry_with_dependencies(uuid) to authenticated;
 
 do $$
+declare
+  v_member name;
 begin
-  execute format('revoke rts_privileged_owner from %I', current_user);
+  for v_member in
+    select member_role.rolname
+    from pg_auth_members membership
+    join pg_roles granted_role on granted_role.oid = membership.roleid
+    join pg_roles member_role on member_role.oid = membership.member
+    where granted_role.rolname = 'rts_privileged_owner'
+  loop
+    execute format('revoke rts_privileged_owner from %I', v_member);
+  end loop;
 end
 $$;

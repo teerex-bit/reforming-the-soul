@@ -48,13 +48,15 @@ select is(
      and owner_role.rolname = 'rts_privileged_owner'),
   6, 'all privileged functions are owned specifically by rts_privileged_owner'
 );
-select ok(
-  not exists (
-    select 1
+select is(
+  coalesce((
+    select array_agg(member_role.rolname order by member_role.rolname)::text
     from pg_auth_members membership
     join pg_roles granted_role on granted_role.oid = membership.roleid
+    join pg_roles member_role on member_role.oid = membership.member
     where granted_role.rolname = 'rts_privileged_owner'
-  ),
+  ), '{}'),
+  '{}',
   'temporary ownership-transfer membership is fully revoked after migration'
 );
 select ok(
