@@ -101,6 +101,21 @@ jobs:
       - name: Browser and visual-authority tests
         run: npm run test:e2e
 
+      - name: Exact vertical slice from clean database twice
+        shell: bash
+        env:
+          RTS_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+        run: |
+          set -euo pipefail
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          for repetition in 1 2; do
+            npx supabase db reset --local --workdir .
+            npx playwright test tests/e2e/vertical-slice.spec.ts tests/e2e/user-isolation.spec.ts
+          done
+
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4
