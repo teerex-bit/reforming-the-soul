@@ -169,21 +169,25 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
     // 20–21. Explicitly permit one earlier entry and use only that selected context.
     await page.goto(practiceUrl);
     await expect(page.getByText(VERTICAL_SLICE.awaken.event)).toBeVisible();
-    await page.getByRole('button', { name: 'Allow this entry' }).click();
-    const activeGrant = (await pool.query(
-      `select id,revision from public.ai_context_grants
-       where user_id=$1 and journal_entry_id=(select id from public.journal_entries where user_id=$1 and entry_kind='event') and revoked_at is null`,
+    const source = (await pool.query(
+      `select id from public.journal_entries where user_id=$1 and node_id='awaken.pay-attention.observe' and entry_kind='event'`,
       [userId],
-    )).rows[0] as { id: string; revision: number };
+    )).rows[0].id as string;
+    await page.getByRole('button', { name: 'Allow this entry' }).click();
+    let activeGrant: { id: string; revision: number } | undefined;
+    await expect.poll(async () => {
+      activeGrant = (await pool.query(
+        `select id,revision from public.ai_context_grants
+         where user_id=$1 and journal_entry_id=$2 and scope='single_entry_reflect' and revoked_at is null`,
+        [userId, source],
+      )).rows[0];
+      return activeGrant ? `${activeGrant.id}:${activeGrant.revision}` : '';
+    }).toMatch(/^[0-9a-f-]{36}:[1-9][0-9]*$/i);
     await page.getByRole('button', { name: 'Reflect with AI' }).click();
     await expect(page.getByText(VERTICAL_SLICE.ai.selectedQuestion)).toBeVisible();
     await page.getByRole('button', { name: 'Save AI suggestion' }).click();
     await expect.poll(async () => Number((await pool.query('select count(*) from public.ai_artifacts where user_id=$1', [userId])).rows[0].count)).toBe(1);
 
-    const source = (await pool.query(
-      `select id from public.journal_entries where user_id=$1 and node_id='awaken.pay-attention.observe' and entry_kind='event'`,
-      [userId],
-    )).rows[0].id as string;
     const artifact = (await pool.query(
       `select id,curriculum_version_id,provenance::text,status::text,model_id,
               global_policy_version,stage_policy_version,mode_policy_version,output_schema_version
@@ -195,16 +199,24 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
       model_id: expect.any(String), global_policy_version: expect.any(String), stage_policy_version: expect.any(String),
       mode_policy_version: expect.any(String), output_schema_version: expect.any(String),
     });
+    await expect.poll(async () => Number((await pool.query(
+      'select count(*) from public.ai_artifact_sources where user_id=$1 and artifact_id=$2',
+      [userId, artifact.id],
+    )).rows[0].count)).toBe(2);
     expect((await pool.query(
       `select source_role::text,journal_entry_id,context_grant_id,grant_revision
        from public.ai_artifact_sources where user_id=$1 and artifact_id=$2 order by source_role::text`,
       [userId, artifact.id],
     )).rows).toEqual([
       { source_role: 'current', journal_entry_id: reviewEntryId.id, context_grant_id: null, grant_revision: null },
-      { source_role: 'selected_prior', journal_entry_id: source, context_grant_id: activeGrant.id, grant_revision: activeGrant.revision },
+      { source_role: 'selected_prior', journal_entry_id: source, context_grant_id: activeGrant!.id, grant_revision: activeGrant!.revision },
     ]);
     await page.getByRole('button', { name: 'Revoke permission' }).click();
     await expect(page.getByRole('button', { name: 'Allow this entry' })).toBeVisible();
+    await expect.poll(async () => (await pool.query(
+      'select revision,revoked_at is not null as revoked from public.ai_context_grants where id=$1 and user_id=$2',
+      [activeGrant!.id, userId],
+    )).rows[0]).toEqual({ revision: activeGrant!.revision + 1, revoked: true });
     await page.goto(appRuntimeUrl('/history'));
     await expect(page.getByText('AI suggestion').first()).toBeVisible();
 
@@ -220,9 +232,13 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
     await sourceArticle.getByRole('button', { name: 'Delete entry' }).click();
     await sourceArticle.getByRole('button', { name: 'Permanently delete entry' }).click();
     await expect(page.getByText(VERTICAL_SLICE.awaken.event)).toHaveCount(0);
-    expect((await pool.query('select count(*) from public.journal_entries where id=$1', [source])).rows[0].count).toBe('0');
-    expect((await pool.query('select count(*) from public.ai_artifacts where id=$1', [dependentArtifact])).rows[0].count).toBe('0');
-    expect((await pool.query('select count(*) from public.ai_context_grants where user_id=$1 and journal_entry_id=$2', [userId, source])).rows[0].count).toBe('0');
+    await expect.poll(async () => (await pool.query(
+      `select
+         (select count(*)::integer from public.journal_entries where id=$1) journal_count,
+         (select count(*)::integer from public.ai_artifacts where id=$2) artifact_count,
+         (select count(*)::integer from public.ai_context_grants where user_id=$3 and journal_entry_id=$1) grant_count`,
+      [source, dependentArtifact, userId],
+    )).rows[0]).toEqual({ journal_count: 0, artifact_count: 0, grant_count: 0 });
     expect((await pool.query('select current_node_id,state,completed_node_ids from public.user_curriculum_state where user_id=$1', [userId])).rows[0]).toEqual(progressBefore);
   } finally {
     await pool.end();
