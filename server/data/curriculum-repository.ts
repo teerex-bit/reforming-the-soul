@@ -6,9 +6,11 @@ import { validateCurriculumSeed } from '../../domain/curriculum';
 export type ResumeState = Readonly<{ currentNodeId: string; state: 'not_started' | 'in_progress' | 'completed'; completedNodeIds: readonly string[] }>;
 export type AwakenObservationInput = Readonly<{ actorId: string; eventText: string; internalResponseText: string; bodyCueText: string }>;
 export type AwakenObservationResult = Readonly<{ currentNodeId: string }>;
+export type SeeClearlyInput = Readonly<{ actorId: string; observableFactText: string; interpretationText: string; beliefExpectationType: 'belief' | 'expectation'; beliefExpectationText: string }>;
 
 export interface ObservationTransaction {
   saveAwakenObservation(input: AwakenObservationInput): Promise<AwakenObservationResult>;
+  saveSeeClearly(input: SeeClearlyInput): Promise<AwakenObservationResult>;
 }
 
 export interface CurriculumRepository {
@@ -56,6 +58,15 @@ export function curriculumRepository({ pool: suppliedPool }: { pool?: pg.Pool } 
               [input.eventText, input.internalResponseText, input.bodyCueText],
             );
             if (!result.rows[0]) throw new Error('Awaken observation could not be saved.');
+            return { currentNodeId: result.rows[0].current_node_id };
+          },
+          async saveSeeClearly(input) {
+            await authenticateConnection(client, input.actorId);
+            const result = await client.query<{ current_node_id: string }>(
+              'select current_node_id from rts_private.save_see_clearly($1, $2, $3, $4)',
+              [input.observableFactText, input.interpretationText, input.beliefExpectationType, input.beliefExpectationText],
+            );
+            if (!result.rows[0]) throw new Error('See Clearly reflection could not be saved.');
             return { currentNodeId: result.rows[0].current_node_id };
           },
         });

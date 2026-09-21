@@ -46,6 +46,15 @@ describe('CurriculumRenderer', () => {
     expect(screen.getByRole('button', { name: 'Save and continue' })).toBeInTheDocument();
   });
 
+  it('renders See Clearly as one form with fact and interpretation visibly separate and one belief type choice', () => {
+    const nodes = PHASE_1_NODES.filter(candidate => candidate.id.startsWith('see-clearly.'));
+    render(<CurriculumRenderer nodes={nodes} onSubmit={vi.fn()} />);
+    expect(screen.getByRole('heading', { name: 'What is the observable fact?' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What is my interpretation?' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'belief' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'expectation' })).toBeInTheDocument();
+  });
+
   it('preserves an authored action while making an unhandled interaction explicitly unavailable', () => {
     const node = PHASE_1_NODES.find(candidate => candidate.id === 'awaken.pay-attention.reflect');
     if (!node) throw new Error('Awaken reflect fixture is missing');
