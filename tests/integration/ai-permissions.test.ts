@@ -14,6 +14,7 @@ async function fixture(){const user=randomUUID();users.push(user);await pool.que
 afterAll(async()=>{await pool.query('delete from auth.users where id=any($1::uuid[])',[users]);await pool.end()});
 
 describe('selected-prior Reflect authorization',()=>{
+ it('loads the owned practice review and selectable prior entry for the permission UI',async()=>{const a=await fixture(),repository=aiContextGrantRepository({pool});await expect(repository.findForPractice(a.user,a.practice)).resolves.toEqual({currentEntryId:a.current,source:{id:a.prior,preview:'Earlier exact words',grant:null}})});
  it('denies direct authenticated fabrication of owned AI provenance tables',async()=>{
   const a=await fixture();
   const attempts=[
