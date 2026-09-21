@@ -1,0 +1,34 @@
+:root {
+  --color-navy: #06223a;
+  --color-navy-deep: #031d32;
+  --color-ivory: #faf6ef;
+  --color-ivory-secondary: #f5efe5;
+  --color-paper: #fffdfa;
+  --color-gold: #c88a31;
+  --color-green: #607c43;
+  --color-text: #13263a;
+  --color-line: #ded8cf;
+  --color-sage: #e9eee3;
+
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: Arial, Helvetica, sans-serif;
+
+  --content-reading: 46rem;
+  --content-editorial: 70rem;
+  --content-wide: 100rem;
+
+  --gutter-mobile: 1.375rem;
+  --gutter-page: clamp(2.5rem, 7vw, 7rem);
+  --section-space: clamp(4rem, 8vw, 8rem);
+
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.625rem;
+  --focus-ring: 0 0 0 3px var(--color-gold);
+}
