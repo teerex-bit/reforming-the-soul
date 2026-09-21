@@ -7,6 +7,13 @@ import { VERTICAL_SLICE } from '../fixtures/vertical-slice';
 
 test.describe.configure({ mode: 'serial' });
 
+async function expectPracticeState(pool: pg.Pool, practiceId: string, userId: string, expected: string) {
+  await expect.poll(async () => (await pool.query(
+    'select state::text from public.practices where id=$1 and user_id=$2',
+    [practiceId, userId],
+  )).rows[0]?.state ?? null).toBe(expected);
+}
+
 test('the exact approved vertical slice works end to end', async ({ page }, testInfo) => {
   const user = e2eUser('vertical-slice', testInfo.project.name);
   const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
@@ -67,7 +74,7 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
     const practiceUrl = appRuntimeUrl(`/practices/${practiceId}`);
     await expect(page).toHaveURL(practiceUrl);
     await expect(page.getByText('waiting for real life')).toBeVisible();
-    expect((await pool.query('select state::text from public.practices where id=$1 and user_id=$2', [practiceId, userId])).rows[0].state).toBe('waiting_for_real_life');
+    await expectPracticeState(pool, practiceId, userId, 'waiting_for_real_life');
 
     // 14–16. Leave, authenticate later, and surface unfinished practice separately.
     await Promise.all([
@@ -124,16 +131,22 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
     // 17–18. Record the outcome, review it, then close the practice.
     await page.getByLabel(/What happened/).fill(VERTICAL_SLICE.practice.outcome);
     await page.getByRole('button', { name: 'Save what happened' }).click();
-    expect((await pool.query('select state::text from public.practices where id=$1 and user_id=$2', [practiceId, userId])).rows[0].state).toBe('ready_to_review');
-    expect((await pool.query(
+    await expectPracticeState(pool, practiceId, userId, 'ready_to_review');
+    await expect.poll(async () => (await pool.query(
       `select outcome.body from public.practice_returns pr
        join public.journal_entries outcome on (outcome.id,outcome.user_id)=(pr.outcome_entry_id,pr.user_id)
        where pr.practice_id=$1 and pr.user_id=$2`,
       [practiceId, userId],
-    )).rows[0].body).toBe(VERTICAL_SLICE.practice.outcome);
+    )).rows[0]?.body ?? null).toBe(VERTICAL_SLICE.practice.outcome);
     await page.getByLabel('What are you noticing now?').fill(VERTICAL_SLICE.practice.review);
     await page.getByRole('button', { name: 'Save review' }).click();
-    expect((await pool.query('select state::text from public.practices where id=$1 and user_id=$2', [practiceId, userId])).rows[0].state).toBe('reviewed');
+    await expectPracticeState(pool, practiceId, userId, 'reviewed');
+    await expect.poll(async () => (await pool.query(
+      `select review.body from public.practice_returns pr
+       join public.journal_entries review on (review.id,review.user_id)=(pr.review_entry_id,pr.user_id)
+       where pr.practice_id=$1 and pr.user_id=$2`,
+      [practiceId, userId],
+    )).rows[0]?.body ?? null).toBe(VERTICAL_SLICE.practice.review);
     const reviewEntryId = (await pool.query(
       `select review.id,review.body from public.practice_returns pr
        join public.journal_entries review on (review.id,review.user_id)=(pr.review_entry_id,pr.user_id)
@@ -144,7 +157,7 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
 
     await page.getByRole('button', { name: 'Close practice' }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    expect((await pool.query('select state::text from public.practices where id=$1 and user_id=$2', [practiceId, userId])).rows[0].state).toBe('closed');
+    await expectPracticeState(pool, practiceId, userId, 'closed');
     await expect(page.getByRole('link', { name: 'Return to this practice' })).toHaveCount(0);
 
     // 19. History labels user wording and structured records separately.
