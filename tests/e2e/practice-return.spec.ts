@@ -13,5 +13,6 @@ test('Become practice survives sign-out, returns, reviews, and closes',async({pa
   await expect(page.getByRole('link',{name:'Resume'})).toHaveAttribute('href','/formation/become.practice.return');await page.getByRole('link',{name:'Return to this practice'}).click();
   await page.getByLabel(/What happened/).fill('I asked and learned the agenda was shortened.');await page.getByRole('button',{name:'Save what happened'}).click();await page.getByLabel('What are you noticing now?').fill('I can ask before assuming.');await page.getByRole('button',{name:'Save review'}).click();await page.getByRole('button',{name:'Close practice'}).click();
   await expect(page.getByRole('link',{name:'Return to this practice'})).toHaveCount(0);await expect(page.getByRole('link',{name:'Resume'})).toBeVisible();
+  await page.getByRole('link',{name:'View formation history'}).click();await expect(page).toHaveURL(/\/history$/);await expect(page.getByRole('heading',{name:'Your words and what they formed'})).toBeVisible();await expect(page.getByText('User wording').first()).toBeVisible();await expect(page.getByText('Structured by you').first()).toBeVisible();await expect(page.getByText('The meeting ended early.').first()).toBeVisible();await expect(page.getByText(/curriculum progress/i)).toHaveCount(0);
  }finally{await resetLocalE2eAccount(email)}
 });
