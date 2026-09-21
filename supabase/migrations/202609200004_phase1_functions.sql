@@ -391,6 +391,9 @@ grant execute on function public.grant_ai_context(uuid, public.ai_grant_scope) t
 grant execute on function public.revoke_ai_context(uuid, integer) to authenticated;
 grant execute on function public.delete_journal_entry_with_dependencies(uuid) to authenticated;
 
+grant usage on schema auth to rts_privileged_owner;
+grant execute on function auth.uid() to rts_privileged_owner;
+
 do $$
 begin
   execute format('revoke rts_privileged_owner from %I', current_user);

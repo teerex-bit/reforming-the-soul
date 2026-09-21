@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(29);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -58,6 +58,29 @@ select ok(
   'temporary ownership-transfer membership is fully revoked after migration'
 );
 select ok(
+  has_schema_privilege('rts_privileged_owner', 'auth', 'usage'),
+  'privileged function owner can resolve the auth schema'
+);
+select ok(
+  has_function_privilege('rts_privileged_owner', 'auth.uid()', 'execute'),
+  'privileged function owner can execute auth.uid()'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_class relation
+    join pg_namespace namespace on namespace.oid = relation.relnamespace
+    where namespace.nspname = 'auth'
+      and relation.relkind in ('r', 'p', 'v', 'm', 'f')
+      and has_table_privilege(
+        'rts_privileged_owner',
+        relation.oid,
+        'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'
+      )
+  ),
+  'privileged function owner has no effective auth relation privileges through direct, PUBLIC, or inherited ACLs'
+);
+select ok(
   not exists (
     select 1
     from pg_proc p
@@ -99,6 +122,41 @@ select ok(
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1', true);
+select lives_ok(
+  $test$
+  do $body$
+  begin
+    begin
+      perform public.transition_practice('ffffffff-ffff-4fff-8fff-fffffffffff1', 'draft', 0, 'open');
+      raise exception 'transition_practice unexpectedly found a row';
+    exception when no_data_found then null;
+    end;
+    begin
+      perform public.record_practice_return('ffffffff-ffff-4fff-8fff-fffffffffff2', 0, 'test');
+      raise exception 'record_practice_return unexpectedly found a row';
+    exception when no_data_found then null;
+    end;
+    begin
+      perform public.review_practice('ffffffff-ffff-4fff-8fff-fffffffffff3', 0, 'test');
+      raise exception 'review_practice unexpectedly found a row';
+    exception when no_data_found then null;
+    end;
+    begin
+      perform public.grant_ai_context('ffffffff-ffff-4fff-8fff-fffffffffff4', 'single_entry_reflect');
+      raise exception 'grant_ai_context unexpectedly found a row';
+    exception when no_data_found then null;
+    end;
+    begin
+      perform public.revoke_ai_context('ffffffff-ffff-4fff-8fff-fffffffffff5', 1);
+      raise exception 'revoke_ai_context unexpectedly found a row';
+    exception when no_data_found then null;
+    end;
+    perform public.delete_journal_entry_with_dependencies('ffffffff-ffff-4fff-8fff-fffffffffff6');
+  end
+  $body$
+  $test$,
+  'every privileged function resolves auth.uid under authenticated invocation'
+);
 select is(
   (select revision from public.grant_ai_context('a1000000-0000-4000-8000-0000000000a1', 'single_entry_reflect')),
   1, 'explicit grant begins at revision one'

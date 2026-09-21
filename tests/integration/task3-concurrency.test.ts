@@ -82,10 +82,16 @@ describe('Task 3 concurrency boundaries', () => {
 
       const fulfilled = attempts.filter(result => result.status === 'fulfilled');
       const rejected = attempts.filter(result => result.status === 'rejected');
-      expect(fulfilled).toHaveLength(1);
-      expect(fulfilled[0]).toMatchObject({ value: { state: 'open', lock_version: 1 } });
-      expect(rejected).toHaveLength(1);
-      expect((rejected[0] as PromiseRejectedResult).reason).toMatchObject({ code: '40001' });
+      expect({
+        successes: fulfilled.map(result => result.value),
+        failures: rejected.map(result => ({
+          code: (result.reason as { code?: string }).code,
+          message: (result.reason as { message?: string }).message,
+        })),
+      }).toEqual({
+        successes: [{ state: 'open', lock_version: 1 }],
+        failures: [expect.objectContaining({ code: '40001' })],
+      });
       await expect(pool.query(
         'select state::text, lock_version from public.practices where id = $1',
         [practiceId],
