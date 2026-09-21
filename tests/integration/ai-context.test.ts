@@ -1,9 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createTestPool, withAuthenticatedActor } from '../helpers/db';
+import { createTestPool } from '../helpers/db';
 import { aiReflectRepository } from '../../server/data/ai-reflect-repository';
 import { currentReflectFingerprint, reflectOnCurrentEntry, saveConfirmedReflectInsight } from '../../server/services/ai-reflect-service';
 import { REFLECT_VERSIONS } from '../../server/ai/context-builder';
+import { curriculumRepository } from '../../server/data/curriculum-repository';
+import { saveAwakenObservation } from '../../server/services/observation-service';
 
 const pool = createTestPool();
 const actors: string[] = [];
@@ -11,9 +13,10 @@ async function actorAtReflect() {
   const id = randomUUID(); actors.push(id);
   await pool.query(`insert into auth.users (id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at)
     values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'',now(),'{}','{}',now(),now())`, [id, `${id}@rts.test`]);
-  await withAuthenticatedActor(pool, id, client => client.query(
-    'select * from rts_private.save_awaken_observation($1,$2,$3)', ['event exact', 'inside exact', 'body exact'],
-  ));
+  await saveAwakenObservation(
+    { eventText: 'event exact', internalResponseText: 'inside exact', bodyCueText: 'body exact' },
+    { repository: curriculumRepository({ pool }), actorClient: clientFor(id) },
+  );
   return id;
 }
 const clientFor = (id: string) => ({ auth: { getUser: async () => ({ data: { user: { id, email: null } }, error: null }) } });
