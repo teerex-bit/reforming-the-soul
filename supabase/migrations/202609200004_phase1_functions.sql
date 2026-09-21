@@ -396,6 +396,7 @@ begin
     join pg_roles granted_role on granted_role.oid = membership.roleid
     join pg_roles member_role on member_role.oid = membership.member
     where granted_role.rolname = 'rts_privileged_owner'
+      and membership.grantor = current_user::regrole
   loop
     execute format('revoke rts_privileged_owner from %I', v_member);
   end loop;

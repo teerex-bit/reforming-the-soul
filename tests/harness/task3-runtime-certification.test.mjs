@@ -14,6 +14,8 @@ const functionMigration = readFileSync(
   path.join(project, 'supabase/migrations/202609200004_phase1_functions.sql'),
   'utf8',
 );
+const auditTests = readFileSync(path.join(project, 'supabase/tests/060_audit.sql'), 'utf8');
+const actorTests = readFileSync(path.join(project, 'supabase/tests/065_actor_resolver.sql'), 'utf8');
 
 function stepIndex(name) {
   const index = workflow.indexOf(`- name: ${name}`);
@@ -129,4 +131,16 @@ test('private ownership transfer never relies on inherited migration-role privil
     functionMigration.indexOf('reset role;')
       < functionMigration.indexOf("revoke rts_privileged_owner from %I"),
   );
+});
+
+test('PostgreSQL 17 role and schema ownership assertions target effective privilege boundaries', () => {
+  assert.match(auditTests, /'member', 'postgres'/);
+  assert.match(auditTests, /'grantor', 'supabase_admin'/);
+  assert.match(auditTests, /membership\.admin_option/);
+  assert.match(auditTests, /'inherit_option', false/);
+  assert.match(auditTests, /'set_option', false/);
+  assert.match(auditTests, /not privileged_owner\.rolcanlogin/);
+  assert.match(actorTests, /acl\.grantee <> namespace\.nspowner/);
+  assert.match(securityMigration, /membership\.grantor = current_user::regrole/);
+  assert.match(functionMigration, /membership\.grantor = current_user::regrole/);
 });

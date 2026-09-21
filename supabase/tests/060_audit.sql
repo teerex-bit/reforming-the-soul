@@ -1,5 +1,5 @@
 begin;
-select plan(29);
+select plan(30);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -49,22 +49,37 @@ select is(
   6, 'all privileged functions are owned specifically by rts_privileged_owner'
 );
 select is(
-  coalesce((
+  coalesce(
+    (
     select jsonb_agg(jsonb_build_object(
       'member', member_role.rolname,
       'grantor', grantor_role.rolname,
       'admin_option', membership.admin_option,
       'inherit_option', membership.inherit_option,
       'set_option', membership.set_option
-    ) order by member_role.rolname, grantor_role.rolname)::text
+    ) order by member_role.rolname, grantor_role.rolname)
     from pg_auth_members membership
     join pg_roles granted_role on granted_role.oid = membership.roleid
     join pg_roles member_role on member_role.oid = membership.member
     join pg_roles grantor_role on grantor_role.oid = membership.grantor
     where granted_role.rolname = 'rts_privileged_owner'
-  ), '[]'),
-  '[]',
-  'temporary ownership-transfer membership is fully revoked after migration'
+    ),
+    '[]'::jsonb
+  ),
+  jsonb_build_array(jsonb_build_object(
+    'member', 'postgres',
+    'grantor', 'supabase_admin',
+    'admin_option', true,
+    'inherit_option', false,
+    'set_option', false
+  )),
+  'only PostgreSQL 17 implicit creator ADMIN membership remains; it cannot inherit or SET ROLE'
+);
+select ok(
+  (select not privileged_owner.rolcanlogin
+   from pg_roles privileged_owner
+   where privileged_owner.rolname = 'rts_privileged_owner'),
+  'privileged owner remains NOLOGIN'
 );
 select ok(
   not has_schema_privilege('rts_privileged_owner', 'auth', 'usage'),

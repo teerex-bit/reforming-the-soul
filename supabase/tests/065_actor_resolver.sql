@@ -17,13 +17,12 @@ select ok(
   not exists (
     select 1
     from pg_namespace namespace
-    join pg_roles privileged_owner on privileged_owner.rolname = 'rts_privileged_owner'
     cross join lateral aclexplode(coalesce(namespace.nspacl, '{}'::aclitem[])) acl
     where namespace.nspname = 'rts_private'
-      and acl.grantee = privileged_owner.oid
       and acl.privilege_type = 'CREATE'
+      and acl.grantee <> namespace.nspowner
   ),
-  'no externally granted schema CREATE ACL remains after ownership transfer'
+  'no non-owner schema CREATE ACL remains after ownership transfer'
 );
 select ok(
   not has_schema_privilege('anon', 'rts_private', 'usage'),
