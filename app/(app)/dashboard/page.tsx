@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { AppShell } from '../../../components/design-system/AppShell';
 import { resumeCurriculum } from '../../../server/services/curriculum-service';
+import { getUnfinishedPractice } from '../../../server/services/practice-service';
+import { PracticePanel } from '../../../components/design-system/PracticePanel';
 
 function stageLabel(nodeId: string): 'Awaken' | 'See Clearly' | 'Become' | 'Join' {
   if (nodeId.startsWith('see-clearly') || nodeId === 'bridge.awaken-see-clearly') return 'See Clearly';
@@ -9,7 +11,7 @@ function stageLabel(nodeId: string): 'Awaken' | 'See Clearly' | 'Become' | 'Join
 }
 
 export default async function DashboardPage() {
-  const resume = await resumeCurriculum();
+  const [resume, practice] = await Promise.all([resumeCurriculum(), getUnfinishedPractice()]);
   const stage = stageLabel(resume.currentNodeId);
   return <AppShell stage={stage}>
     <section className="reflection-panel">
@@ -18,5 +20,6 @@ export default async function DashboardPage() {
       <p>Your curriculum resume point is kept separate from any practice you may later open or return to.</p>
       <Link className="button" href={`/formation/${resume.currentNodeId}`}>Resume</Link>
     </section>
+    {practice ? <PracticePanel state={practice.state.replaceAll('_',' ')} nextStep={practice.nextRightStepText} returnAction={<Link className="button" href={`/practices/${practice.id}`}>Return to this practice</Link>} /> : null}
   </AppShell>;
 }

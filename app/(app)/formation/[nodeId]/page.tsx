@@ -7,6 +7,8 @@ import { saveAwakenObservation } from '../../../../server/services/observation-s
 import { AIReflectPanel } from '../../../../components/ai/AIReflectPanel';
 import { saveConfirmedReflectInsight } from '../../../../server/services/ai-reflect-service';
 import { saveSeeClearly } from '../../../../server/services/see-clearly-service';
+import { createPractice } from '../../../../server/services/practice-service';
+import { PracticeForm } from '../../../../components/practice/PracticeForm';
 
 const awakenObservationIds = ['awaken.pay-attention.observe', 'awaken.pay-attention.inside', 'awaken.pay-attention.body'];
 const seeClearlyIds = ['see-clearly.fact', 'see-clearly.interpretation', 'see-clearly.belief-expectation'];
@@ -47,9 +49,14 @@ export default async function FormationNodePage({ params }: { params: Promise<{ 
   const seeClearlyNodes = nodeId === 'see-clearly.fact'
     ? PHASE_1_NODES.filter(candidate => seeClearlyIds.includes(candidate.id))
     : undefined;
+  async function savePractice(values: { controlTargetText: string; presentTruthText: string; nextRightStepText: string }) {
+    'use server';
+    const practice = await createPractice(values);
+    redirect(`/practices/${practice.id}`);
+  }
 
   return <AppShell stage={node.stage === 'see-clearly' ? 'See Clearly' : node.stage === 'become' ? 'Become' : 'Awaken'}>
-    {nodeId === 'awaken.pay-attention.reflect'
+    {nodeId === 'become.control' ? <PracticeForm submit={savePractice} /> : nodeId === 'awaken.pay-attention.reflect'
       ? <AIReflectPanel saveInsight={saveInsight} />
       : <CurriculumRenderer node={node} nodes={observationNodes ?? seeClearlyNodes} onSubmit={observationNodes ? save : seeClearlyNodes ? saveClarity : undefined} />}
   </AppShell>;
