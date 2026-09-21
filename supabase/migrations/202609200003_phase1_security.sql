@@ -8,6 +8,7 @@ $$;
 
 do $$
 begin
+  execute format('grant rts_privileged_owner to %I with inherit false', current_user);
   execute format('grant rts_privileged_owner to %I with set true', current_user);
 end
 $$;

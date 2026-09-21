@@ -14,42 +14,47 @@ values ('82000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000
   '81000000-0000-4000-8000-000000000001', '81000000-0000-4000-8000-000000000002', '81000000-0000-4000-8000-000000000003', 'draft');
 
 create temporary table practices (id uuid primary key, state text);
-set local search_path = pg_temp, public;
+set local search_path = pg_temp, public, extensions;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000b2', true);
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', 0, 'open')$$,
-  'P0002', 'practice not found', 'privileged transition does not expose or mutate another owner practice'
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', 0, 'open')$$::text,
+  'P0002'::character(5), 'practice not found'::text,
+  'privileged transition does not expose or mutate another owner practice'::text
 );
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1', true);
-select throws_matching($$update public.practices set state = 'closed' where id = '82000000-0000-4000-8000-000000000001'$$,
-  '.*permission denied.*', 'direct lifecycle mutation is denied');
+select throws_matching($$update public.practices set state = 'closed' where id = '82000000-0000-4000-8000-000000000001'$$::text,
+  '.*permission denied.*'::text, 'direct lifecycle mutation is denied'::text);
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', null, 0, 'open')$$,
-  '22004', 'expected practice state, lock version, and target state are required', 'null expected state cannot bypass transition validation');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', null, 0, 'open')$$::text,
+  '22004'::character(5), 'expected practice state, lock version, and target state are required'::text,
+  'null expected state cannot bypass transition validation'::text);
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', null, 'open')$$,
-  '22004', 'expected practice state, lock version, and target state are required', 'null lock version cannot bypass optimistic locking');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', null, 'open')$$::text,
+  '22004'::character(5), 'expected practice state, lock version, and target state are required'::text,
+  'null lock version cannot bypass optimistic locking'::text);
 select results_eq(
   $$select state::text, lock_version from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', 0, 'open')$$,
   $$values ('open'::text, 1)$$, 'fixed search path ignores a caller-created shadow table');
 select ok((select opened_at is not null from public.practices where id = '82000000-0000-4000-8000-000000000001'),
   'opening records its lifecycle timestamp');
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', 0, 'open')$$,
-  '40001', 'stale practice state or lock version', 'stale transition attempts fail');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'draft', 0, 'open')$$::text,
+  '40001'::character(5), 'stale practice state or lock version'::text, 'stale transition attempts fail'::text);
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'open', 1, 'reviewed')$$,
-  '22023', 'invalid practice transition', 'invalid state edges fail');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'open', 1, 'reviewed')$$::text,
+  '22023'::character(5), 'invalid practice transition'::text, 'invalid state edges fail'::text);
 select results_eq(
   $$select state::text, lock_version from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'open', 1, 'waiting_for_real_life')$$,
   $$values ('waiting_for_real_life'::text, 2)$$, 'open transitions to waiting_for_real_life');
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'waiting_for_real_life', 2, 'ready_to_review')$$,
-  '22023', 'invalid practice transition', 'generic transition cannot bypass required return creation');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'waiting_for_real_life', 2, 'ready_to_review')$$::text,
+  '22023'::character(5), 'invalid practice transition'::text,
+  'generic transition cannot bypass required return creation'::text);
 select throws_ok(
-  $$select * from rts_private.record_practice_return('82000000-0000-4000-8000-000000000001', null, 'outcome')$$,
-  '22004', 'expected practice lock version is required', 'return recording cannot bypass optimistic locking with null');
+  $$select * from rts_private.record_practice_return('82000000-0000-4000-8000-000000000001', null, 'outcome')$$::text,
+  '22004'::character(5), 'expected practice lock version is required'::text,
+  'return recording cannot bypass optimistic locking with null'::text);
 select results_eq(
   $$select state::text, lock_version from rts_private.record_practice_return('82000000-0000-4000-8000-000000000001', 2, '  exact outcome text  ')$$,
   $$values ('ready_to_review'::text, 3)$$, 'recording a return moves the practice atomically');
@@ -57,11 +62,13 @@ select is((select body from public.journal_entries where entry_kind = 'practice_
   'return preserves exact user wording');
 select is((select count(*)::integer from public.practice_returns), 1, 'one return row is created');
 select throws_ok(
-  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'ready_to_review', 3, 'reviewed')$$,
-  '22023', 'invalid practice transition', 'generic transition cannot bypass required review journal creation');
+  $$select * from rts_private.transition_practice('82000000-0000-4000-8000-000000000001', 'ready_to_review', 3, 'reviewed')$$::text,
+  '22023'::character(5), 'invalid practice transition'::text,
+  'generic transition cannot bypass required review journal creation'::text);
 select throws_ok(
-  $$select * from rts_private.review_practice('82000000-0000-4000-8000-000000000001', null, 'review')$$,
-  '22004', 'expected practice lock version is required', 'review cannot bypass optimistic locking with null');
+  $$select * from rts_private.review_practice('82000000-0000-4000-8000-000000000001', null, 'review')$$::text,
+  '22004'::character(5), 'expected practice lock version is required'::text,
+  'review cannot bypass optimistic locking with null'::text);
 select results_eq(
   $$select state::text, lock_version from rts_private.review_practice('82000000-0000-4000-8000-000000000001', 3, '  exact review text  ')$$,
   $$values ('reviewed'::text, 4)$$, 'review is recorded atomically');

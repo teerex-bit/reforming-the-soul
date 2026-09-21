@@ -50,13 +50,20 @@ select is(
 );
 select is(
   coalesce((
-    select array_agg(member_role.rolname order by member_role.rolname)::text
+    select jsonb_agg(jsonb_build_object(
+      'member', member_role.rolname,
+      'grantor', grantor_role.rolname,
+      'admin_option', membership.admin_option,
+      'inherit_option', membership.inherit_option,
+      'set_option', membership.set_option
+    ) order by member_role.rolname, grantor_role.rolname)::text
     from pg_auth_members membership
     join pg_roles granted_role on granted_role.oid = membership.roleid
     join pg_roles member_role on member_role.oid = membership.member
+    join pg_roles grantor_role on grantor_role.oid = membership.grantor
     where granted_role.rolname = 'rts_privileged_owner'
-  ), '{}'),
-  '{}',
+  ), '[]'),
+  '[]',
   'temporary ownership-transfer membership is fully revoked after migration'
 );
 select ok(
