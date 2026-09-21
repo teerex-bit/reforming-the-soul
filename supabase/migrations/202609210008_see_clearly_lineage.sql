@@ -37,9 +37,13 @@ begin
 end
 $$;
 
+reset role;
+
 create trigger formation_links_validate_lineage
 before insert or update on public.formation_links
 for each row execute function rts_private.validate_formation_link_lineage();
+
+set local role rts_privileged_owner;
 
 create function rts_private.save_see_clearly(
   p_observable_fact_text text,
