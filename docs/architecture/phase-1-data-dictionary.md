@@ -1,6 +1,6 @@
 # Phase 1 Data Dictionary
 
-This dictionary describes the minimum vertical-slice schema implemented by migrations `202609200001` through `202609200004`. The Task 2 contracts and `phase-1-schema-blueprint.md` remain authoritative.
+This dictionary describes the minimum vertical-slice schema implemented by migrations `202609200001` through `202609210001`. The Task 2 contracts and `phase-1-schema-blueprint.md` remain authoritative.
 
 ## Authored curriculum
 
@@ -37,6 +37,7 @@ Every user-owned table has `user_id`, `unique(id,user_id)`, an ownership index, 
 | `transition_practice` | Locks an owned practice, checks expected state/version and one allowed edge, stamps the lifecycle transition, and increments `lock_version`. |
 | `record_practice_return` | Atomically saves exact outcome wording, creates the one return and typed link, and moves waiting → ready-to-review. |
 | `review_practice` | Atomically saves exact review wording, attaches it to the owned return, and moves ready-to-review → reviewed. |
+| `save_awaken_observation` | Atomically saves the three non-whitespace Awaken exact-text entries, creates the `observation`, `reaction`, and `body_cue` user-authored records, and advances only a new resume state to `awaken.pay-attention.reflect`; any repeat/stale submission receives a neutral conflict and cannot rewrite the originals. |
 | `grant_ai_context` | Serializes by user/entry/scope and returns the one active explicit grant idempotently. |
 | `revoke_ai_context` | Locks the owned grant, verifies its revision, records revocation, and increments the revision. |
 | `delete_journal_entry_with_dependencies` | Hard-deletes an owned journal source, every dependent AI artifact, grants, records and links; preserves unrelated data and curriculum progress; writes a content-free audit event. |

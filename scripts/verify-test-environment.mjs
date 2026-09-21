@@ -39,6 +39,20 @@ export function validateTestEnvironment(env) {
     }
   }
 
+  for (const name of ['RTS_DATABASE_URL', 'DATABASE_URL']) {
+    if (env[name] && env[name] !== env.TEST_DATABASE_URL) {
+      errors.push(`${name} must match TEST_DATABASE_URL during automated tests.`);
+    }
+  }
+  if (env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_URL !== env.SUPABASE_URL) {
+    errors.push('NEXT_PUBLIC_SUPABASE_URL must match SUPABASE_URL during automated tests.');
+  }
+  for (const name of ['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']) {
+    if (env[name] && env[name] !== env.SUPABASE_ANON_KEY) {
+      errors.push(`${name} must match SUPABASE_ANON_KEY during automated tests.`);
+    }
+  }
+
   return errors;
 }
 

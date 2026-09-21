@@ -25,6 +25,8 @@ This blueprint freezes the Phase 1 relational contract before coding. Migration 
 
 `id uuid`, `user_id uuid`, `curriculum_version_id text`, `current_node_id text`, `state curriculum_state`, `completed_node_ids text[] not null default '{}'`, `updated_at timestamptz not null default now()`. Unique `(user_id,curriculum_version_id)`; composite FK `(current_node_id,curriculum_version_id) → curriculum_nodes`; no formation/evidence columns.
 
+The narrow `save_awaken_observation(p_event_text text, p_internal_response_text text, p_body_cue_text text)` security-definer boundary accepts no user ID. It rejects null, empty, and whitespace-only values without rewriting valid surrounding whitespace; atomically creates the three exact-text Awaken journal entries plus their one-to-one `observation`, `reaction`, and `body_cue` records; and creates the user’s curriculum pointer at `awaken.pay-attention.reflect`. A repeat or stale submission receives a neutral conflict, preserving immutable original wording. It creates no practice and no score/evidence data.
+
 ## User wording and structured formation
 
 ### `journal_entries`

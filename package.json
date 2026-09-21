@@ -18,7 +18,7 @@
         "test:unit": "vitest run --config vitest.config.ts",
         "test:integration": "node --env-file-if-exists=.env.test scripts/verify-test-environment.mjs && vitest run --config vitest.integration.config.ts",
         "test:db": "node --env-file-if-exists=.env.test scripts/run-local-db-tests.mjs",
-        "test:e2e": "playwright test",
+        "test:e2e": "node --env-file-if-exists=.env.test scripts/run-e2e.mjs",
         "test:a11y": "playwright test --grep @a11y",
         "test:concurrency": "node --env-file-if-exists=.env.test scripts/verify-test-environment.mjs && vitest run --config vitest.integration.config.ts -t concurrency --repeats 19",
         "test:all": "npm run typecheck && npm test && npm run test:harness && npm run test:unit && npm run test:integration && npm run test:db && npm run test:concurrency && npm run test:e2e && npm run test:a11y"

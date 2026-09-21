@@ -18,7 +18,6 @@ jobs:
       RTS_TEST_MODE: '1'
       SUPABASE_PROJECT_ID: rts-phase1-prototype
       SUPABASE_URL: http://127.0.0.1:54321
-      SUPABASE_ANON_KEY: local-certification-placeholder
       TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       AI_TEST_ADAPTER: fake
 
@@ -37,6 +36,19 @@ jobs:
 
       - name: Start designated local Supabase
         run: npx supabase start --workdir .
+
+      - name: Load local Supabase credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_env="$(mktemp)"
+          trap 'rm -f "$status_env"' EXIT
+          npx supabase status --workdir . -o env > "$status_env"
+          set -a
+          source "$status_env"
+          set +a
+          test -n "${ANON_KEY:-}"
+          printf 'SUPABASE_ANON_KEY=%s\n' "$ANON_KEY" >> "$GITHUB_ENV"
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium

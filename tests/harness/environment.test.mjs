@@ -73,3 +73,42 @@ test('environment verifier accepts isolated local infrastructure and fake AI', (
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Test environment boundaries verified/);
 });
+
+test('environment verifier rejects app aliases that target a different database, Supabase URL, or key', () => {
+  const result = runVerifier({
+    RTS_TEST_MODE: '1',
+    SUPABASE_PROJECT_ID: 'rts-phase1-prototype',
+    SUPABASE_URL: 'http://127.0.0.1:54321',
+    SUPABASE_ANON_KEY: 'local-anon-key',
+    TEST_DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    RTS_DATABASE_URL: 'postgresql://postgres:postgres@db.example.com:5432/postgres',
+    DATABASE_URL: 'postgresql://postgres:postgres@db.example.com:5432/postgres',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'remote-anon-key',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'remote-publishable-key',
+    AI_TEST_ADAPTER: 'fake',
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /RTS_DATABASE_URL must match TEST_DATABASE_URL/);
+  assert.match(result.stderr, /DATABASE_URL must match TEST_DATABASE_URL/);
+  assert.match(result.stderr, /NEXT_PUBLIC_SUPABASE_URL must match SUPABASE_URL/);
+  assert.match(result.stderr, /NEXT_PUBLIC_SUPABASE_ANON_KEY must match SUPABASE_ANON_KEY/);
+  assert.match(result.stderr, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must match SUPABASE_ANON_KEY/);
+});
+
+test('environment verifier accepts app aliases pinned to the designated local test values', () => {
+  const result = runVerifier({
+    RTS_TEST_MODE: '1',
+    SUPABASE_PROJECT_ID: 'rts-phase1-prototype',
+    SUPABASE_URL: 'http://127.0.0.1:54321',
+    SUPABASE_ANON_KEY: 'local-anon-key',
+    TEST_DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    RTS_DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-anon-key',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'local-anon-key',
+    AI_TEST_ADAPTER: 'fake',
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
