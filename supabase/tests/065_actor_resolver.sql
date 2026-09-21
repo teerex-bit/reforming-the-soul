@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(20);
 
 select has_schema('rts_private', 'private application schema exists');
 select has_function('rts_private', 'current_actor', array[]::text[],
@@ -12,6 +12,18 @@ select is(
    where namespace.nspname = 'rts_private' and procedure.proname = 'current_actor'),
   'rts_privileged_owner',
   'private actor resolver is owned by the approved non-login role'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_namespace namespace
+    join pg_roles privileged_owner on privileged_owner.rolname = 'rts_privileged_owner'
+    cross join lateral aclexplode(coalesce(namespace.nspacl, '{}'::aclitem[])) acl
+    where namespace.nspname = 'rts_private'
+      and acl.grantee = privileged_owner.oid
+      and acl.privilege_type = 'CREATE'
+  ),
+  'no externally granted schema CREATE ACL remains after ownership transfer'
 );
 select ok(
   not has_schema_privilege('anon', 'rts_private', 'usage'),

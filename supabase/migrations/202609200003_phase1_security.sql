@@ -6,14 +6,7 @@ begin
 end
 $$;
 
-do $$
-begin
-  execute format('grant rts_privileged_owner to %I with inherit false', current_user);
-  execute format('grant rts_privileged_owner to %I with set true', current_user);
-end
-$$;
-
-create schema rts_private authorization rts_privileged_owner;
+create schema rts_private;
 revoke all on schema rts_private from public, anon, authenticated;
 grant usage on schema rts_private to authenticated;
 
@@ -51,24 +44,7 @@ begin
 end
 $$;
 
-alter function rts_private.current_actor() owner to rts_privileged_owner;
 revoke all on function rts_private.current_actor() from public, anon, authenticated;
-
-do $$
-declare
-  v_member name;
-begin
-  for v_member in
-    select member_role.rolname
-    from pg_auth_members membership
-    join pg_roles granted_role on granted_role.oid = membership.roleid
-    join pg_roles member_role on member_role.oid = membership.member
-    where granted_role.rolname = 'rts_privileged_owner'
-  loop
-    execute format('revoke rts_privileged_owner from %I', v_member);
-  end loop;
-end
-$$;
 
 create function public.reject_user_id_change()
 returns trigger
@@ -188,3 +164,31 @@ to rts_privileged_owner;
 
 revoke all on table public.curriculum_versions, public.curriculum_nodes from rts_privileged_owner;
 grant select on table public.curriculum_versions, public.curriculum_nodes to rts_privileged_owner;
+
+do $$
+begin
+  execute format('grant rts_privileged_owner to %I with inherit false', current_user);
+  execute format('grant rts_privileged_owner to %I with set true', current_user);
+end
+$$;
+
+grant create on schema rts_private to rts_privileged_owner;
+alter function rts_private.current_actor() owner to rts_privileged_owner;
+revoke create on schema rts_private from rts_privileged_owner;
+alter schema rts_private owner to rts_privileged_owner;
+
+do $$
+declare
+  v_member name;
+begin
+  for v_member in
+    select member_role.rolname
+    from pg_auth_members membership
+    join pg_roles granted_role on granted_role.oid = membership.roleid
+    join pg_roles member_role on member_role.oid = membership.member
+    where granted_role.rolname = 'rts_privileged_owner'
+  loop
+    execute format('revoke rts_privileged_owner from %I', v_member);
+  end loop;
+end
+$$;
