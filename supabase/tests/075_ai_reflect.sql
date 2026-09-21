@@ -10,8 +10,8 @@ select is((select proconfig @> array['search_path=pg_catalog'] from pg_proc wher
 select function_privs_are('rts_private', 'reserve_ai_reflect', array['uuid','text','text','text','text','text','text'], 'authenticated', array['EXECUTE'], 'authenticated may reserve');
 select function_privs_are('rts_private', 'reserve_ai_reflect', array['uuid','text','text','text','text','text','text'], 'anon', array[]::text[], 'anonymous may not reserve');
 select is((select rolname from pg_roles r join pg_proc p on p.proowner=r.oid where p.oid='rts_private.reserve_ai_reflect(uuid,text,text,text,text,text,text)'::regprocedure), 'rts_privileged_owner', 'reservation owner is non-login role');
-select like((select prosrc from pg_proc where oid='rts_private.reserve_ai_reflect(uuid,text,text,text,text,text,text)'::regprocedure), '%pg_advisory_xact_lock%', 'reservation serializes on actor curriculum lock');
-select like((select prosrc from pg_proc where oid='rts_private.reserve_ai_reflect(uuid,text,text,text,text,text,text)'::regprocedure), '%provider_error%', 'stale pending reservation terminalizes without redispatch');
+select matches((select prosrc from pg_proc where oid='rts_private.reserve_ai_reflect(uuid,text,text,text,text,text,text)'::regprocedure), 'pg_advisory_xact_lock', 'reservation serializes on actor curriculum lock');
+select matches((select prosrc from pg_proc where oid='rts_private.reserve_ai_reflect(uuid,text,text,text,text,text,text)'::regprocedure), 'provider_error', 'stale pending reservation terminalizes without redispatch');
 
 select * from finish();
 rollback;
