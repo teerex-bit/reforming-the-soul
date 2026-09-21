@@ -53,8 +53,19 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
     await page.getByLabel('What is actually true in the present moment?').fill(VERTICAL_SLICE.become.presentTruth);
     await page.getByLabel('What is the next right step?').fill(VERTICAL_SLICE.become.nextRightStep);
     await page.getByRole('button', { name: 'Save as open practice' }).click();
-    const practiceUrl = page.url();
-    const practiceId = practiceUrl.split('/').at(-1)!;
+    let practiceId = '';
+    await expect.poll(async () => {
+      const row = (await pool.query(
+        `select p.id from public.practices p
+         join public.journal_entries step on (step.id,step.user_id)=(p.next_right_step_entry_id,p.user_id)
+         where p.user_id=$1 and p.state='waiting_for_real_life' and step.body=$2`,
+        [userId, VERTICAL_SLICE.become.nextRightStep],
+      )).rows[0];
+      practiceId = row?.id ?? '';
+      return practiceId;
+    }).toMatch(/^[0-9a-f]{8}-[0-9a-f-]{27}$/i);
+    const practiceUrl = appRuntimeUrl(`/practices/${practiceId}`);
+    await expect(page).toHaveURL(practiceUrl);
     await expect(page.getByText('waiting for real life')).toBeVisible();
     expect((await pool.query('select state::text from public.practices where id=$1 and user_id=$2', [practiceId, userId])).rows[0].state).toBe('waiting_for_real_life');
 
