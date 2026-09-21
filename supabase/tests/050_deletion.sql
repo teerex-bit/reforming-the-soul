@@ -1,5 +1,5 @@
 begin;
-select plan(11);
+select plan(13);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -9,10 +9,17 @@ insert into public.user_curriculum_state (id, user_id, curriculum_version_id, cu
 values ('90000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'see-clearly.fact', 'in_progress', array['awaken.pay-attention.observe']);
 insert into public.journal_entries (id, user_id, curriculum_version_id, node_id, entry_kind, body) values
   ('91000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.pay-attention.observe', 'event', 'source to delete'),
-  ('91000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.pay-attention.inside', 'internal_response', 'unrelated source');
+  ('91000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.pay-attention.inside', 'internal_response', 'unrelated source'),
+  ('91000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'become.control', 'control_target', 'unrelated control'),
+  ('91000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'become.receive', 'present_truth', 'unrelated truth'),
+  ('91000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'become.next-step', 'next_right_step', 'unrelated step');
 insert into public.formation_records (id, user_id, curriculum_version_id, node_id, record_type, value_text, source_journal_entry_id, provenance)
 values ('92000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'see-clearly.fact', 'observable_fact', 'fact',
   '91000000-0000-4000-8000-000000000001', 'user_authored');
+insert into public.formation_links (id,user_id,link_type,source_journal_entry_id,target_formation_record_id)
+values ('92500000-0000-4000-8000-000000000001','00000000-0000-4000-8000-0000000000a1','awaken_to_see_clearly','91000000-0000-4000-8000-000000000001','92000000-0000-4000-8000-000000000001');
+insert into public.practices (id,user_id,curriculum_version_id,node_id,control_target_entry_id,present_truth_entry_id,next_right_step_entry_id,state,opened_at)
+values ('92500000-0000-4000-8000-000000000002','00000000-0000-4000-8000-0000000000a1','phase-1-v1','become.practice.open','91000000-0000-4000-8000-000000000003','91000000-0000-4000-8000-000000000004','91000000-0000-4000-8000-000000000005','open',now());
 insert into public.ai_threads (id, user_id, intent_id, request_fingerprint, mode, stage, curriculum_version_id, node_id, status,
   model_id, global_policy_version, stage_policy_version, mode_policy_version, output_schema_version)
 values ('93000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000a1', '93000000-0000-4000-8000-000000000011',
@@ -35,9 +42,9 @@ select results_eq(
   $$values (null::uuid, 0, 0, 0, 0)$$, 'other-owner IDs produce the same neutral result as missing IDs');
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000a1', true);
 select results_eq(
-  $$select dependent_artifact_count, dependent_record_count, grant_count
+  $$select dependent_artifact_count, dependent_record_count, dependent_link_count, grant_count
     from rts_private.delete_journal_entry_with_dependencies('91000000-0000-4000-8000-000000000001')$$,
-  $$values (1, 1, 1)$$, 'deletion reports content-free dependent counts');
+  $$values (1, 1, 1, 1)$$, 'deletion reports content-free dependent counts');
 select is((select count(*)::integer from public.journal_entries where id = '91000000-0000-4000-8000-000000000001'), 0,
   'source journal is hard deleted');
 select is((select count(*)::integer from public.ai_artifacts where id = '94000000-0000-4000-8000-000000000001'), 0,
@@ -48,7 +55,11 @@ select is((select count(*)::integer from public.ai_context_grants where journal_
   'entry grants are deleted');
 select is((select count(*)::integer from public.formation_records where source_journal_entry_id = '91000000-0000-4000-8000-000000000001'), 0,
   'single-source formation records are deleted');
+select is((select count(*)::integer from public.formation_links where id='92500000-0000-4000-8000-000000000001'), 0,
+  'dependent formation links are deleted');
 select is((select count(*)::integer from public.user_curriculum_state), 1, 'curriculum progress is preserved');
+select is((select count(*)::integer from public.practices where id='92500000-0000-4000-8000-000000000002'), 1,
+  'unrelated practice history is preserved');
 select is((select count(*)::integer from public.journal_entries where id = '91000000-0000-4000-8000-000000000002'), 1,
   'unrelated journal data is preserved');
 select is((select count(*)::integer from public.audit_events where object_id = '91000000-0000-4000-8000-000000000001'), 1,

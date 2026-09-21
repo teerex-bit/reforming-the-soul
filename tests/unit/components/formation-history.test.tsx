@@ -23,5 +23,6 @@ describe('FormationHistory', () => {
     expect(screen.getByText(/Selected prior entry \(j0\), grant grant-7 revision 3/)).toBeInTheDocument();
     expect(screen.queryByText(/transcript/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/curriculum progress/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete entry' })).toBeInTheDocument();
   });
 });

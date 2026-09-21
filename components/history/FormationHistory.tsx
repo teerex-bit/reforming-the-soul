@@ -1,5 +1,6 @@
 import type { FormationHistoryItem, HistoryArtifact } from '../../server/data/history-repository';
 import { ProvenanceBadge } from '../design-system/ProvenanceBadge';
+import { DeleteJournalEntry } from './DeleteJournalEntry';
 
 function label(value: string) { return value.replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase()); }
 function artifactText(artifact: HistoryArtifact) {
@@ -28,6 +29,7 @@ export function FormationHistory({ items }: Readonly<{ items: readonly Formation
           <h3>{label(artifact.artifactType)}</h3><p>{artifactText(artifact)}</p>
           <dl className="history-provenance"><div><dt>Provenance</dt><dd>{artifact.provenance === 'ai_suggested' ? 'AI-derived suggestion' : 'User-confirmed AI suggestion'} · {label(artifact.status)}</dd></div><div><dt>Curriculum</dt><dd>{artifact.curriculumVersionId}</dd></div><div><dt>Model</dt><dd>{artifact.modelId}</dd></div><div><dt>Policy versions</dt><dd>{artifact.policy.global} · {artifact.policy.stage} · {artifact.policy.mode} · {artifact.policy.outputSchema}</dd></div><div><dt>Sources</dt><dd>{artifact.sources.map(source => source.role === 'current' ? `Current entry (${source.journalEntryId})` : `Selected prior entry (${source.journalEntryId}), grant ${source.contextGrantId} revision ${source.grantRevision}`).join('; ')}</dd></div></dl>
         </section>)}
+        <DeleteJournalEntry entryId={item.journal.id} />
       </article>
     </li>)}
   </ol>;
