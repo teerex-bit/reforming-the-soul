@@ -2,6 +2,7 @@ do $$ begin
   execute format('grant rts_privileged_owner to %I with inherit false', current_user);
   execute format('grant rts_privileged_owner to %I with set true', current_user);
 end $$;
+grant references on public.ai_threads,public.journal_entries,public.ai_context_grants to rts_privileged_owner;
 set local role rts_privileged_owner;
 
 create table rts_private.ai_thread_source_authorizations (
@@ -21,11 +22,14 @@ create table rts_private.ai_thread_source_authorizations (
 );
 revoke all on rts_private.ai_thread_source_authorizations from public,anon,authenticated;
 
+reset role;
 alter table public.ai_artifacts add column curriculum_version_id text not null default 'phase-1-v1'
   references public.curriculum_versions(id) on delete restrict;
 
 create unique index ai_artifacts_one_saved_suggestion_per_thread
   on public.ai_artifacts(thread_id,user_id,artifact_type) where artifact_type='summary';
+
+set local role rts_privileged_owner;
 
 create function rts_private.reserve_practice_review_reflect(
  p_intent_id uuid,p_request_fingerprint text,p_current_entry_id uuid,p_prior_entry_id uuid,p_grant_id uuid,p_grant_revision integer,
@@ -91,4 +95,5 @@ grant execute on function rts_private.complete_practice_review_reflect(uuid,publ
 revoke all on function rts_private.save_practice_reflect_suggestion(uuid,jsonb) from public,anon,authenticated;
 grant execute on function rts_private.save_practice_reflect_suggestion(uuid,jsonb) to authenticated;
 reset role;
+revoke references on public.ai_threads,public.journal_entries,public.ai_context_grants from rts_privileged_owner;
 do $$ declare v_member name;begin for v_member in select m.rolname from pg_auth_members x join pg_roles g on g.oid=x.roleid join pg_roles m on m.oid=x.member where g.rolname='rts_privileged_owner' and x.grantor=current_user::regrole loop execute format('revoke rts_privileged_owner from %I',v_member);end loop;end $$;
