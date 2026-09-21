@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
-import { createTestPool, withAuthenticatedActor } from '../helpers/db';
+import { createConcurrencyBarrier, createTestPool, withAuthenticatedActor } from '../helpers/db';
 import { testActors } from '../helpers/auth';
 
 const pool = createTestPool();
@@ -23,7 +23,9 @@ describe('real local Supabase database boundary', () => {
 
   it('concurrency harness keeps authenticated actors isolated in parallel', async () => {
     const actors = [testActors.userA, testActors.userB];
+    const barrier = createConcurrencyBarrier(actors.length);
     const actorIds = await Promise.all(actors.map(actor => withAuthenticatedActor(pool, actor.id, async client => {
+      await barrier.arriveAndWait();
       const result = await client.query<{ actor_id: string }>('select auth.uid()::text as actor_id');
       return result.rows[0].actor_id;
     })));
