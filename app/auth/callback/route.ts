@@ -20,8 +20,8 @@ function redirect(request: NextRequest, path: string) {
   return NextResponse.redirect(new URL(path, request.url));
 }
 
-function isSameOriginPost(request: NextRequest) {
-  return request.headers.get('origin') === request.nextUrl.origin;
+export function isSameOriginPost(request: NextRequest) {
+  return request.headers.get('origin') === new URL(request.url).origin;
 }
 
 function sessionCookie(request: NextRequest, value: string) {
