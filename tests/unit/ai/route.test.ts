@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { handleAiReflectPost } from '../../../app/api/ai/reflect/handler';
 
-
 describe('AI Reflect route', () => {
   it('uses no-store responses and rejects prior-entry context input', async () => {
     const response = await handleAiReflectPost(new Request('http://localhost/api/ai/reflect', {
@@ -11,7 +10,6 @@ describe('AI Reflect route', () => {
     expect(response.status).toBe(400);
     expect(response.headers.get('cache-control')).toBe('no-store');
   });
-
 
   it('rejects cross-origin dispatch before invoking the service', async () => {
     const reflect = vi.fn();
@@ -23,7 +21,6 @@ describe('AI Reflect route', () => {
     expect(reflect).not.toHaveBeenCalled();
   });
 
-
   it('returns a neutral conflict for intent fingerprint reuse', async () => {
     const conflict = Object.assign(new Error('conflict'), { code: '23514' });
     const response = await handleAiReflectPost(new Request('https://rts.test/api/ai/reflect', {
@@ -34,4 +31,3 @@ describe('AI Reflect route', () => {
     expect(await response.json()).toEqual({ kind: 'conflict' });
   });
 });
-
