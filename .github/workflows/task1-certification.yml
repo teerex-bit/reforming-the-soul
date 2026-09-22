@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - prototype/phase-1-vertical-slice
+      - fix/vercel-deploy-compat
   workflow_dispatch:
 
 permissions:
