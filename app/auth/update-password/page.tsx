@@ -21,7 +21,7 @@ export default function UpdatePasswordPage() {
     const confirmation = String(form.get('confirmation') ?? '');
     if (password.length < 8) return setError('Password must be at least 8 characters.');
     if (password !== confirmation) return setError('Passwords do not match.');
-    const response = await fetch('/auth/update-password', {
+    const response = await fetch('/api/auth/update-password', {
       method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ accessToken, password }),
     });
