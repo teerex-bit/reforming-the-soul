@@ -1,4 +1,5 @@
 import { AuthenticationRequiredError } from '../../../../server/auth/require-actor';
+import { isSameOriginRequest } from '../../../../server/http/same-origin';
 import { reflectOnCurrentEntry } from '../../../../server/services/ai-reflect-service';
 
 type RouteDependencies = Readonly<{ reflect?: typeof reflectOnCurrentEntry }>;
@@ -10,7 +11,7 @@ export async function handleAiReflectPost(request: Request, dependencies: RouteD
     if (!body || typeof body !== 'object' || Object.keys(body).some(key => key !== 'intentId')) {
       return new Response(JSON.stringify({ kind: 'invalid_request' }), { status: 400, headers });
     }
-    if (request.headers.get('origin') !== new URL(request.url).origin) {
+    if (!isSameOriginRequest(request)) {
       return new Response(JSON.stringify({ kind: 'forbidden' }), { status: 403, headers });
     }
     const result = await (dependencies.reflect ?? reflectOnCurrentEntry)(body);
