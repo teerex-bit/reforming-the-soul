@@ -1,21 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isSameOriginRequest } from '../../../server/http/same-origin';
 
-function safeSupabaseErrorBody(raw: string) {
-  const trimmed = raw.trim().slice(0, 1000);
-  try {
-    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-    const safe: Record<string, unknown> = {};
-    for (const key of ['error', 'error_code', 'code', 'message', 'msg', 'hint', 'status']) {
-      if (typeof parsed[key] === 'string' || typeof parsed[key] === 'number') safe[key] = parsed[key];
-    }
-    return Object.keys(safe).length ? safe : trimmed;
-  } catch {
-    return trimmed;
-  }
-}
-
 export async function POST(request: NextRequest) {
+  const correlationId = crypto.randomUUID();
+  const diagnostic = (event: string, details: Record<string, unknown> = {}) => {
+    console.info('[auth/recovery]', { event, correlationId, timestamp: new Date().toISOString(), ...details });
+  };
+  diagnostic('reached');
   if (!isSameOriginRequest(request)) return new NextResponse(null, { status: 403 });
   const body = await request.json().catch(() => null) as { email?: unknown } | null;
   const email = typeof body?.email === 'string' ? body.email.trim() : '';
@@ -29,12 +20,19 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({ email }),
   });
   if (!response.ok) {
-    const errorBody = safeSupabaseErrorBody(await response.text());
-    console.error('[auth/recovery] Supabase recovery rejected request', {
-      status: response.status,
-      body: errorBody,
-    });
+    const raw = await response.text();
+    let details: Record<string, unknown> = {};
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      for (const key of ['code', 'error', 'error_code', 'msg', 'message']) {
+        if (typeof parsed[key] === 'string') details[key] = parsed[key];
+      }
+    } catch {
+      details.body = raw.slice(0, 300);
+    }
+    diagnostic('supabase_rejected', { status: response.status, ...details });
     return NextResponse.json({ error: 'Unable to request password recovery.' }, { status: 502 });
   }
+  diagnostic('supabase_accepted', { status: response.status });
   return new NextResponse(null, { status: 204 });
 }
