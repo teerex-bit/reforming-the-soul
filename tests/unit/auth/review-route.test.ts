@@ -20,12 +20,12 @@ describe('review auth bootstrap', () => {
     const actionLink = 'https://project.supabase.test/auth/v1/verify?token=test&type=magiclink';
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ action_link: actionLink }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: `https://rts.test/awaken/lesson-1#access_token=${accessToken}&refresh_token=refresh-token&expires_in=3600` } }))
+      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: `https://rts.test/deep-dive/awaken/pay-attention#access_token=${accessToken}&refresh_token=refresh-token&expires_in=3600` } }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'review-user-id', email: 'review@example.test' }), { status: 200 })));
 
     const response = await GET(new NextRequest('https://rts.test/auth/review'));
     expect(response.status).toBe(307);
-    expect(response.headers.get('location')).toBe('https://rts.test/awaken/lesson-1');
+    expect(response.headers.get('location')).toBe('https://rts.test/deep-dive/awaken/pay-attention');
     expect(response.cookies.get('rts-auth-session')?.value).toContain('review-user-id');
   });
 });
