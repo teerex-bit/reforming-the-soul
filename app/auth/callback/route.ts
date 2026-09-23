@@ -7,6 +7,7 @@ import {
   serializeSession,
   SESSION_COOKIE_MAX_AGE,
 } from '../../../server/auth/server-client';
+import { isSameOriginRequest } from '../../../server/http/same-origin';
 
 function destination(request: NextRequest, fallback = '/dashboard') {
   const candidate = request.nextUrl.searchParams.get('next');
@@ -21,7 +22,7 @@ function redirect(request: NextRequest, path: string) {
 }
 
 export function isSameOriginPost(request: NextRequest) {
-  return request.headers.get('origin') === new URL(request.url).origin;
+  return isSameOriginRequest(request);
 }
 
 function sessionCookie(request: NextRequest, value: string) {
