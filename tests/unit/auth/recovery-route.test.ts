@@ -24,4 +24,23 @@ describe('password recovery route', () => {
       body: JSON.stringify({ email: 'person@example.test' }),
     }));
   });
+
+  it('logs only bounded, safe diagnostics when Supabase rejects recovery', async () => {
+    vi.stubEnv('SUPABASE_URL', 'https://project.supabase.test');
+    vi.stubEnv('SUPABASE_ANON_KEY', 'anon-key');
+    const log = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      code: 'unexpected_failure', message: 'diagnostic detail', access_token: 'do-not-log',
+    }), { status: 500 })));
+
+    const response = await POST(new NextRequest('https://rts.test/auth/recovery', {
+      method: 'POST', headers: { origin: 'https://rts.test', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'person@example.test' }),
+    }));
+
+    expect(response.status).toBe(502);
+    expect(log).toHaveBeenCalledWith('[auth/recovery]', expect.objectContaining({ event: 'supabase_rejected', status: 500, code: 'unexpected_failure', message: 'diagnostic detail' }));
+    expect(JSON.stringify(log.mock.calls)).not.toContain('do-not-log');
+    expect(JSON.stringify(log.mock.calls)).not.toContain('person@example.test');
+  });
 });
