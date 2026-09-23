@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { handleAiReflectPost } from '../../../app/api/ai/reflect/handler';
+import { POST as practiceReflectPost } from '../../../app/api/ai/practice-reflect/route';
 
 describe('AI Reflect route', () => {
   it('uses no-store responses and rejects prior-entry context input', async () => {
@@ -29,5 +30,14 @@ describe('AI Reflect route', () => {
     }), { reflect: vi.fn().mockRejectedValue(conflict) });
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ kind: 'conflict' });
+  });
+
+  it('accepts native Next normalized URLs when the forwarded host is same-origin', async () => {
+    const response = await practiceReflectPost(new Request('http://localhost:4187/api/ai/practice-reflect', {
+      method: 'POST',
+      headers: { host: '127.0.0.1:4187', origin: 'http://127.0.0.1:4187', 'content-type': 'application/json' },
+      body: JSON.stringify({ intentId: crypto.randomUUID() }),
+    }));
+    expect(response.status).toBe(400);
   });
 });
