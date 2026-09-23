@@ -108,6 +108,19 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 
 .app-shell-content { width: min(100%, var(--content-wide)); margin: 0 auto; }
 
+.deep-dive-shell, .deep-dive-home { max-width: 62rem; margin: 0 auto; padding: clamp(2rem, 7vw, 6rem) var(--gutter-page); }
+.deep-dive-lesson { max-width: 48rem; padding: clamp(2rem, 6vw, 5rem) 0 2rem; }
+.deep-dive-lesson h1, .deep-dive-home h1 { margin: 0 0 1.5rem; font-size: clamp(2.8rem, 7vw, 6rem); letter-spacing: -0.035em; }
+.deep-dive-lesson p, .deep-dive-home > p { max-width: 44rem; }
+.deep-dive-paired { padding: 1rem 1.25rem; border-left: 3px solid var(--color-gold); background: var(--color-paper); }
+.deep-dive-reveal { margin: 2rem 0; padding: 1rem 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
+.deep-dive-reveal button { border: 0; padding: 0; color: var(--color-navy); background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
+.deep-dive-reflection { display: grid; gap: 1rem; margin: 2rem 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); background: var(--color-paper); }
+.deep-dive-reflection textarea { min-height: 12rem; width: 100%; padding: 1rem; border: 1px solid var(--color-line); background: var(--color-ivory); resize: vertical; }
+.deep-dive-progress { color: var(--color-green); font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; }
+.button--secondary { margin-left: .75rem; background: transparent; color: var(--color-navy); }
+@media (max-width: 40rem) { .deep-dive-shell, .deep-dive-home { padding-top: 2rem; } .button--secondary { margin: .75rem 0 0; } }
+
 .editorial-hero {
   padding: var(--section-space) var(--gutter-page);
   background: linear-gradient(115deg, var(--color-ivory) 0 66%, var(--color-ivory-secondary) 66% 100%);
