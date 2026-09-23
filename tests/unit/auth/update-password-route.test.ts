@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { POST } from '../../../app/auth/update-password/route';
+import { POST } from '../../../app/api/auth/update-password/route';
 
 describe('password recovery flow', () => {
   afterEach(() => {
