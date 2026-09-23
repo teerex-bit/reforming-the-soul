@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '../../../../../server/auth/server-client';
-import { isSameOriginRequest } from '../../../../../server/http/same-origin';
+import { createServerClient } from '../../../../server/auth/server-client';
+import { isSameOriginRequest } from '../../../../server/http/same-origin';
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) return new NextResponse(null, { status: 403 });
