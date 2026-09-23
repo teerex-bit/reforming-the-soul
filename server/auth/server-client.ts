@@ -119,6 +119,14 @@ export function createServerClient(cookies: CookieSource) {
         const verified = await getUserForToken(next.access_token);
         return verified.data.user ? next : null;
       },
+      async updatePassword(accessToken: string, password: string) {
+        const response = await request('user', {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ password }),
+        });
+        return response.ok;
+      },
       async signUp(credentials: { email: string; password: string; emailRedirectTo: string; codeChallenge: string }) {
         const response = await request(`signup?redirect_to=${encodeURIComponent(credentials.emailRedirectTo)}`, {
           method: 'POST',
