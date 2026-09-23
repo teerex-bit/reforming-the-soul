@@ -27,6 +27,8 @@ create table public.deep_dive_reflections (
 
 alter table public.deep_dive_module_progress enable row level security;
 alter table public.deep_dive_reflections enable row level security;
+alter table public.deep_dive_module_progress force row level security;
+alter table public.deep_dive_reflections force row level security;
 
 create trigger deep_dive_progress_immutable_owner before update of user_id on public.deep_dive_module_progress
   for each row execute function public.reject_user_id_change();
