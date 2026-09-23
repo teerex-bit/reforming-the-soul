@@ -1,4 +1,5 @@
 import { AuthenticationRequiredError } from '../../../../server/auth/require-actor';
+import { isSameOriginRequest } from '../../../../server/http/same-origin';
 import { deleteJournalEntry } from '../../../../server/services/journal-deletion-service';
 
 const headers = { 'cache-control': 'no-store', 'content-type': 'application/json' };
@@ -7,7 +8,7 @@ type Dependencies = Readonly<{ remove?: typeof deleteJournalEntry }>;
 
 export async function handleJournalDelete(request: Request, context: Context, dependencies: Dependencies = {}) {
   try {
-    if (request.headers.get('origin') !== new URL(request.url).origin) {
+    if (!isSameOriginRequest(request)) {
       return new Response(JSON.stringify({ kind: 'forbidden' }), { status: 403, headers });
     }
     const body = await request.json() as Record<string, unknown>;
