@@ -18,10 +18,10 @@ describe('password recovery route', () => {
     }));
 
     expect(response.status).toBe(204);
-    expect(fetch).toHaveBeenCalledWith('https://project.supabase.test/auth/v1/recover', expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith('https://project.supabase.test/auth/v1/recover?redirect_to=https%3A%2F%2Frts.test%2Fauth%2Fupdate-password', expect.objectContaining({
       method: 'POST',
       headers: { apikey: 'anon-key', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'person@example.test', redirect_to: 'https://rts.test/auth/update-password' }),
+      body: JSON.stringify({ email: 'person@example.test' }),
     }));
   });
 });

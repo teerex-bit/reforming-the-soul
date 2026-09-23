@@ -9,9 +9,10 @@ export async function POST(request: NextRequest) {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL)?.replace(/\/$/, '');
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return NextResponse.json({ error: 'Supabase configuration is missing.' }, { status: 500 });
-  const response = await fetch(`${url}/auth/v1/recover`, {
+  const redirectTo = new URL('/auth/update-password', request.url).toString();
+  const response = await fetch(`${url}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
     method: 'POST', headers: { apikey: key, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, redirect_to: new URL('/auth/update-password', request.url).toString() }),
+    body: JSON.stringify({ email }),
   });
   if (!response.ok) return NextResponse.json({ error: 'Unable to request password recovery.' }, { status: 502 });
   return new NextResponse(null, { status: 204 });
