@@ -23,6 +23,22 @@ describe('browser authentication client', () => {
     );
   });
 
+  it('requests password recovery with the update-password redirect', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetch);
+
+    await expect(createBrowserClient().auth.resetPasswordForEmail('person@example.test')).resolves.toBeUndefined();
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/auth/recovery',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'same-origin',
+        body: JSON.stringify({ email: 'person@example.test', redirectTo: '/auth/update-password' }),
+      }),
+    );
+  });
+
   it('does not include tokens, cookies, or direct Supabase Auth calls in browser source', async () => {
     const source = await readFile(path.resolve(process.cwd(), 'server/auth/browser-client.ts'), 'utf8');
 

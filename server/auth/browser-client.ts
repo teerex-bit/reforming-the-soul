@@ -15,11 +15,21 @@ async function submit(action: 'sign-in' | 'sign-up', credentials: Credentials) {
   return response.headers.get('x-rts-next') ?? '/sign-in';
 }
 
+async function requestRecovery(email: string) {
+  const response = await fetch('/auth/recovery', {
+    method: 'POST', credentials: 'same-origin',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, redirectTo: '/auth/update-password' }),
+  });
+  if (!response.ok) throw new Error('Password recovery request failed.');
+}
+
 export function createBrowserClient() {
   return {
     auth: {
       signInWithPassword(credentials: Credentials) { return submit('sign-in', credentials); },
       signUp(credentials: Credentials) { return submit('sign-up', credentials); },
+      resetPasswordForEmail(email: string) { return requestRecovery(email); },
       async signOut() {
         await fetch('/auth/callback?action=sign-out', { method: 'POST', credentials: 'same-origin' });
       },
