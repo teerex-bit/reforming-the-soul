@@ -1,4 +1,4 @@
-# Run full certification on every A1/A2 development update.
+# Run full certification for each A1/A2 development update.
 name: Task 1 Runtime Certification
 
 on:
