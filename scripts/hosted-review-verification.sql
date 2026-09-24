@@ -61,7 +61,7 @@ select is((select last_section_id from public.deep_dive_module_progress where id
 select throws_ok(
   format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)',
     current_setting('rts.test_actor_b'), current_setting('rts.test_a2_progress_id'), 'first-response', 'cross-user attempt'),
-  '23503', null, 'same-owner relation blocks cross-user access'
+  '42501', null, 'RLS blocks cross-user reflection creation'
 );
 
 select set_config('request.jwt.claim.sub', current_setting('rts.test_actor_a'), true);
