@@ -41,6 +41,13 @@ export function assertOnlyA2Pending(localVersions, remoteVersions) {
   return pending;
 }
 
+export function assertMigrationHistoryMissing(relationName) {
+  if (relationName !== null) {
+    throw new SafeFailure('Migration history already exists; refusing to bootstrap it.');
+  }
+  return true;
+}
+
 export function classifyDatabaseFailure(error, stage) {
   const code = typeof error?.code === 'string' ? error.code.toUpperCase() : '';
   if (stage === 'connection') {
@@ -156,6 +163,14 @@ async function preflight() {
   });
 }
 
+async function assertHistoryMissing() {
+  await withReviewDatabase(async (pool) => {
+    const result = await pool.query("select to_regclass('supabase_migrations.schema_migrations')::text as relation");
+    assertMigrationHistoryMissing(result.rows[0]?.relation ?? null);
+    console.log('Review database target confirmed; migration history is absent.');
+  });
+}
+
 async function verify() {
   await withReviewDatabase(async (pool) => {
     const applied = await pool.query(
@@ -182,8 +197,9 @@ async function verify() {
 async function main() {
   const [mode] = process.argv.slice(2);
   if (mode === 'preflight') return preflight();
+  if (mode === 'assert-history-missing') return assertHistoryMissing();
   if (mode === 'verify') return verify();
-  throw new SafeFailure('Use mode preflight or verify.');
+  throw new SafeFailure('Use mode preflight, assert-history-missing, or verify.');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

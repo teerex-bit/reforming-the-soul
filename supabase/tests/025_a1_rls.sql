@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(24);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -33,6 +33,26 @@ select throws_like($$select * from public.deep_dive_module_progress$$, '%permiss
 select throws_like($$select * from public.deep_dive_reflections$$, '%permission denied%', 'anon cannot read A1 reflection');
 
 reset role;
+select throws_like(
+  $$insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id)
+    values ('00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.catch-yourself-being-you', 'entry')$$,
+  '%deep_dive_module_progress_module_id_check%', 'pre-A2 module constraint rejects the A2 identifier'
+);
+select throws_like(
+  $$insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id)
+    values ('00000000-0000-4000-8000-0000000000a1', 'phase-1-v1', 'awaken.unapproved-module', 'entry')$$,
+  '%deep_dive_module_progress_module_id_check%', 'pre-A2 module constraint rejects unapproved identifiers'
+);
+select throws_like(
+  $$insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body)
+    values ('00000000-0000-4000-8000-0000000000a1', 'a1000000-0000-4000-8000-000000000001', 'first-response', 'invalid')$$,
+  '%deep_dive_reflections_prompt_id_check%', 'pre-A2 prompt constraint rejects the A2 identifier'
+);
+select throws_like(
+  $$insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body)
+    values ('00000000-0000-4000-8000-0000000000a1', 'a1000000-0000-4000-8000-000000000001', 'unapproved-prompt', 'invalid')$$,
+  '%deep_dive_reflections_prompt_id_check%', 'pre-A2 prompt constraint rejects unapproved identifiers'
+);
 select lives_ok($$delete from public.deep_dive_reflections where id = 'a2000000-0000-4000-8000-000000000001'$$, 'reflection can be deleted independently');
 select is((select count(*)::integer from public.deep_dive_reflections), 0, 'reflection deletion removes reflection');
 select is((select count(*)::integer from public.deep_dive_module_progress), 1, 'reflection deletion preserves progress');

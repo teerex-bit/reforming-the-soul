@@ -80,6 +80,50 @@ jobs:
           git fetch --no-tags --depth=1 origin "$TARGET_A2_SHA"
           git diff --exit-code "$TARGET_A2_SHA" "$GITHUB_SHA" -- supabase/migrations
 
+      - name: Audit pre-A2 schema against repository
+        if: ${{ !inputs.diagnostic_only }}
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          node scripts/hosted-review-db-migration.mjs assert-history-missing
+          npx supabase test db --db-url "$RTS_DATABASE_URL" --workdir . \
+            supabase/tests/000_harness.sql \
+            supabase/tests/010_schema.sql \
+            supabase/tests/020_rls_matrix.sql \
+            supabase/tests/025_a1_rls.sql \
+            supabase/tests/030_same_owner.sql \
+            supabase/tests/040_practice_transitions.sql \
+            supabase/tests/050_deletion.sql \
+            supabase/tests/060_audit.sql \
+            supabase/tests/065_actor_resolver.sql \
+            supabase/tests/070_awaken_observation.sql \
+            supabase/tests/075_ai_reflect.sql \
+            supabase/tests/080_see_clearly.sql \
+            supabase/tests/090_practice_vertical_slice.sql
+
+      - name: Bootstrap verified migration history
+        if: ${{ !inputs.diagnostic_only }}
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pre_a2_versions=()
+          for migration in supabase/migrations/*.sql; do
+            version="${migration##*/}"
+            version="${version%%_*}"
+            if [[ "$version" < "202609240001" ]]; then
+              pre_a2_versions+=("$version")
+            fi
+          done
+          if [[ "${#pre_a2_versions[@]}" -ne 22 ]]; then
+            echo 'Expected exactly 22 repository migrations through A1; refusing to bootstrap history.' >&2
+            exit 1
+          fi
+          echo 'Recording the 22 audited pre-A2 migrations as applied; their SQL will not be replayed.'
+          npx supabase migration repair --db-url "$RTS_DATABASE_URL" --status applied --workdir . "${pre_a2_versions[@]}"
+
       - name: Confirm review database target and pending migrations
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}

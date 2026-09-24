@@ -44,6 +44,11 @@ test('pending migration guard allows only the A2 migration and fails closed on a
   assert.throws(() => guard.assertOnlyA2Pending(['202609200001', '202609240001', '202609250001'], ['202609200001']), /unexpected pending migrations/i);
 });
 
+test('history bootstrap guard refuses to replace an existing Supabase history table', () => {
+  assert.equal(guard.assertMigrationHistoryMissing(null), true);
+  assert.throws(() => guard.assertMigrationHistoryMissing('supabase_migrations.schema_migrations'), /already exists/i);
+});
+
 test('hosted database failures are classified by probe stage and PostgreSQL error code', () => {
   assert.equal(guard.classifyDatabaseFailure({ code: '28P01' }, 'connection'), 'connection/auth failure');
   assert.equal(guard.classifyDatabaseFailure({ code: '08006' }, 'connection'), 'connection/auth failure');
@@ -103,4 +108,24 @@ test('hosted workflow diagnostic mode has no migration or persistence-verificati
   }
   assert.match(workflow, /git diff --exit-code "\$TARGET_A2_SHA" "\$GITHUB_SHA" -- supabase\/migrations/);
   assert.match(workflow, /node scripts\/hosted-review-db-migration\.mjs preflight/);
+});
+
+test('hosted workflow audits pre-A2 state before adopting history and applying A2', () => {
+  const audit = workflow.match(/- name: Audit pre-A2 schema[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const bootstrap = workflow.match(/- name: Bootstrap verified migration history[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const preflight = workflow.match(/- name: Confirm review database target and pending migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const apply = workflow.match(/- name: Apply pending Supabase migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+
+  assert.match(audit, /node scripts\/hosted-review-db-migration\.mjs assert-history-missing/);
+  assert.match(audit, /supabase test db/);
+  assert.match(audit, /025_a1_rls\.sql/);
+  assert.match(audit, /090_practice_vertical_slice\.sql/);
+  assert.doesNotMatch(audit, /026_a2_persistence\.sql/);
+  assert.match(audit, /if: \$\{\{ !inputs\.diagnostic_only \}\}/);
+  assert.match(bootstrap, /supabase migration repair/);
+  assert.match(bootstrap, /--status applied/);
+  assert.match(bootstrap, /if: \$\{\{ !inputs\.diagnostic_only \}\}/);
+  assert.ok(workflow.indexOf(audit) < workflow.indexOf(bootstrap));
+  assert.ok(workflow.indexOf(bootstrap) < workflow.indexOf(preflight));
+  assert.ok(workflow.indexOf(preflight) < workflow.indexOf(apply));
 });
