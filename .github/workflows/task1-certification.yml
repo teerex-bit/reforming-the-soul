@@ -1,3 +1,4 @@
+# Enable full certification for the A1/A2 development branch.
 name: Task 1 Runtime Certification
 
 on:
