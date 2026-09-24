@@ -69,7 +69,7 @@ jobs:
             const workflowId = 'task1-certification.yml';
             const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
             for (let attempt = 0; attempt < 70; attempt += 1) {
-              const { data } = await github.rest.actions.listWorkflowRunsForWorkflow({
+              const { data } = await github.rest.actions.listWorkflowRuns({
                 owner,
                 repo,
                 workflow_id: workflowId,

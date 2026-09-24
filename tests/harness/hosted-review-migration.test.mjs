@@ -16,7 +16,7 @@ test('hosted migration workflow automatically tracks review-db-candidate and pin
   assert.match(workflow, /refs\/heads\/review-db-candidate/);
   assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/);
   assert.match(workflow, /RTS_DATABASE_URL: \$\{\{ secrets\.RTS_DATABASE_URL \}\}/);
-  assert.match(workflow, /listWorkflowRunsForWorkflow/);
+  assert.match(workflow, /github\.rest\.actions\.listWorkflowRuns\(/);
   assert.match(workflow, /head_sha[\s\S]*context\.sha|head_sha[\s\S]*GITHUB_SHA/);
   assert.match(workflow, /hosted-review-db-migration\.mjs apply/);
   assert.match(workflow, /hosted-review-db-migration\.mjs test-sql hosted-test scripts\/hosted-review-verification\.sql/);
