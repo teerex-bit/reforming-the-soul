@@ -1,0 +1,87 @@
+name: Hosted RTS Formation Review Database Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      certified_commit:
+        description: Exact A2 development commit that passed full certification
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rts-formation-review-database-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate-review-database:
+    name: Migrate and verify isolated review database
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Require the certified A2 development commit
+        env:
+          CERTIFIED_COMMIT: ${{ inputs.certified_commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/work/a2-persistence" ]]; then
+            echo 'Run this workflow from work/a2-persistence only.' >&2
+            exit 1
+          fi
+          if [[ ! "$CERTIFIED_COMMIT" =~ ^[0-9a-f]{40}$ ]] || [[ "$CERTIFIED_COMMIT" != "$GITHUB_SHA" ]]; then
+            echo 'The supplied certified commit must exactly match this workflow run commit.' >&2
+            exit 1
+          fi
+
+      - name: Check out selected certified commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Confirm review database target and pending migrations
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs preflight
+
+      - name: Apply pending Supabase migrations
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: npx supabase db push --db-url "$RTS_DATABASE_URL" --skip-vault --yes --workdir .
+
+      - name: Verify A1 and A2 persistence, rejected IDs, and RLS
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: npx supabase test db --db-url "$RTS_DATABASE_URL" --workdir . supabase/tests/026_a2_persistence.sql
+
+      - name: Verify migration record and forced RLS
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs verify
+
+      - name: Report migration and verification result
+        shell: bash
+        run: |
+          {
+            echo '## RTS Formation review database migration'
+            echo
+            echo "- Commit: `$GITHUB_SHA`"
+            echo '- Target: isolated review Supabase project `zxikzybpodxecgpkncix`'
+            echo '- Migration: `202609240001_deep_dive_a2_identifiers`'
+            echo '- Hosted pgTAP verification: passed'
+            echo '- Migration history and forced RLS verification: passed'
+          } >> "$GITHUB_STEP_SUMMARY"
