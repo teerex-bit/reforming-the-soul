@@ -6,6 +6,7 @@ on:
       - prototype/phase-1-vertical-slice
       - fix/vercel-deploy-compat
       - review
+      - work/a2-persistence
   workflow_dispatch:
 
 permissions:
