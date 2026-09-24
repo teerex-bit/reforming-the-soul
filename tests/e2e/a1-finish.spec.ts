@@ -36,7 +36,12 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
 
     await advance(page, 'Begin', 2);
     await expect(page).toHaveURL(/section=moment$/);
+    await expect(page.getByRole('group', { name: 'A message on your phone' })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`a1-pause-${testInfo.project.name}.png`), fullPage: true });
     await advance(page, 'Notice it', 3);
+    await expect(page.getByRole('group', { name: 'What happened around you' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'What happened inside you' })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`a1-outside-inside-${testInfo.project.name}.png`), fullPage: true });
     await advance(page, 'Keep going', 4);
     await advance(page, 'Continue', 5);
     await advance(page, 'Continue', 6);

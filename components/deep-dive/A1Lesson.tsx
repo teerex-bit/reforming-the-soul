@@ -14,29 +14,60 @@ export function A1Lesson({ section, index, total, reflection, saveReflection }: 
     if (!pending && saveState.saved) setEditedSinceSave(false);
   }, [pending, saveState.saved]);
 
+  const renderParagraphs = (className?: string) => section.paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex} className={className}>{paragraph}</p>);
+
   return (
-    <article className={`deep-dive-lesson deep-dive-lesson--${section.id}`}>
+    <article className={`deep-dive-lesson deep-dive-lesson--a1 deep-dive-lesson--${section.id}`}>
       <p className="eyebrow deep-dive-section-label">{section.eyebrow}</p>
-      <h1>{section.title}</h1>
-      {section.id === 'scripture' ? (
+      {section.id !== 'moment' ? <h1>{section.title}</h1> : null}
+      {section.id === 'moment' ? (
+        <div className="a1-opening-moment">
+          <div className="a1-message" role="group" aria-label="A message on your phone">
+            <span className="a1-message__sender">A message</span>
+            <h1>{section.title}</h1>
+          </div>
+          <div className="a1-pause">
+            <span className="a1-pause__mark" aria-hidden="true">01</span>
+            {section.paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
+          </div>
+        </div>
+      ) : section.id === 'outside-inside' ? (
         <>
-          <figure className="deep-dive-scripture" aria-label="Luke 6:45 Scripture passage">
+          <div className="a1-comparison" aria-label="The outside and inside of a moment">
+            <section className="a1-comparison__side a1-comparison__side--outside" role="group" aria-label="What happened around you">
+              <p className="eyebrow">OUTSIDE</p>
+              <p>{section.paragraphs[0].replace(/^What happened around you:\s*/, '')}</p>
+            </section>
+            <section className="a1-comparison__side a1-comparison__side--inside" role="group" aria-label="What happened inside you">
+              <p className="eyebrow">INSIDE</p>
+              <p>{section.paragraphs[1].replace(/^What happened inside you:\s*/, '')}</p>
+            </section>
+          </div>
+          <p className="a1-comparison__bridge">{section.paragraphs[2]}</p>
+        </>
+      ) : section.id === 'scripture' ? (
+        <>
+          <figure className="deep-dive-scripture a1-scripture" aria-label="Luke 6:45 Scripture passage">
+            <span className="a1-scripture__index" aria-hidden="true">LUKE<br />06:45</span>
             <blockquote><p>{section.paragraphs[0]}</p></blockquote>
             <figcaption><cite>Luke 6:45 <span aria-hidden="true">·</span> World English Bible</cite></figcaption>
           </figure>
           {section.paragraphs.slice(1).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
         </>
-      ) : section.id === 'practice' || section.id === 'carry-forward' ? (
-        <section
-          className={`deep-dive-guidance deep-dive-guidance--${section.id}`}
-          aria-label={section.id === 'practice' ? 'Practice for the next few days' : 'Carry forward'}
-        >
-          {section.id === 'practice' ? <p className="deep-dive-guidance__label">For the next few days</p> : null}
-          {section.paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
+      ) : section.id === 'practice' ? (
+        <section className="deep-dive-guidance deep-dive-guidance--practice a1-practice" aria-label="Practice for the next few days">
+          <p className="deep-dive-guidance__label">For the next few days</p>
+          <p>{section.paragraphs[0]}</p>
+          <p>When you catch one of those moments, stop briefly and ask:</p>
+          <blockquote className="a1-practice__question" role="note">“What just happened in me?”</blockquote>
+          <p>Then bring that moment before God without trying to force an answer.</p>
+          <p>{section.paragraphs[2]}</p>
         </section>
-      ) : section.paragraphs.map((paragraph, paragraphIndex) => (
-        <p key={paragraphIndex} className={section.id === 'outside-inside' && paragraphIndex < 2 ? 'deep-dive-paired' : undefined}>{paragraph}</p>
-      ))}
+      ) : section.id === 'carry-forward' ? (
+        <section className="a1-calm-ending" role="region" aria-label="Carry forward">{renderParagraphs()}</section>
+      ) : section.id === 'teaching' ? (
+        <div className="a1-teaching">{renderParagraphs()}</div>
+      ) : renderParagraphs()}
       {section.reveal ? (
         <div className="deep-dive-reveal">
           <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>{section.reveal.label}</button>

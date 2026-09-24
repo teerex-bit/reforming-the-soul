@@ -38,6 +38,28 @@ describe('A2 participant experience', () => {
     expect(screen.getByRole('region', { name: 'Practice for the next few days' })).toHaveTextContent(/collect observations/i);
   });
 
+  it('lets the participant connect situations to recurring responses without saving those choices', () => {
+    const saveReflection = vi.fn();
+    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'patterns')!} reflection={null} saveReflection={saveReflection} />);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'A plan changes unexpectedly' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Control' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'I feel overlooked' }));
+
+    expect(screen.getByRole('region', { name: 'A response that repeats' })).toHaveTextContent('Control');
+    expect(screen.getByRole('region', { name: 'A response that repeats' })).toHaveTextContent('2 situations');
+    expect(saveReflection).not.toHaveBeenCalled();
+  });
+
+  it('makes NOTICE, NAME, ASK, RECEIVE a navigable practice and marks ASK and RECEIVE optional', () => {
+    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'practice')!} reflection={null} saveReflection={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ASK.*optional/i }));
+    expect(screen.getByRole('region', { name: 'ASK' })).toHaveTextContent('God, what do You want me to see here?');
+    fireEvent.click(screen.getByRole('button', { name: /RECEIVE.*optional/i }));
+    expect(screen.getByRole('region', { name: 'RECEIVE' })).toHaveTextContent(/stay with what becomes clear/i);
+  });
+
   it('offers both lessons from the Awaken stage page', async () => {
     render(await StagePage({ params: Promise.resolve({ stageId: 'awaken' }) }));
 

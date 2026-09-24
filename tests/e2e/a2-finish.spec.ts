@@ -24,6 +24,13 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await expect(page.getByRole('progressbar', { name: 'Section 1 of 7' })).toHaveJSProperty('value', 1);
     await page.getByRole('button', { name: 'Begin' }).click();
     await expect(page).toHaveURL(/section=patterns$/);
+    await page.getByRole('checkbox', { name: 'A plan changes unexpectedly' }).check();
+    await page.getByRole('checkbox', { name: 'I feel overlooked' }).check();
+    await page.getByRole('checkbox', { name: 'Control' }).check();
+    await expect(page.getByRole('region', { name: 'A response that repeats' })).toContainText('2 situations');
+    const patternWidths = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }));
+    expect(patternWidths.document).toBeLessThanOrEqual(patternWidths.viewport);
+    await page.screenshot({ path: testInfo.outputPath(`a2-pattern-map-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Seeing clearly' })).toBeVisible();
     await expect(page.getByRole('figure', { name: 'James 1:23–24 Scripture passage' })).toBeVisible();
@@ -36,6 +43,11 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await expect(page.getByRole('heading', { level: 1, name: 'Try finishing a few sentences' })).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Notice the next repetition' })).toBeVisible();
+    await page.getByRole('button', { name: /ASK.*optional/i }).click();
+    await expect(page.getByRole('region', { name: 'ASK' })).toContainText('God, what do You want me to see here?');
+    await page.getByRole('button', { name: /RECEIVE.*optional/i }).click();
+    await expect(page.getByRole('region', { name: 'RECEIVE' })).toContainText(/stay with what becomes clear/i);
+    await page.screenshot({ path: testInfo.outputPath(`a2-practice-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'A pattern is something you can notice' })).toBeVisible();
 

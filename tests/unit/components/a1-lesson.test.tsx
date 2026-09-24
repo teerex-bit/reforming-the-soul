@@ -44,6 +44,19 @@ describe('A1 participant experience', () => {
     expect(screen.getByText(/Jesus directs attention toward an important reality/)).toBeInTheDocument();
   });
 
+  it('separates the outside event from the inside response as two readable observations', () => {
+    render(<A1Lesson section={section('outside-inside')} index={2} total={9} reflection={null} saveReflection={vi.fn()} />);
+
+    expect(screen.getByRole('group', { name: 'What happened around you' })).toHaveTextContent('A message arrived: “Can we talk later?”');
+    expect(screen.getByRole('group', { name: 'What happened inside you' })).toHaveTextContent('That depends on the person.');
+  });
+
+  it('gives the A1 practice question a distinct, easily revisited emphasis', () => {
+    render(<A1Lesson section={section('practice')} index={7} total={9} reflection={null} saveReflection={vi.fn()} />);
+
+    expect(screen.getByRole('note')).toHaveTextContent('What just happened in me?');
+  });
+
   it('gives practice and carry-forward sections clear, distinct transition treatments', () => {
     const { rerender } = render(<A1Lesson section={section('practice')} index={7} total={9} reflection={null} saveReflection={vi.fn()} />);
     expect(screen.getByRole('region', { name: 'Practice for the next few days' })).toBeInTheDocument();
