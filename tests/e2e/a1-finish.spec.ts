@@ -35,7 +35,6 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await page.getByRole('button', { name: 'Keep going' }).click();
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Continue' }).click();
 
     await expect(page.getByRole('heading', { level: 1, name: 'Notice a real moment' })).toBeVisible();
     await page.getByLabel(/What happened\?/).fill(reflection);
