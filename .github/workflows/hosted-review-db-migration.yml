@@ -4,9 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       certified_commit:
-        description: Exact A2 development commit that passed full certification
+        description: Exact workflow commit that passed full certification
         required: true
         type: string
+      target_a2_sha:
+        description: Exact certified A2 migration source commit
+        required: true
+        type: string
+      diagnostic_only:
+        description: Run the read-only preflight diagnostic without applying or verifying migrations
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -27,6 +36,8 @@ jobs:
       - name: Require the certified A2 development commit
         env:
           CERTIFIED_COMMIT: ${{ inputs.certified_commit }}
+          TARGET_A2_SHA: ${{ inputs.target_a2_sha }}
+          DIAGNOSTIC_ONLY: ${{ inputs.diagnostic_only }}
         shell: bash
         run: |
           set -euo pipefail
@@ -36,6 +47,14 @@ jobs:
           fi
           if [[ ! "$CERTIFIED_COMMIT" =~ ^[0-9a-f]{40}$ ]] || [[ "$CERTIFIED_COMMIT" != "$GITHUB_SHA" ]]; then
             echo 'The supplied certified commit must exactly match this workflow run commit.' >&2
+            exit 1
+          fi
+          if [[ "$TARGET_A2_SHA" != "d84cc87cc8f8c9a60fa60e600c7f320e2ff3698c" ]]; then
+            echo 'The target must be the exact certified A2 migration source commit.' >&2
+            exit 1
+          fi
+          if [[ "$DIAGNOSTIC_ONLY" != "true" && "$DIAGNOSTIC_ONLY" != "false" ]]; then
+            echo 'diagnostic_only must be true or false.' >&2
             exit 1
           fi
 
@@ -53,27 +72,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify A2 migration sources match the exact target SHA
+        env:
+          TARGET_A2_SHA: ${{ inputs.target_a2_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$TARGET_A2_SHA"
+          git diff --exit-code "$TARGET_A2_SHA" "$GITHUB_SHA" -- supabase/migrations
+
       - name: Confirm review database target and pending migrations
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs preflight
 
       - name: Apply pending Supabase migrations
+        if: ${{ !inputs.diagnostic_only }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: npx supabase db push --db-url "$RTS_DATABASE_URL" --skip-vault --yes --workdir .
 
       - name: Verify A1 and A2 persistence, rejected IDs, and RLS
+        if: ${{ !inputs.diagnostic_only }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: npx supabase test db --db-url "$RTS_DATABASE_URL" --workdir . supabase/tests/026_a2_persistence.sql
 
       - name: Verify migration record and forced RLS
+        if: ${{ !inputs.diagnostic_only }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs verify
 
       - name: Report migration and verification result
+        if: ${{ !inputs.diagnostic_only }}
         shell: bash
         run: |
           {
@@ -84,4 +115,16 @@ jobs:
             echo '- Migration: `202609240001_deep_dive_a2_identifiers`'
             echo '- Hosted pgTAP verification: passed'
             echo '- Migration history and forced RLS verification: passed'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report diagnostic-only result
+        if: ${{ inputs.diagnostic_only }}
+        shell: bash
+        run: |
+          {
+            echo '## RTS Formation review database preflight diagnostic'
+            echo
+            echo "- Diagnostic commit: `$GITHUB_SHA`"
+            echo '- Exact A2 migration source: `d84cc87cc8f8c9a60fa60e600c7f320e2ff3698c`'
+            echo '- Mode: read-only preflight; no migrations applied and hosted persistence verification skipped'
           } >> "$GITHUB_STEP_SUMMARY"
