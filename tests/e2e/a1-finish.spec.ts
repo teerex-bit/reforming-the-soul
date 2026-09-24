@@ -4,6 +4,11 @@ import { resetLocalE2eAccount } from '../helpers/local-e2e';
 import { appRuntimeUrl } from '../setup/app-runtime';
 import { e2eUser } from '../fixtures/users';
 
+async function advance(page: import('@playwright/test').Page, action: string, sectionNumber: number) {
+  await page.getByRole('button', { name: action }).click();
+  await expect(page.getByRole('progressbar', { name: `Section ${sectionNumber} of 9` })).toBeVisible();
+}
+
 test('Awaken introduction and A1 complete responsively with confirmed reflection and resume', async ({ page }, testInfo) => {
   const user = e2eUser('a1-finish', testInfo.project.name);
   const reflection = 'I felt dismissed before I knew why.';
@@ -29,23 +34,23 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page.getByRole('img', { name: 'Reforming the Soul' })).toHaveAttribute('src', '/assets/logos/rts-tree-wordmark.png');
     await expect(page.getByRole('progressbar', { name: 'Section 1 of 9' })).toHaveJSProperty('value', 1);
 
-    await page.getByRole('button', { name: 'Begin' }).click();
+    await advance(page, 'Begin', 2);
     await expect(page).toHaveURL(/section=moment$/);
-    await page.getByRole('button', { name: 'Notice it' }).click();
-    await page.getByRole('button', { name: 'Keep going' }).click();
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await advance(page, 'Notice it', 3);
+    await advance(page, 'Keep going', 4);
+    await advance(page, 'Continue', 5);
+    await advance(page, 'Continue', 6);
 
     await expect(page.getByRole('heading', { level: 1, name: 'Notice a real moment' })).toBeVisible();
     await page.getByLabel(/What happened\?/).fill(reflection);
     await page.getByRole('button', { name: 'Save reflection' }).click();
     await expect(page.getByRole('status')).toHaveText('Reflection saved.');
 
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await advance(page, 'Continue', 7);
     await expect(page.getByRole('heading', { level: 1, name: 'Outside and inside' })).toBeVisible();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await advance(page, 'Continue', 8);
     await expect(page.getByRole('heading', { level: 1, name: 'Take this into your day' })).toBeVisible();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await advance(page, 'Continue', 9);
     await expect(page.getByRole('heading', { level: 1, name: 'Keep noticing' })).toBeVisible();
 
     const widths = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }));
