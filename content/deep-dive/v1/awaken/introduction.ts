@@ -1,0 +1,1 @@
+export const AWAKEN_INTRODUCTION = 'Awaken is the beginning of the Formation Journey. Here, you will pause with real moments and notice what happens within you. Awareness comes before correction or change: before you can respond differently, you need to see what is already happening.';

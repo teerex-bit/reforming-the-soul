@@ -108,18 +108,65 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 
 .app-shell-content { width: min(100%, var(--content-wide)); margin: 0 auto; }
 
-.deep-dive-shell, .deep-dive-home { max-width: 62rem; margin: 0 auto; padding: clamp(2rem, 7vw, 6rem) var(--gutter-page); }
-.deep-dive-lesson { max-width: 48rem; padding: clamp(2rem, 6vw, 5rem) 0 2rem; }
-.deep-dive-lesson h1, .deep-dive-home h1 { margin: 0 0 1.5rem; font-size: clamp(2.8rem, 7vw, 6rem); letter-spacing: -0.035em; }
-.deep-dive-lesson p, .deep-dive-home > p { max-width: 44rem; }
+.deep-dive-shell, .deep-dive-home { max-width: 78rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) var(--gutter-page); }
+.deep-dive-home { max-width: 67rem; }
+.deep-dive-home--awaken { padding-top: clamp(3rem, 9vw, 8rem); padding-bottom: clamp(4rem, 10vw, 9rem); }
+.deep-dive-home h1 { max-width: 55rem; margin: 0 0 1.25rem; font-size: clamp(3.4rem, 8vw, 7rem); letter-spacing: -0.04em; }
+.deep-dive-introduction { max-width: 52rem; margin: 0 0 clamp(2rem, 4vw, 3rem); font-size: clamp(1.12rem, 1.8vw, 1.35rem); line-height: 1.75; }
+.deep-dive-topline { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-line); color: var(--color-green); font-size: .75rem; }
+.deep-dive-topline a { color: var(--color-navy); font-weight: 700; text-decoration: none; }
+.deep-dive-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(13rem, 17rem); column-gap: clamp(3rem, 8vw, 8rem); align-items: start; padding-top: clamp(2.75rem, 6vw, 5rem); }
+.deep-dive-content { grid-column: 1; grid-row: 1; min-width: 0; }
+.deep-dive-lesson-meta { grid-column: 2; grid-row: 1; position: sticky; top: 2rem; margin-top: .4rem; padding: 1.25rem 0 1.25rem 1.25rem; border-left: 2px solid var(--color-gold); }
+.deep-dive-lesson-meta .eyebrow { margin-bottom: .65rem; }
+.deep-dive-lesson-meta h2 { margin: 0 0 1.25rem; font-size: 1.65rem; line-height: 1.2; }
+.deep-dive-lesson-meta label { display: block; margin-bottom: .6rem; color: var(--color-text); font-size: .82rem; }
+.deep-dive-lesson-meta progress { display: block; width: 100%; height: .4rem; accent-color: var(--color-green); }
+.deep-dive-lesson { max-width: 54rem; padding: 0 0 1rem; }
+.deep-dive-lesson .deep-dive-section-label { margin: 0 0 .9rem; }
+.deep-dive-lesson h1 { max-width: 53rem; margin: 0 0 clamp(1.25rem, 3vw, 2rem); font-size: clamp(2.8rem, 5.4vw, 5rem); letter-spacing: -0.035em; line-height: 1.08; }
+.deep-dive-lesson > p, .deep-dive-guidance > p { max-width: 45rem; margin: 0 0 1.1rem; }
 .deep-dive-paired { padding: 1rem 1.25rem; border-left: 3px solid var(--color-gold); background: var(--color-paper); }
-.deep-dive-reveal { margin: 2rem 0; padding: 1rem 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
+.deep-dive-reveal { max-width: 45rem; margin: 2rem 0; padding: 1.1rem 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
 .deep-dive-reveal button { border: 0; padding: 0; color: var(--color-navy); background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
-.deep-dive-reflection { display: grid; gap: 1rem; margin: 2rem 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); background: var(--color-paper); }
-.deep-dive-reflection textarea { min-height: 12rem; width: 100%; padding: 1rem; border: 1px solid var(--color-line); background: var(--color-ivory); resize: vertical; }
-.deep-dive-progress { color: var(--color-green); font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; }
-.button--secondary { margin-left: .75rem; background: transparent; color: var(--color-navy); }
-@media (max-width: 40rem) { .deep-dive-shell, .deep-dive-home { padding-top: 2rem; } .button--secondary { margin: .75rem 0 0; } }
+.deep-dive-reveal > p { max-width: 45rem; margin: 1rem 0 0; }
+.deep-dive-scripture { max-width: 48rem; margin: clamp(1.75rem, 4vw, 3rem) 0; padding: clamp(1.35rem, 3.5vw, 2.5rem); border-left: 3px solid var(--color-gold); background: var(--color-paper); }
+.deep-dive-scripture blockquote { margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.4rem, 2.7vw, 2.05rem); line-height: 1.55; }
+.deep-dive-scripture blockquote p { margin: 0; }
+.deep-dive-scripture figcaption { margin-top: 1.1rem; color: var(--color-green); font-size: .78rem; font-style: normal; font-weight: 700; letter-spacing: .07em; }
+.deep-dive-scripture cite { font-style: normal; }
+.deep-dive-reflection { display: grid; gap: 1rem; max-width: 48rem; margin: 2rem 0 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); border-top: 3px solid var(--color-gold); border-radius: var(--radius-panel); background: var(--color-paper); }
+.deep-dive-reflection label { color: var(--color-navy); font-family: var(--font-display); font-size: 1.15rem; line-height: 1.5; }
+.deep-dive-reflection textarea { min-height: 10rem; width: 100%; padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); color: var(--color-text); background: var(--color-ivory); line-height: 1.6; resize: vertical; }
+.deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.deep-dive-reflection .button--secondary { margin: 0; }
+.deep-dive-reflection .status-message { min-height: 1.5em; margin: 0; }
+.deep-dive-guidance { max-width: 49rem; margin-top: clamp(1.5rem, 3vw, 2.5rem); padding: clamp(1.35rem, 3.5vw, 2.5rem); border-top: 3px solid var(--color-gold); background: var(--color-sage); }
+.deep-dive-guidance > :last-child { margin-bottom: 0; }
+.deep-dive-guidance--carry-forward { background: var(--color-paper); }
+.deep-dive-guidance__label { margin: 0 0 1rem; color: var(--color-green); font-size: .74rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.deep-dive-transition { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; max-width: 54rem; margin-top: clamp(2rem, 5vw, 4rem); padding-top: 1.4rem; border-top: 1px solid var(--color-line); }
+.deep-dive-transition .eyebrow { margin: 0 0 .35rem; }
+.deep-dive-transition__title { margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: 1.25rem; line-height: 1.35; }
+.deep-dive-transition form { flex: 0 0 auto; }
+@media (max-width: 58rem) {
+  .deep-dive-shell, .deep-dive-home { padding-top: 2.25rem; }
+  .deep-dive-layout { grid-template-columns: minmax(0, 1fr); row-gap: 2rem; padding-top: 2rem; }
+  .deep-dive-lesson-meta { position: static; grid-column: 1; grid-row: 1; margin: 0; padding: .75rem 0 .75rem 1rem; }
+  .deep-dive-content { grid-column: 1; grid-row: 2; }
+  .deep-dive-lesson-meta h2 { margin-bottom: .75rem; }
+  .deep-dive-lesson-meta progress { max-width: 25rem; }
+}
+@media (max-width: 40rem) {
+  .deep-dive-shell, .deep-dive-home { padding-top: 1.5rem; }
+  .deep-dive-topline { align-items: flex-start; font-size: .68rem; }
+  .deep-dive-topline > span { max-width: 42%; text-align: right; }
+  .deep-dive-lesson h1 { font-size: clamp(2.5rem, 11vw, 3.3rem); }
+  .deep-dive-transition { align-items: flex-start; flex-direction: column; }
+  .deep-dive-transition form, .deep-dive-transition .button { width: 100%; }
+  .deep-dive-reflection__actions { flex-direction: column; }
+  .deep-dive-reflection__actions .button { width: 100%; }
+}
 
 .editorial-hero {
   padding: var(--section-space) var(--gutter-page);
