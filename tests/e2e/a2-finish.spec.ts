@@ -29,11 +29,19 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('checkbox', { name: 'Control' }).check();
     await expect(page.getByRole('region', { name: 'A response that repeats' })).toContainText('2 situations');
     const patternWidths = await page.evaluate(() => {
+      const layoutSelectors = ['.deep-dive-shell', '.deep-dive-layout', '.deep-dive-content', '.deep-dive-lesson--a2', '.a2-pattern-map', '.a2-pattern-map__reflection'];
+      const layout = layoutSelectors.map(selector => {
+        const element = document.querySelector(selector);
+        if (!element) return { selector, missing: true };
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return { selector, left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, gridTemplateColumns: style.gridTemplateColumns, display: style.display };
+      });
       const overflow = Array.from(document.querySelectorAll('body *')).map(element => {
         const rect = element.getBoundingClientRect();
         return { tag: element.tagName, className: typeof element.className === 'string' ? element.className : '', text: element.textContent?.trim().slice(0, 80), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth };
       }).filter(element => element.right > window.innerWidth + 1).sort((left, right) => right.right - left.right).slice(0, 12);
-      return { viewport: window.innerWidth, document: document.documentElement.scrollWidth, overflow };
+      return { viewport: window.innerWidth, document: document.documentElement.scrollWidth, layout, overflow };
     });
     expect(patternWidths.document, JSON.stringify(patternWidths.overflow)).toBeLessThanOrEqual(patternWidths.viewport);
     await page.screenshot({ path: testInfo.outputPath(`a2-pattern-map-${testInfo.project.name}.png`), fullPage: true });
