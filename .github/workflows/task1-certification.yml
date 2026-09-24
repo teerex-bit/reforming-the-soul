@@ -108,6 +108,17 @@ jobs:
 
       - name: Browser and visual-authority tests
         run: npm run test:e2e
+      - name: Preserve A1/A2 viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a1-a2-viewport-screenshots
+          path: |
+            test-results/**/a1-*.png
+            test-results/**/a2-*.png
+          if-no-files-found: error
+          retention-days: 14
+
 
       - name: Exact vertical slice from clean database twice
         shell: bash
