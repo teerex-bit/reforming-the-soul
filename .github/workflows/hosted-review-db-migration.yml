@@ -100,7 +100,8 @@ jobs:
             supabase/tests/070_awaken_observation.sql \
             supabase/tests/075_ai_reflect.sql \
             supabase/tests/080_see_clearly.sql \
-            supabase/tests/090_practice_vertical_slice.sql
+            supabase/tests/090_practice_vertical_slice.sql \
+            scripts/hosted-pre-a2-audit.sql
 
       - name: Bootstrap verified migration history
         if: ${{ !inputs.diagnostic_only }}

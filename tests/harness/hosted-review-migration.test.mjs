@@ -111,6 +111,7 @@ test('hosted workflow diagnostic mode has no migration or persistence-verificati
 });
 
 test('hosted workflow audits pre-A2 state before adopting history and applying A2', () => {
+  const preA2Audit = readFileSync('scripts/hosted-pre-a2-audit.sql', 'utf8');
   const audit = workflow.match(/- name: Audit pre-A2 schema[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
   const bootstrap = workflow.match(/- name: Bootstrap verified migration history[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
   const preflight = workflow.match(/- name: Confirm review database target and pending migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
@@ -120,6 +121,13 @@ test('hosted workflow audits pre-A2 state before adopting history and applying A
   assert.match(audit, /supabase test db/);
   assert.match(audit, /025_a1_rls\.sql/);
   assert.match(audit, /090_practice_vertical_slice\.sql/);
+  assert.match(audit, /scripts\/hosted-pre-a2-audit\.sql/);
+  assert.match(preA2Audit, /A1 module identifier is accepted before A2/);
+  assert.match(preA2Audit, /A1 prompt identifier is accepted before A2/);
+  assert.match(preA2Audit, /A2 module identifier is rejected before A2/);
+  assert.match(preA2Audit, /A2 prompt identifier is rejected before A2/);
+  assert.match(preA2Audit, /unapproved module identifier is rejected before A2/);
+  assert.match(preA2Audit, /unapproved prompt identifier is rejected before A2/);
   assert.doesNotMatch(audit, /026_a2_persistence\.sql/);
   assert.match(audit, /if: \$\{\{ !inputs\.diagnostic_only \}\}/);
   assert.match(bootstrap, /supabase migration repair/);
