@@ -10,19 +10,19 @@ try {
   guard = null;
 }
 
-test('hosted migration workflow is manual-only and bound to the certified development commit', () => {
-  assert.match(workflow, /^on:\n  workflow_dispatch:/m);
-  assert.doesNotMatch(workflow, /^  (push|pull_request|schedule):/m);
+test('hosted migration workflow automatically tracks review-db-candidate and pins its pushed SHA', () => {
+  assert.match(workflow, /push:[\s\S]*branches:\n\s+- review-db-candidate/);
   assert.match(workflow, /secrets\.RTS_DATABASE_URL/);
-  assert.match(workflow, /certified_commit/);
-  assert.match(workflow, /refs\/heads\/work\/a2-persistence/);
-  assert.match(workflow, /CERTIFIED_COMMIT.*GITHUB_SHA/s);
+  assert.match(workflow, /refs\/heads\/review-db-candidate/);
   assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/);
   assert.match(workflow, /RTS_DATABASE_URL: \$\{\{ secrets\.RTS_DATABASE_URL \}\}/);
+  assert.match(workflow, /listWorkflowRunsForWorkflow/);
+  assert.match(workflow, /head_sha[\s\S]*context\.sha|head_sha[\s\S]*GITHUB_SHA/);
   assert.match(workflow, /hosted-review-db-migration\.mjs apply/);
   assert.match(workflow, /hosted-review-db-migration\.mjs test-sql hosted-test scripts\/hosted-review-verification\.sql/);
   assert.doesNotMatch(workflow, /supabase test db .*RTS_DATABASE_URL|--db-url/);
   assert.match(workflow, /hosted-review-db-migration\.mjs verify/);
+  assert.doesNotMatch(workflow, /work\/a2-persistence|EXPECTED_PENDING_MIGRATIONS:\s*\$\{\{ inputs\./);
   assert.doesNotMatch(workflow, /Cloudflare|vercel/i);
 });
 
@@ -38,11 +38,13 @@ test('connection target guard rejects non-review and malformed database URLs', (
   assert.equal(guard.isReviewDatabaseUrl('not-a-database-url'), false);
 });
 
-test('pending migration guard allows only the A2 migration and fails closed on any other pending migration', () => {
+test('migration guard accepts only candidate-introduced versions and fails closed on edits or deletions', () => {
   assert.ok(guard, 'hosted database guard script exists');
-  assert.deepEqual(guard.pendingVersions(['202609200001', '202609240001'], ['202609200001']), ['202609240001']);
-  assert.deepEqual(guard.pendingVersions(['202609200001', '202609240001'], ['202609200001', '202609240001']), []);
-  assert.throws(() => guard.assertOnlyA2Pending(['202609200001', '202609240001', '202609250001'], ['202609200001']), /unexpected pending migrations/i);
+  assert.deepEqual(guard.parseIntroducedMigrationVersions('A\tsupabase/migrations/202609240001_deep_dive_a2_identifiers.sql\nA\tsupabase/migrations/202610010001_next_lesson.sql'), ['202609240001', '202610010001']);
+  assert.deepEqual(guard.parseIntroducedMigrationVersions(''), []);
+  assert.throws(() => guard.parseIntroducedMigrationVersions('M\tsupabase/migrations/202609230001_deep_dive_a1.sql'), /modified or removed/i);
+  assert.throws(() => guard.parseIntroducedMigrationVersions('D\tsupabase/migrations/202609230001_deep_dive_a1.sql'), /modified or removed/i);
+  assert.throws(() => guard.parseIntroducedMigrationVersions('A\tsupabase/migrations/not-a-migration.sql'), /invalid migration filename/i);
 });
 
 test('history bootstrap guard refuses to replace an existing Supabase history table', () => {
@@ -96,20 +98,26 @@ test('safe PostgreSQL diagnostic includes only allowlisted code, severity, and s
   assert.equal(Object.hasOwn(guard.safePostgresDiagnostic({ code: 'privateToken', message: 'denied' }, 'migration-history'), 'code'), false);
 });
 
-test('hosted workflow is manual, exact-commit bound, and requires explicit migration intent', () => {
-  assert.match(workflow, /expected_pending_migrations/);
-  assert.match(workflow, /migration_source_commit/);
-  assert.doesNotMatch(workflow, /diagnostic_only/);
-  assert.match(workflow, /git diff --exit-code "\$MIGRATION_SOURCE_COMMIT" "\$GITHUB_SHA" -- supabase\/migrations/);
+test('hosted workflow derives its migration set from review and waits for exact-SHA certification', () => {
+  const runner = readFileSync('scripts/hosted-review-db-migration.mjs', 'utf8');
+  const certificationWorkflow = readFileSync('.github/workflows/task1-certification.yml', 'utf8');
+  assert.match(runner, /git', \['diff', '--name-status', '--no-renames', reviewSha, candidateSha, '--', 'supabase\/migrations'\]/);
+  assert.match(workflow, /git fetch --no-tags origin \+refs\/heads\/review:refs\/remotes\/origin\/review/);
   assert.match(workflow, /hosted-review-db-migration\.mjs plan/);
+  const certification = workflow.match(/- name: Require full certification for exact candidate SHA[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  assert.match(certification, /workflowId = 'task1-certification\.yml'/);
+  assert.match(certification, /head_sha/);
+  assert.ok(workflow.indexOf(certification) < workflow.indexOf('RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}'));
+  assert.match(certificationWorkflow, /- review-db-candidate/);
+  assert.doesNotMatch(certificationWorkflow, /work\/a2-persistence/);
 });
 
-test('hosted workflow audits pre-A2 state before adopting history and applying A2', () => {
+test('hosted workflow audits the one-time baseline before recording history or applying migrations', () => {
   const preA2Audit = readFileSync('scripts/hosted-pre-a2-audit.sql', 'utf8');
-  const audit = workflow.match(/- name: Audit pre-A2 schema[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const audit = workflow.match(/- name: Audit baseline schema[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
   const bootstrap = workflow.match(/- name: Bootstrap audited historical migration ledger[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
-  const preflight = workflow.match(/- name: Recheck exact pending migration set[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
-  const apply = workflow.match(/- name: Apply only expected pending Supabase migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const preflight = workflow.match(/- name: Recheck candidate pending migrations before apply[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  const apply = workflow.match(/- name: Apply only expected pending migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
 
   assert.match(audit, /hosted-review-db-migration\.mjs test-sql schema-audit scripts\/hosted-pre-a2-audit\.sql/);
   assert.match(audit, /scripts\/hosted-pre-a2-audit\.sql/);
@@ -119,8 +127,7 @@ test('hosted workflow audits pre-A2 state before adopting history and applying A
   assert.match(preA2Audit, /A2 prompt identifier is rejected before A2/);
   assert.match(preA2Audit, /unapproved module identifier is rejected before A2/);
   assert.match(preA2Audit, /unapproved prompt identifier is rejected before A2/);
-  assert.doesNotMatch(audit, /026_a2_persistence\.sql/);
-  assert.match(audit, /if: \$\{\{ steps\.migration_plan\.outputs\.baseline_required == 'true' \|\| steps\.migration_plan\.outputs\.a2_pending == 'true' \}\}/);
+  assert.match(audit, /if: \$\{\{ steps\.migration_plan\.outputs\.baseline_required == 'true' \}\}/);
   assert.match(bootstrap, /hosted-review-db-migration\.mjs bootstrap-baseline/);
   assert.match(bootstrap, /if: \$\{\{ steps\.migration_plan\.outputs\.baseline_required == 'true' \}\}/);
   assert.match(apply, /hosted-review-db-migration\.mjs apply/);
@@ -133,6 +140,7 @@ test('hosted workflow audits pre-A2 state before adopting history and applying A
 test('migration plan supports one-time baseline, exact pending set, and a no-op rerun', () => {
   assert.ok(guard, 'hosted database guard script exists');
   assert.deepEqual(guard.parseExpectedVersions('202609240001'), ['202609240001']);
+  assert.deepEqual(guard.parseExpectedVersions(''), []);
   assert.deepEqual(guard.planMigrations(
     ['202609200001', '202609230001', '202609240001'],
     [],
@@ -153,9 +161,30 @@ test('migration plan supports one-time baseline, exact pending set, and a no-op 
   assert.deepEqual(guard.planMigrations(
     ['202609200001', '202609230001', '202609240001'],
     ['202609200001', '202609230001', '202609240001'],
+    [],
+    true,
+  ).pendingVersions, []);
+  assert.deepEqual(guard.planMigrations(
+    ['202609200001', '202609230001', '202609240001'],
+    ['202609200001', '202609230001', '202609240001'],
     ['202609240001'],
     true,
   ).pendingVersions, []);
+  assert.throws(() => guard.planMigrations(
+    ['202609200001', '202609230001', '202609240001'], [], [], false,
+  ), /baseline.*cannot be bootstrapped without candidate migrations/i);
+  assert.throws(() => guard.planMigrations(
+    ['202609200001', '202609230001', '202609240001', '202610010001'],
+    [],
+    ['202610010001'],
+    false,
+  ), /schema audit supports baselining only through 202609230001/i);
+  assert.throws(() => guard.planMigrations(
+    ['202609200001', '202609230001', '202609240001'],
+    ['202609200001'],
+    [],
+    true,
+  ), /unexpected migration drift/i);
   assert.throws(() => guard.planMigrations(
     ['202609200001', '202609230001', '202609240001'],
     ['202609200001'],
@@ -185,7 +214,7 @@ test('hosted SQL suites own unique fixture actors and only assert against tracke
 });
 
 test('hosted workflow runs isolated audits, gates one-time baseline, and skips changes on clean reruns', () => {
-  assert.match(workflow, /expected_pending_migrations/);
+  assert.match(workflow, /introduced_migrations/);
   assert.match(workflow, /hosted-review-db-migration\.mjs plan/);
   assert.match(workflow, /hosted-review-db-migration\.mjs apply/);
   assert.match(workflow, /hosted-review-verification\.sql/);
@@ -194,6 +223,9 @@ test('hosted workflow runs isolated audits, gates one-time baseline, and skips c
   assert.match(workflow, /if: \$\{\{ steps\.confirmed_plan\.outputs\.pending_versions != '' \}\}/);
   assert.match(workflow, /snapshot-a1/);
   assert.match(workflow, /verify-a1-snapshot/);
+  assert.match(workflow, /id: second_pass_plan/);
+  assert.match(workflow, /No migrations remain pending after the second pass/);
+  assert.match(workflow, /Prove rerun is a no-op/);
   assert.doesNotMatch(workflow, /supabase db push|supabase migration repair/);
 });
 
@@ -223,5 +255,10 @@ test('hosted SQL TAP parser distinguishes complete pass plans from isolated asse
   ] }, 'hosted-test');
   assert.equal(failed.complete, true);
   assert.equal(failed.classification, 'RLS verification failure');
+  const invalidMigrationId = guard.inspectPgTapResults({ rows: [
+    { result: '1..1' },
+    { result: 'not ok 1 - an unapproved lesson identifier is rejected' },
+  ] }, 'hosted-test');
+  assert.equal(invalidMigrationId.classification, 'migration failure');
   assert.equal(guard.inspectPgTapResults({ rows: [{ result: 'ok 1 - no plan' }] }, 'hosted-test').complete, false);
 });

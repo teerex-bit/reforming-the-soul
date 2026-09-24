@@ -1,23 +1,14 @@
 name: Hosted RTS Formation Review Database Migration
 
 on:
-  workflow_dispatch:
-    inputs:
-      certified_commit:
-        description: Exact workflow commit that passed full certification
-        required: true
-        type: string
-      migration_source_commit:
-        description: Commit whose migration files are included unchanged in this certified commit
-        required: true
-        type: string
-      expected_pending_migrations:
-        description: Exact migration version suffix expected in the ledger (comma separated)
-        required: true
-        type: string
+  push:
+    branches:
+      - review-db-candidate
+  workflow_dispatch: {}
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: rts-formation-review-database-migration
@@ -27,40 +18,28 @@ jobs:
   migrate-review-database:
     name: Migrate and verify isolated review database
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 55
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
-      EXPECTED_PENDING_MIGRATIONS: ${{ inputs.expected_pending_migrations }}
 
     steps:
-      - name: Require the certified development commit and exact migration target
-        env:
-          CERTIFIED_COMMIT: ${{ inputs.certified_commit }}
-          MIGRATION_SOURCE_COMMIT: ${{ inputs.migration_source_commit }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$GITHUB_REF" != "refs/heads/work/a2-persistence" ]]; then
-            echo 'Run this workflow from work/a2-persistence only.' >&2
-            exit 1
-          fi
-          if [[ ! "$CERTIFIED_COMMIT" =~ ^[0-9a-f]{40}$ ]] || [[ "$CERTIFIED_COMMIT" != "$GITHUB_SHA" ]]; then
-            echo 'The supplied certified commit must exactly match this workflow run commit.' >&2
-            exit 1
-          fi
-          if [[ ! "$MIGRATION_SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
-            echo 'The migration source commit must be a full Git SHA.' >&2
-            exit 1
-          fi
-          if [[ ! "$EXPECTED_PENDING_MIGRATIONS" =~ ^[0-9]{12}(,[0-9]{12})*$ ]]; then
-            echo 'Expected pending migrations must be a comma-separated list of 12-digit versions.' >&2
-            exit 1
-          fi
-
-      - name: Check out selected certified commit
+      - name: Check out the exact candidate commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+
+      - name: Require the candidate branch and exact workflow SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/review-db-candidate" ]]; then
+            echo 'Hosted review migrations run only from review-db-candidate.' >&2
+            exit 1
+          fi
+          if [[ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]]; then
+            echo 'Checkout does not match the exact workflow commit.' >&2
+            exit 1
+          fi
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -71,42 +50,86 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify migration sources match the supplied source commit
-        env:
-          MIGRATION_SOURCE_COMMIT: ${{ inputs.migration_source_commit }}
+      - name: Capture current review and discover candidate migrations
+        id: introduced_migrations
+        shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "$MIGRATION_SOURCE_COMMIT"
-          git diff --exit-code "$MIGRATION_SOURCE_COMMIT" "$GITHUB_SHA" -- supabase/migrations
+          git fetch --no-tags origin +refs/heads/review:refs/remotes/origin/review
+          review_sha="$(git rev-parse refs/remotes/origin/review)"
+          node scripts/hosted-review-db-migration.mjs candidate-migrations "$review_sha" "$GITHUB_SHA"
 
-      - name: Determine baseline and exact pending migrations
+      - name: Require full certification for exact candidate SHA
+        uses: actions/github-script@v7
+        timeout-minutes: 40
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const targetSha = context.sha;
+            const workflowId = 'task1-certification.yml';
+            const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            for (let attempt = 0; attempt < 70; attempt += 1) {
+              const { data } = await github.rest.actions.listWorkflowRunsForWorkflow({
+                owner,
+                repo,
+                workflow_id: workflowId,
+                head_sha: targetSha,
+                per_page: 100,
+              });
+              const runs = data.workflow_runs.filter((run) => run.head_sha === targetSha);
+              const passed = runs.find((run) => run.status === 'completed' && run.conclusion === 'success');
+              if (passed) {
+                core.info(`Full certification passed for exact candidate SHA ${targetSha} (run ${passed.id}).`);
+                return;
+              }
+              const active = runs.some((run) => run.status !== 'completed');
+              const failed = runs.find((run) => run.status === 'completed');
+              if (!active && failed) {
+                core.setFailed(`Full certification for exact candidate SHA ${targetSha} ended with ${failed.conclusion}; database access is blocked.`);
+                return;
+              }
+              core.info(`Waiting for full certification of exact candidate SHA ${targetSha} (check ${attempt + 1}/70).`);
+              await delay(30000);
+            }
+            core.setFailed(`No successful full certification appeared for exact candidate SHA ${targetSha}; database access is blocked.`);
+
+      - name: Confirm review branch has not moved since migration discovery
+        shell: bash
+        env:
+          REVIEW_BASE_SHA: ${{ steps.introduced_migrations.outputs.review_base_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin +refs/heads/review:refs/remotes/origin/review
+          current_review_sha="$(git rev-parse refs/remotes/origin/review)"
+          if [[ "$current_review_sha" != "$REVIEW_BASE_SHA" ]]; then
+            echo 'The review branch changed during candidate certification; refusing stale migration planning.' >&2
+            exit 1
+          fi
+
+      - name: Determine baseline and exact pending migration set
         id: migration_plan
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
         run: node scripts/hosted-review-db-migration.mjs plan
 
-      - name: Capture A1 review-data fingerprint
+      - name: Capture existing A1 review-data fingerprint
         id: a1_before
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs snapshot-a1
 
-      - name: Audit pre-A2 schema and behavior before ledger bootstrap or A2
-        if: ${{ steps.migration_plan.outputs.baseline_required == 'true' || steps.migration_plan.outputs.a2_pending == 'true' }}
+      - name: Audit baseline schema before ledger bootstrap
+        if: ${{ steps.migration_plan.outputs.baseline_required == 'true' }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs test-sql schema-audit scripts/hosted-pre-a2-audit.sql
-
-      - name: Verify current A1 and A2 state before later migrations
-        if: ${{ steps.migration_plan.outputs.a2_applied == 'true' && steps.migration_plan.outputs.pending_versions != '' }}
-        env:
-          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
-        run: node scripts/hosted-review-db-migration.mjs test-sql hosted-test scripts/hosted-review-verification.sql
 
       - name: Bootstrap audited historical migration ledger once
         if: ${{ steps.migration_plan.outputs.baseline_required == 'true' }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
           BASELINE_VERSIONS: ${{ steps.migration_plan.outputs.baseline_versions }}
         shell: bash
         run: |
@@ -122,58 +145,87 @@ jobs:
               exit 1
             fi
           done
-          echo "Recording ${#baseline_versions[@]} audited historical migrations as applied; migration SQL will not be replayed."
+          echo "Recording ${#baseline_versions[@]} audited historical migrations as applied; historical SQL will not be replayed."
           node scripts/hosted-review-db-migration.mjs bootstrap-baseline
 
-      - name: Recheck exact pending migration set
+      - name: Recheck candidate pending migrations before apply
         id: confirmed_plan
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
         run: node scripts/hosted-review-db-migration.mjs plan
 
-      - name: Apply only expected pending Supabase migrations
+      - name: Apply only expected pending migrations
         if: ${{ steps.confirmed_plan.outputs.pending_versions != '' }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
         run: node scripts/hosted-review-db-migration.mjs apply
 
-      - name: Verify isolated A1 and A2 behavior, invalid IDs, and RLS
+      - name: Verify isolated hosted behavior
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs test-sql hosted-test scripts/hosted-review-verification.sql
 
-      - name: Verify A1 review data is unchanged
+      - name: Plan the internal idempotency pass
+        id: second_pass_plan
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
+        run: node scripts/hosted-review-db-migration.mjs plan
+
+      - name: Require zero migrations pending after the first pass
+        env:
+          PENDING_VERSIONS: ${{ steps.second_pass_plan.outputs.pending_versions }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$PENDING_VERSIONS" ]]; then
+            echo "Migrations remain pending after the first pass: $PENDING_VERSIONS" >&2
+            exit 1
+          fi
+          echo 'No migrations remain pending after the second pass.'
+
+      - name: Prove rerun is a no-op
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
+        run: node scripts/hosted-review-db-migration.mjs apply
+
+      - name: Repeat isolated hosted verification
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs test-sql hosted-test scripts/hosted-review-verification.sql
+
+      - name: Verify existing A1 review data is unchanged
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
           A1_PROGRESS_FINGERPRINT: ${{ steps.a1_before.outputs.progress }}
           A1_REFLECTIONS_FINGERPRINT: ${{ steps.a1_before.outputs.reflections }}
         run: node scripts/hosted-review-db-migration.mjs verify-a1-snapshot
 
-      - name: Verify migration ledger and forced RLS
+      - name: Verify ledger, pending set, and forced RLS
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          EXPECTED_PENDING_MIGRATIONS: ${{ steps.introduced_migrations.outputs.versions }}
         run: node scripts/hosted-review-db-migration.mjs verify
 
-      - name: Report migration and verification result
+      - name: Report candidate migration result
         shell: bash
         run: |
           {
-            echo '## RTS Formation review database migration'
+            echo '## RTS Formation review database candidate'
             echo
-            echo "- Commit: `$GITHUB_SHA`"
-            echo '- Target: isolated review Supabase project `zxikzybpodxecgpkncix`'
+            echo "- Exact candidate commit: `$GITHUB_SHA`"
+            echo "- New migration versions against review: `${{ steps.introduced_migrations.outputs.versions || 'none' }}`"
             echo "- Pending at start: `${{ steps.migration_plan.outputs.pending_versions || 'none' }}`"
-            echo "- Pending after application: `${{ steps.confirmed_plan.outputs.pending_versions || 'none' }}`"
+            echo "- Pending after second pass: `${{ steps.second_pass_plan.outputs.pending_versions || 'none' }}`"
             if [[ "${{ steps.migration_plan.outputs.baseline_required }}" == 'true' ]]; then
-              echo '- Historical baseline: bootstrapped once after the pre-A2 audit passed; historical SQL was not replayed'
+              echo '- Historical baseline: bootstrapped once after schema audit; historical SQL was not replayed'
             else
               echo '- Historical baseline: already present; no history repair was run'
             fi
-            if [[ -z "${{ steps.confirmed_plan.outputs.pending_versions }}" ]]; then
-              echo '- Migration changes: none; exact no-op rerun'
-            else
-              echo '- Migration changes: expected pending migrations applied'
-            fi
-            echo '- A1 existing review data: unchanged'
-            echo '- Isolated hosted verification and migration ledger checks: passed'
+            echo '- Second apply: no-op'
+            echo '- Existing A1 review data: unchanged'
+            echo '- Isolated hosted verification and exact migration ledger: passed'
           } >> "$GITHUB_STEP_SUMMARY"

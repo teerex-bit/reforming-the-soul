@@ -1,11 +1,11 @@
 import { appendFile, readFile, readdir } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 
 export const REVIEW_PROJECT_ID = 'zxikzybpodxecgpkncix';
-export const A2_MIGRATION_VERSION = '202609240001';
-export const A1_MIGRATION_VERSION = '202609230001';
+export const AUDITED_BASELINE_CUTOFF_VERSION = '202609230001';
 const SAFE_SEVERITIES = new Set(['ERROR', 'FATAL', 'PANIC', 'WARNING', 'NOTICE', 'INFO', 'LOG', 'DEBUG', 'DEBUG1', 'DEBUG2', 'DEBUG3', 'DEBUG4', 'DEBUG5']);
 const NETWORK_ERROR_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'EAI_AGAIN', 'ENOTFOUND', 'EPIPE']);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -32,13 +32,28 @@ export function pendingVersions(localVersions, remoteVersions) {
 
 export function parseExpectedVersions(value) {
   const versions = String(value ?? '').split(/[\s,]+/).filter(Boolean);
-  if (!versions.length || versions.some((version) => !/^\d{12}$/.test(version))) {
-    throw new SafeFailure('Expected migration versions must be a non-empty list of 12-digit versions.');
+  if (versions.some((version) => !/^\d{12}$/.test(version))) {
+    throw new SafeFailure('Expected migration versions must be a comma-separated list of 12-digit versions.');
   }
   if (new Set(versions).size !== versions.length) {
     throw new SafeFailure('Expected migration versions contain a duplicate.');
   }
   return versions.sort();
+}
+
+export function parseIntroducedMigrationVersions(nameStatusOutput) {
+  const versions = [];
+  for (const line of String(nameStatusOutput ?? '').split(/\r?\n/).filter(Boolean)) {
+    const [status, file, ...extra] = line.split('\t');
+    if (extra.length || !file) throw new SafeFailure('Candidate migration diff has an invalid status record.');
+    if (status !== 'A') {
+      throw new SafeFailure('Unexpected migration drift: existing migration files may not be modified or removed.');
+    }
+    const match = file.match(/^supabase\/migrations\/(\d{12})_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$/);
+    if (!match) throw new SafeFailure('Candidate contains an invalid migration filename.');
+    versions.push(match[1]);
+  }
+  return sortedUnique(versions);
 }
 
 function sortedUnique(values) {
@@ -53,7 +68,7 @@ export function planMigrations(localVersions, remoteVersions, expectedVersions, 
   const local = sortedUnique(localVersions);
   const remote = sortedUnique(remoteVersions);
   const expected = sortedUnique(expectedVersions);
-  if (!local.length || !expected.length || expected.some((version) => !local.includes(version))) {
+  if (!local.length || expected.some((version) => !local.includes(version))) {
     throw new SafeFailure('Unexpected migration drift: expected migration is not present in this checkout.');
   }
   if (remote.some((version) => !local.includes(version))) {
@@ -62,10 +77,16 @@ export function planMigrations(localVersions, remoteVersions, expectedVersions, 
 
   if (!historyExists) {
     if (remote.length) throw new SafeFailure('Unexpected migration drift: history rows exist without the Supabase ledger.');
+    if (expected.length === 0) {
+      throw new SafeFailure('The migration baseline cannot be bootstrapped without candidate migrations anchoring the schema audit.');
+    }
     const baseline = local.slice(0, local.length - expected.length);
     const pending = local.slice(baseline.length);
     if (pending.length !== expected.length || pending.some((version, index) => version !== expected[index])) {
       throw new SafeFailure('Unexpected migration drift: baseline bootstrap is allowed only for a contiguous migration suffix.');
+    }
+    if (baseline.at(-1) !== AUDITED_BASELINE_CUTOFF_VERSION) {
+      throw new SafeFailure(`Unexpected migration drift: the one-time schema audit supports baselining only through ${AUDITED_BASELINE_CUTOFF_VERSION}.`);
     }
     return {
       baselineVersions: baseline,
@@ -85,18 +106,6 @@ export function planMigrations(localVersions, remoteVersions, expectedVersions, 
     alreadyAppliedVersions: remote,
     baselineRequired: false,
   };
-}
-
-export function assertOnlyA2Pending(localVersions, remoteVersions) {
-  const local = localVersions.map(String);
-  if (!local.includes(A2_MIGRATION_VERSION)) {
-    throw new SafeFailure('The A2 migration is missing from this checkout.');
-  }
-  const pending = pendingVersions(local, remoteVersions);
-  if (pending.some((version) => version !== A2_MIGRATION_VERSION)) {
-    throw new SafeFailure(`Unexpected pending migrations: ${pending.filter((version) => version !== A2_MIGRATION_VERSION).join(', ')}`);
-  }
-  return pending;
 }
 
 export function assertMigrationHistoryMissing(relationName) {
@@ -127,7 +136,7 @@ function classifyTapFailures(stage, failures) {
   if (stage === 'schema-audit') return 'schema drift';
   const labels = failures.join(' ');
   if (/row.level security|RLS|another user|cross.user|ownership/i.test(labels)) return 'RLS verification failure';
-  if (/A1|A2|identifier|invalid module|invalid prompt/i.test(labels)) return 'migration failure';
+  if (/identifier|invalid module|invalid prompt|migration version/i.test(labels)) return 'migration failure';
   return 'test-isolation failure';
 }
 
@@ -194,6 +203,35 @@ async function migrationFilesByVersion() {
     const match = file.match(/^(\d{12})_.+\.sql$/);
     return match ? [[match[1], path.join(projectRoot, 'supabase', 'migrations', file)]] : [];
   }));
+}
+
+async function captureCandidateMigrations(reviewSha, candidateSha) {
+  if (!/^[0-9a-f]{40}$/.test(reviewSha ?? '') || !/^[0-9a-f]{40}$/.test(candidateSha ?? '') || candidateSha !== process.env.GITHUB_SHA) {
+    throw new SafeFailure('Candidate migration discovery must use full Git SHAs and the exact workflow commit.');
+  }
+  let diff;
+  try {
+    diff = execFileSync('git', ['diff', '--name-status', '--no-renames', reviewSha, candidateSha, '--', 'supabase/migrations'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch {
+    throw new SafeFailure('Could not compare candidate migration files with the captured review branch commit.');
+  }
+  const versions = parseIntroducedMigrationVersions(diff);
+  const local = new Set(await localMigrationVersions());
+  if (versions.some((version) => !local.has(version))) {
+    throw new SafeFailure('Unexpected migration drift: candidate migration diff does not match checked-out migration files.');
+  }
+  const versionList = versions.join(',');
+  if (!process.env.GITHUB_OUTPUT || !process.env.GITHUB_ENV) {
+    throw new SafeFailure('GitHub Actions outputs are required for candidate migration discovery.');
+  }
+  await appendFile(process.env.GITHUB_OUTPUT, `versions=${versionList}\nreview_base_sha=${reviewSha}\n`);
+  await appendFile(process.env.GITHUB_ENV, `EXPECTED_PENDING_MIGRATIONS=${versionList}\nREVIEW_BASE_SHA=${reviewSha}\n`);
+  console.log(`Captured ${versions.length} newly introduced migration version(s) against the current review branch commit.`);
+  return versions;
 }
 
 async function withReviewClient(operation) {
@@ -335,8 +373,6 @@ async function plan({ writeOutputs = false } = {}) {
       `baseline_required=${planResult.baselineRequired}`,
       `baseline_versions=${planResult.baselineVersions.join(',')}`,
       `pending_versions=${planResult.pendingVersions.join(',')}`,
-      `a2_pending=${planResult.pendingVersions.includes(A2_MIGRATION_VERSION)}`,
-      `a2_applied=${planResult.alreadyAppliedVersions.includes(A2_MIGRATION_VERSION)}`,
     ].join('\n') + '\n');
   }
   return planResult;
@@ -533,6 +569,7 @@ async function main() {
   if (mode === 'snapshot-a1') return snapshotA1();
   if (mode === 'verify-a1-snapshot') return verifyA1Snapshot();
   if (mode === 'test-sql') return runHostedSqlTest(args[0], args[1]);
+  if (mode === 'candidate-migrations') return captureCandidateMigrations(args[0], args[1]);
   throw new SafeFailure('Use mode plan, preflight, snapshot-a1, verify-a1-snapshot, assert-history-missing, or verify.');
 }
 
