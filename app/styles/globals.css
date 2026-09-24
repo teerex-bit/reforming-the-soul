@@ -110,6 +110,14 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 
 .deep-dive-shell, .deep-dive-home { max-width: 78rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) var(--gutter-page); }
 .deep-dive-home { max-width: 67rem; }
+.deep-dive-module-links { display: flex; flex-wrap: wrap; gap: .85rem; align-items: center; }
+.deep-dive-home__next { margin-top: 1.5rem; }
+.deep-dive-home__next a { color: var(--color-navy); font-weight: 700; }
+.deep-dive-a2-prompts { max-width: 47rem; margin-top: 2rem; padding-left: clamp(1rem, 3vw, 1.75rem); border-left: 2px solid var(--color-gold); }
+.deep-dive-a2-prompts p { margin: 0 0 1rem; }
+.deep-dive-a2-stems { max-width: 47rem; margin-top: 2rem; }
+.deep-dive-a2-stems p:not(:last-child) { margin: 0 0 .9rem; padding: 1rem 1.15rem; border-left: 2px solid var(--color-gold); background: var(--color-paper); font-family: var(--font-display); font-size: 1.15rem; line-height: 1.5; }
+.deep-dive-a2-stems p:last-child { margin-top: 1.5rem; }
 .deep-dive-home--awaken { padding-top: clamp(3rem, 9vw, 8rem); padding-bottom: clamp(4rem, 10vw, 9rem); }
 .deep-dive-home h1 { max-width: 55rem; margin: 0 0 1.25rem; font-size: clamp(3.4rem, 8vw, 7rem); letter-spacing: -0.04em; }
 .deep-dive-introduction { max-width: 52rem; margin: 0 0 clamp(2rem, 4vw, 3rem); font-size: clamp(1.12rem, 1.8vw, 1.35rem); line-height: 1.75; }
@@ -166,6 +174,8 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
   .deep-dive-transition form, .deep-dive-transition .button { width: 100%; }
   .deep-dive-reflection__actions { flex-direction: column; }
   .deep-dive-reflection__actions .button { width: 100%; }
+  .deep-dive-module-links { align-items: stretch; flex-direction: column; }
+  .deep-dive-module-links .button { width: 100%; }
 }
 
 .editorial-hero {

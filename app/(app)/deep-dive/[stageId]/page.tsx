@@ -13,7 +13,10 @@ export default async function StagePage({ params }: { params: Promise<{ stageId:
         <p className="eyebrow">THE FORMATION JOURNEY · AWAKEN</p>
         <h1>Awaken</h1>
         <p className="deep-dive-introduction">{AWAKEN_INTRODUCTION}</p>
-        <Link className="button" href="/deep-dive/awaken/pay-attention">Begin Pay Attention</Link>
+        <div className="deep-dive-module-links" aria-label="Awaken lessons">
+          <Link className="button" href="/deep-dive/awaken/pay-attention">Begin Pay Attention</Link>
+          <Link className="button button--secondary" href="/deep-dive/awaken/catch-yourself-being-you">Begin Catch Yourself Being You · A2</Link>
+        </div>
       </section>
     </AppShell>
   );
