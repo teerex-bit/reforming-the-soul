@@ -120,6 +120,7 @@ test('hosted workflow audits the one-time baseline before recording history or a
   const apply = workflow.match(/- name: Apply only expected pending migrations[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
 
   assert.match(audit, /hosted-review-db-migration\.mjs test-sql schema-audit scripts\/hosted-pre-a2-audit\.sql/);
+  assert.match(preA2Audit, /set local search_path = pg_temp, public, extensions, auth, rts_private;/i);
   assert.match(audit, /scripts\/hosted-pre-a2-audit\.sql/);
   assert.match(preA2Audit, /A1 module identifier is accepted before A2/);
   assert.match(preA2Audit, /A1 module and prompt identifiers are accepted before A2/);
@@ -204,6 +205,7 @@ test('hosted SQL suites own unique fixture actors and only assert against tracke
   const pre = readFileSync('scripts/hosted-pre-a2-audit.sql', 'utf8');
   const verification = readFileSync('scripts/hosted-review-verification.sql', 'utf8');
   for (const [name, sql] of [['pre-A2 audit', pre], ['post-migration verification', verification]]) {
+    assert.match(sql, /set local search_path = pg_temp, public, extensions, auth, rts_private;/i, `${name} resolves pgTAP and Supabase objects on the hosted connection`);
     assert.match(sql, /gen_random_uuid\(\)/, `${name} generates unique fixture identities`);
     assert.match(sql, /rts\.test_(?:run_id|actor_[ab]|[a-z0-9_]+_id)/i, `${name} tracks exact run-owned IDs`);
     assert.match(sql, /rollback;/i, `${name} rolls back only its own fixture transaction`);
@@ -227,6 +229,12 @@ test('hosted workflow runs isolated audits, gates one-time baseline, and skips c
   assert.match(workflow, /No migrations remain pending after the second pass/);
   assert.match(workflow, /Prove rerun is a no-op/);
   assert.doesNotMatch(workflow, /supabase db push|supabase migration repair/);
+  const promotion = workflow.match(/- name: Promote exact verified candidate to review[\s\S]*?(?=\n      - name:|$)/)?.[0] ?? '';
+  assert.match(workflow, /contents: write/);
+  assert.match(promotion, /getBranch\(\{ owner, repo, branch: 'review' \}\)/);
+  assert.match(promotion, /targetSha = context\.sha/);
+  assert.match(promotion, /updateRef\(\{[^}]*ref: 'heads\/review'[^}]*sha: targetSha[^}]*force: false/);
+  assert.ok(workflow.indexOf(promotion) > workflow.indexOf('Verify ledger, pending set, and forced RLS'));
 });
 
 test('atomic migration runner applies SQL and writes its Supabase ledger row in the same transaction', () => {

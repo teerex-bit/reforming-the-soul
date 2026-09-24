@@ -1,4 +1,5 @@
 begin;
+set local search_path = pg_temp, public, extensions, auth, rts_private;
 select plan(19);
 
 select set_config('rts.test_run_id', gen_random_uuid()::text, true);

@@ -1,4 +1,5 @@
 begin;
+set local search_path = pg_temp, public, extensions, auth, rts_private;
 select plan(10);
 
 select ok(
