@@ -28,8 +28,14 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('checkbox', { name: 'I feel overlooked' }).check();
     await page.getByRole('checkbox', { name: 'Control' }).check();
     await expect(page.getByRole('region', { name: 'A response that repeats' })).toContainText('2 situations');
-    const patternWidths = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }));
-    expect(patternWidths.document).toBeLessThanOrEqual(patternWidths.viewport);
+    const patternWidths = await page.evaluate(() => {
+      const overflow = Array.from(document.querySelectorAll('body *')).map(element => {
+        const rect = element.getBoundingClientRect();
+        return { tag: element.tagName, className: typeof element.className === 'string' ? element.className : '', text: element.textContent?.trim().slice(0, 80), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: element.scrollWidth, clientWidth: element.clientWidth };
+      }).filter(element => element.right > window.innerWidth + 1).sort((left, right) => right.right - left.right).slice(0, 12);
+      return { viewport: window.innerWidth, document: document.documentElement.scrollWidth, overflow };
+    });
+    expect(patternWidths.document, JSON.stringify(patternWidths.overflow)).toBeLessThanOrEqual(patternWidths.viewport);
     await page.screenshot({ path: testInfo.outputPath(`a2-pattern-map-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Seeing clearly' })).toBeVisible();
@@ -46,7 +52,7 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('button', { name: /ASK.*optional/i }).click();
     await expect(page.getByRole('region', { name: 'ASK' })).toContainText('God, what do You want me to see here?');
     await page.getByRole('button', { name: /RECEIVE.*optional/i }).click();
-    await expect(page.getByRole('region', { name: 'RECEIVE' })).toContainText(/stay with what becomes clear/i);
+    await expect(page.getByRole('region', { name: 'RECEIVE', exact: true })).toContainText(/stay with what becomes clear/i);
     await page.screenshot({ path: testInfo.outputPath(`a2-practice-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'A pattern is something you can notice' })).toBeVisible();
