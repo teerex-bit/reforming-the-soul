@@ -5,6 +5,7 @@ on:
     branches:
       - prototype/phase-1-vertical-slice
       - fix/vercel-deploy-compat
+      - review
   workflow_dispatch:
 
 permissions:
