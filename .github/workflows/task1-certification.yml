@@ -7,6 +7,7 @@ on:
       - fix/vercel-deploy-compat
       - review
       - review-db-candidate
+      - dev/a1-a2-experience-redesign
   workflow_dispatch:
 
 permissions:
