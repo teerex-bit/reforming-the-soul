@@ -56,6 +56,7 @@ select ok(not exists (select 1 from public.deep_dive_module_progress where id in
 select ok(not exists (select 1 from public.deep_dive_reflections where id in (current_setting('rts.test_a1_reflection_id')::uuid, current_setting('rts.test_a2_reflection_id')::uuid)), 'another user cannot read this run’s reflections');
 update public.deep_dive_module_progress set last_section_id = 'tampered'
 where id = current_setting('rts.test_a2_progress_id')::uuid;
+select set_config('request.jwt.claim.sub', current_setting('rts.test_actor_a'), true);
 select is((select last_section_id from public.deep_dive_module_progress where id = current_setting('rts.test_a2_progress_id')::uuid), 'first-response', 'another user cannot update this run’s progress');
 select throws_ok(
   format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)',

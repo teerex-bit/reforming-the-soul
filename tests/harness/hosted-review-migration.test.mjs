@@ -181,6 +181,7 @@ test('hosted SQL suites own unique fixture actors and only assert against tracke
     assert.doesNotMatch(sql, /select\s+is\s*\(\s*\(\s*select\s+count\s*\(\s*\*\s*\)\s*::?integer\s+from\s+public\.[a-z_]+\s*\)\s*,/i,
       `${name} does not assert global public table counts`);
   }
+  assert.match(verification, /set_config\('request\.jwt\.claim\.sub', current_setting\('rts\.test_actor_b'\)[\s\S]*?update public\.deep_dive_module_progress[\s\S]*?set_config\('request\.jwt\.claim\.sub', current_setting\('rts\.test_actor_a'\)[\s\S]*?another user cannot update this run’s progress/);
 });
 
 test('hosted workflow runs isolated audits, gates one-time baseline, and skips changes on clean reruns', () => {
