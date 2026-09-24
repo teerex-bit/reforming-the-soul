@@ -43,7 +43,7 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
       }).filter(element => element.right > window.innerWidth + 1).sort((left, right) => right.right - left.right).slice(0, 12);
       return { viewport: window.innerWidth, document: document.documentElement.scrollWidth, layout, overflow };
     });
-    expect(patternWidths.document, JSON.stringify(patternWidths.overflow)).toBeLessThanOrEqual(patternWidths.viewport);
+    expect(patternWidths.document, JSON.stringify({ layout: patternWidths.layout, overflow: patternWidths.overflow })).toBeLessThanOrEqual(patternWidths.viewport);
     await page.screenshot({ path: testInfo.outputPath(`a2-pattern-map-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Seeing clearly' })).toBeVisible();

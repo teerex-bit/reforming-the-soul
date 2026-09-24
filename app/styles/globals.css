@@ -267,7 +267,10 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
   .a1-pause { padding-left: 1rem; }
   .a1-scripture { padding-left: 0; padding-right: 0; }
   .a1-scripture::after { right: -8rem; }
-  .a2-pattern-map__reflection { align-items: flex-start; flex-direction: column; }
+  .a2-pattern-map__reflection { display: block; grid-column: 1; }
+  .a2-pattern-map__reflection .eyebrow { margin-bottom: .65rem; }
+  .a2-pattern-map__reflection > p { display: block; margin-bottom: .65rem; }
+  .a2-pattern-map__reflection small { display: block; }
   .a2-practice__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .a2-practice__steps button { min-height: 5.4rem; }
   .a2-practice__steps li:nth-child(odd) button { border-left: 0; }
