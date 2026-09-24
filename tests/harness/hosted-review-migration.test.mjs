@@ -205,7 +205,10 @@ test('hosted SQL suites own unique fixture actors and only assert against tracke
   const pre = readFileSync('scripts/hosted-pre-a2-audit.sql', 'utf8');
   const verification = readFileSync('scripts/hosted-review-verification.sql', 'utf8');
   for (const [name, sql] of [['pre-A2 audit', pre], ['post-migration verification', verification]]) {
-    assert.match(sql, /set local search_path = pg_temp, public, extensions, auth, rts_private;/i, `${name} resolves pgTAP and Supabase objects on the hosted connection`);
+    assert.match(sql, /set local search_path = pg_temp, public, extensions, auth, rts_private;/i, `${name} resolves Supabase objects on the hosted connection`);
+    assert.match(sql, /create function pg_temp\.rts_test_assert/i, `${name} uses the run-local assertion helper`);
+    assert.match(sql, /select pg_temp\.rts_test_finish\(\)/i, `${name} declares its complete TAP result plan`);
+    assert.doesNotMatch(sql, /select\s+(?:plan|finish|ok|is|lives_ok|throws_ok|throws_like)\s*\(/i, `${name} does not depend on an optional hosted pgTAP installation`);
     assert.match(sql, /gen_random_uuid\(\)/, `${name} generates unique fixture identities`);
     assert.match(sql, /rts\.test_(?:run_id|actor_[ab]|[a-z0-9_]+_id)/i, `${name} tracks exact run-owned IDs`);
     assert.match(sql, /rollback;/i, `${name} rolls back only its own fixture transaction`);

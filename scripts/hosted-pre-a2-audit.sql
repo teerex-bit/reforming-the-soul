@@ -1,8 +1,53 @@
 begin;
 set local search_path = pg_temp, public, extensions, auth, rts_private;
-select plan(10);
 
-select ok(
+create function pg_temp.rts_test_assert(p_condition boolean, p_label text)
+returns text language plpgsql as $$
+declare
+  assertion_number integer;
+begin
+  assertion_number := coalesce(nullif(current_setting('rts.assertion_count', true), '')::integer, 0) + 1;
+  perform set_config('rts.assertion_count', assertion_number::text, true);
+  if p_condition is true then
+    return format('ok %s - %s', assertion_number, p_label);
+  end if;
+  return format('not ok %s - %s', assertion_number, p_label);
+end;
+$$;
+
+create function pg_temp.rts_test_raises(p_statement text, p_expected_state text, p_expected_detail text, p_label text)
+returns text language plpgsql as $$
+declare
+  actual_state text;
+  actual_message text;
+  actual_constraint text;
+begin
+  begin
+    execute p_statement;
+  exception when others then
+    get stacked diagnostics
+      actual_state = returned_sqlstate,
+      actual_message = message_text,
+      actual_constraint = constraint_name;
+    return pg_temp.rts_test_assert(
+      (p_expected_state is null or actual_state = p_expected_state)
+      and (p_expected_detail is null or position(p_expected_detail in coalesce(actual_constraint, '') || ' ' || coalesce(actual_message, '')) > 0),
+      p_label
+    );
+  end;
+  return pg_temp.rts_test_assert(false, p_label);
+end;
+$$;
+
+create function pg_temp.rts_test_finish()
+returns text language sql as $$
+  select format('1..%s', coalesce(nullif(current_setting('rts.assertion_count', true), '')::integer, 0))
+$$;
+
+grant execute on function pg_temp.rts_test_assert(boolean, text) to authenticated;
+grant execute on function pg_temp.rts_test_raises(text, text, text, text) to authenticated;
+
+select pg_temp.rts_test_assert(
   not exists (
     select required.name
     from (values
@@ -18,7 +63,7 @@ select ok(
   'Phase 1 and A1 repository tables exist'
 );
 
-select ok(
+select pg_temp.rts_test_assert(
   not exists (
     select required.name
     from (values
@@ -38,7 +83,7 @@ select ok(
   'required Phase 1 app functions through A1 exist'
 );
 
-select ok(
+select pg_temp.rts_test_assert(
   not exists (
     select required.name
     from (values
@@ -54,7 +99,7 @@ select ok(
   'all user-owned Phase 1 and A1 tables enable and force RLS'
 );
 
-select ok(
+select pg_temp.rts_test_assert(
   not exists (
     select required.name
     from (values ('deep_dive_module_progress'), ('deep_dive_reflections')) as required(name)
@@ -80,37 +125,35 @@ values
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', current_setting('rts.test_actor_a'), true);
-select lives_ok(
-  format('insert into public.deep_dive_module_progress (id, user_id, curriculum_version_id, module_id, last_section_id, completed_at) values (%L, %L, %L, %L, %L, now())',
-    current_setting('rts.test_progress_id'), current_setting('rts.test_actor_a'), 'phase-1-v1', 'awaken.pay-attention', 'reflection'),
+insert into public.deep_dive_module_progress (id, user_id, curriculum_version_id, module_id, last_section_id, completed_at)
+values (current_setting('rts.test_progress_id')::uuid, current_setting('rts.test_actor_a')::uuid, 'phase-1-v1', 'awaken.pay-attention', 'reflection', now());
+select pg_temp.rts_test_assert(
+  exists (select 1 from public.deep_dive_module_progress where id = current_setting('rts.test_progress_id')::uuid),
   'A1 module identifier is accepted before A2'
 );
-select lives_ok(
-  format('insert into public.deep_dive_reflections (id, user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L, %L)',
-    current_setting('rts.test_reflection_id'), current_setting('rts.test_actor_a'), current_setting('rts.test_progress_id'), 'real-moment', 'hosted pre-A2 audit'),
+insert into public.deep_dive_reflections (id, user_id, progress_id, prompt_id, body)
+values (current_setting('rts.test_reflection_id')::uuid, current_setting('rts.test_actor_a')::uuid, current_setting('rts.test_progress_id')::uuid, 'real-moment', 'hosted pre-A2 audit');
+select pg_temp.rts_test_assert(
+  exists (select 1 from public.deep_dive_reflections where id = current_setting('rts.test_reflection_id')::uuid),
   'A1 module and prompt identifiers are accepted before A2'
 );
-
-select throws_like(
-  format('insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id) values (%L, %L, %L, %L)',
-    current_setting('rts.test_actor_a'), 'phase-1-v1', 'awaken.catch-yourself-being-you', 'entry'),
-  '%deep_dive_module_progress_module_id_check%', 'A2 module identifier is rejected before A2'
+select pg_temp.rts_test_raises(
+  format('insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id) values (%L, %L, %L, %L)', current_setting('rts.test_actor_a'), 'phase-1-v1', 'awaken.catch-yourself-being-you', 'entry'),
+  '23514', 'deep_dive_module_progress_module_id_check', 'A2 module identifier is rejected before A2'
 );
-select throws_like(
-  format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)',
-    current_setting('rts.test_actor_a'), current_setting('rts.test_progress_id'), 'first-response', 'invalid'),
-  '%deep_dive_reflections_prompt_id_check%', 'A2 prompt identifier is rejected before A2'
+select pg_temp.rts_test_raises(
+  format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)', current_setting('rts.test_actor_a'), current_setting('rts.test_progress_id'), 'first-response', 'invalid'),
+  '23514', 'deep_dive_reflections_prompt_id_check', 'A2 prompt identifier is rejected before A2'
 );
-select throws_like(
-  format('insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id) values (%L, %L, %L, %L)',
-    current_setting('rts.test_actor_a'), 'phase-1-v1', 'awaken.unapproved-module', 'entry'),
-  '%deep_dive_module_progress_module_id_check%', 'unapproved module identifier is rejected before A2'
+select pg_temp.rts_test_raises(
+  format('insert into public.deep_dive_module_progress (user_id, curriculum_version_id, module_id, last_section_id) values (%L, %L, %L, %L)', current_setting('rts.test_actor_a'), 'phase-1-v1', 'awaken.unapproved-module', 'entry'),
+  '23514', 'deep_dive_module_progress_module_id_check', 'unapproved module identifier is rejected before A2'
 );
-select throws_like(
-  format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)',
-    current_setting('rts.test_actor_a'), current_setting('rts.test_progress_id'), 'unapproved-prompt', 'invalid'),
-  '%deep_dive_reflections_prompt_id_check%', 'unapproved prompt identifier is rejected before A2'
+select pg_temp.rts_test_raises(
+  format('insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body) values (%L, %L, %L, %L)', current_setting('rts.test_actor_a'), current_setting('rts.test_progress_id'), 'unapproved-prompt', 'invalid'),
+  '23514', 'deep_dive_reflections_prompt_id_check', 'unapproved prompt identifier is rejected before A2'
 );
 
-select * from finish();
+reset role;
+select pg_temp.rts_test_finish();
 rollback;
