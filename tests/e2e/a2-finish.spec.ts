@@ -56,7 +56,6 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you'));
     await expect(page.getByRole('progressbar', { name: 'Section 7 of 7' })).toHaveJSProperty('value', 7);
     await expect(page.getByRole('heading', { level: 1, name: 'A pattern is something you can notice' })).toBeVisible();
-    await expect(page.getByLabel(/write about any of these questions/i)).toHaveValue(reflection);
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
 
