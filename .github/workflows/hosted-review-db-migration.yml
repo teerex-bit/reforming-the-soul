@@ -7,15 +7,14 @@ on:
         description: Exact workflow commit that passed full certification
         required: true
         type: string
-      target_a2_sha:
-        description: Exact certified A2 migration source commit
+      migration_source_commit:
+        description: Commit whose migration files are included unchanged in this certified commit
         required: true
         type: string
-      diagnostic_only:
-        description: Run the read-only preflight diagnostic without applying or verifying migrations
+      expected_pending_migrations:
+        description: Exact migration version suffix expected in the ledger (comma separated)
         required: true
-        type: boolean
-        default: true
+        type: string
 
 permissions:
   contents: read
@@ -31,13 +30,13 @@ jobs:
     timeout-minutes: 20
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
+      EXPECTED_PENDING_MIGRATIONS: ${{ inputs.expected_pending_migrations }}
 
     steps:
-      - name: Require the certified A2 development commit
+      - name: Require the certified development commit and exact migration target
         env:
           CERTIFIED_COMMIT: ${{ inputs.certified_commit }}
-          TARGET_A2_SHA: ${{ inputs.target_a2_sha }}
-          DIAGNOSTIC_ONLY: ${{ inputs.diagnostic_only }}
+          MIGRATION_SOURCE_COMMIT: ${{ inputs.migration_source_commit }}
         shell: bash
         run: |
           set -euo pipefail
@@ -49,12 +48,12 @@ jobs:
             echo 'The supplied certified commit must exactly match this workflow run commit.' >&2
             exit 1
           fi
-          if [[ "$TARGET_A2_SHA" != "d84cc87cc8f8c9a60fa60e600c7f320e2ff3698c" ]]; then
-            echo 'The target must be the exact certified A2 migration source commit.' >&2
+          if [[ ! "$MIGRATION_SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'The migration source commit must be a full Git SHA.' >&2
             exit 1
           fi
-          if [[ "$DIAGNOSTIC_ONLY" != "true" && "$DIAGNOSTIC_ONLY" != "false" ]]; then
-            echo 'diagnostic_only must be true or false.' >&2
+          if [[ ! "$EXPECTED_PENDING_MIGRATIONS" =~ ^[0-9]{12}(,[0-9]{12})*$ ]]; then
+            echo 'Expected pending migrations must be a comma-separated list of 12-digit versions.' >&2
             exit 1
           fi
 
@@ -72,84 +71,90 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify A2 migration sources match the exact target SHA
+      - name: Verify migration sources match the supplied source commit
         env:
-          TARGET_A2_SHA: ${{ inputs.target_a2_sha }}
+          MIGRATION_SOURCE_COMMIT: ${{ inputs.migration_source_commit }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "$TARGET_A2_SHA"
-          git diff --exit-code "$TARGET_A2_SHA" "$GITHUB_SHA" -- supabase/migrations
+          git fetch --no-tags --depth=1 origin "$MIGRATION_SOURCE_COMMIT"
+          git diff --exit-code "$MIGRATION_SOURCE_COMMIT" "$GITHUB_SHA" -- supabase/migrations
 
-      - name: Audit pre-A2 schema against repository
-        if: ${{ !inputs.diagnostic_only }}
+      - name: Determine baseline and exact pending migrations
+        id: migration_plan
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
-        run: |
-          set -euo pipefail
-          node scripts/hosted-review-db-migration.mjs assert-history-missing
-          npx supabase test db --db-url "$RTS_DATABASE_URL" --workdir . \
-            supabase/tests/000_harness.sql \
-            supabase/tests/010_schema.sql \
-            supabase/tests/020_rls_matrix.sql \
-            supabase/tests/025_a1_rls.sql \
-            supabase/tests/030_same_owner.sql \
-            supabase/tests/040_practice_transitions.sql \
-            supabase/tests/050_deletion.sql \
-            supabase/tests/060_audit.sql \
-            supabase/tests/065_actor_resolver.sql \
-            supabase/tests/070_awaken_observation.sql \
-            supabase/tests/075_ai_reflect.sql \
-            supabase/tests/080_see_clearly.sql \
-            supabase/tests/090_practice_vertical_slice.sql \
-            scripts/hosted-pre-a2-audit.sql
+        run: node scripts/hosted-review-db-migration.mjs plan
 
-      - name: Bootstrap verified migration history
-        if: ${{ !inputs.diagnostic_only }}
+      - name: Capture A1 review-data fingerprint
+        id: a1_before
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs snapshot-a1
+
+      - name: Audit pre-A2 schema and behavior before ledger bootstrap or A2
+        if: ${{ steps.migration_plan.outputs.baseline_required == 'true' || steps.migration_plan.outputs.a2_pending == 'true' }}
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs test-sql schema-audit scripts/hosted-pre-a2-audit.sql
+
+      - name: Verify current A1 and A2 state before later migrations
+        if: ${{ steps.migration_plan.outputs.a2_applied == 'true' && steps.migration_plan.outputs.pending_versions != '' }}
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+        run: node scripts/hosted-review-db-migration.mjs test-sql hosted-test scripts/hosted-review-verification.sql
+
+      - name: Bootstrap audited historical migration ledger once
+        if: ${{ steps.migration_plan.outputs.baseline_required == 'true' }}
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          BASELINE_VERSIONS: ${{ steps.migration_plan.outputs.baseline_versions }}
         shell: bash
         run: |
           set -euo pipefail
-          pre_a2_versions=()
-          for migration in supabase/migrations/*.sql; do
-            version="${migration##*/}"
-            version="${version%%_*}"
-            if [[ "$version" < "202609240001" ]]; then
-              pre_a2_versions+=("$version")
-            fi
-          done
-          if [[ "${#pre_a2_versions[@]}" -ne 22 ]]; then
-            echo 'Expected exactly 22 repository migrations through A1; refusing to bootstrap history.' >&2
+          IFS=, read -r -a baseline_versions <<< "$BASELINE_VERSIONS"
+          if [[ "${#baseline_versions[@]}" -lt 1 ]]; then
+            echo 'The audited historical migration baseline is empty; refusing bootstrap.' >&2
             exit 1
           fi
-          echo 'Recording the 22 audited pre-A2 migrations as applied; their SQL will not be replayed.'
-          npx supabase migration repair --db-url "$RTS_DATABASE_URL" --status applied --workdir . "${pre_a2_versions[@]}"
+          for version in "${baseline_versions[@]}"; do
+            if [[ ! "$version" =~ ^[0-9]{12}$ ]]; then
+              echo 'The migration plan returned an invalid baseline version.' >&2
+              exit 1
+            fi
+          done
+          echo "Recording ${#baseline_versions[@]} audited historical migrations as applied; migration SQL will not be replayed."
+          node scripts/hosted-review-db-migration.mjs bootstrap-baseline
 
-      - name: Confirm review database target and pending migrations
+      - name: Recheck exact pending migration set
+        id: confirmed_plan
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
-        run: node scripts/hosted-review-db-migration.mjs preflight
+        run: node scripts/hosted-review-db-migration.mjs plan
 
-      - name: Apply pending Supabase migrations
-        if: ${{ !inputs.diagnostic_only }}
+      - name: Apply only expected pending Supabase migrations
+        if: ${{ steps.confirmed_plan.outputs.pending_versions != '' }}
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
-        run: npx supabase db push --db-url "$RTS_DATABASE_URL" --skip-vault --yes --workdir .
+        run: node scripts/hosted-review-db-migration.mjs apply
 
-      - name: Verify A1 and A2 persistence, rejected IDs, and RLS
-        if: ${{ !inputs.diagnostic_only }}
+      - name: Verify isolated A1 and A2 behavior, invalid IDs, and RLS
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
-        run: npx supabase test db --db-url "$RTS_DATABASE_URL" --workdir . supabase/tests/026_a2_persistence.sql
+        run: node scripts/hosted-review-db-migration.mjs test-sql hosted-test scripts/hosted-review-verification.sql
 
-      - name: Verify migration record and forced RLS
-        if: ${{ !inputs.diagnostic_only }}
+      - name: Verify A1 review data is unchanged
+        env:
+          RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
+          A1_PROGRESS_FINGERPRINT: ${{ steps.a1_before.outputs.progress }}
+          A1_REFLECTIONS_FINGERPRINT: ${{ steps.a1_before.outputs.reflections }}
+        run: node scripts/hosted-review-db-migration.mjs verify-a1-snapshot
+
+      - name: Verify migration ledger and forced RLS
         env:
           RTS_DATABASE_URL: ${{ secrets.RTS_DATABASE_URL }}
         run: node scripts/hosted-review-db-migration.mjs verify
 
       - name: Report migration and verification result
-        if: ${{ !inputs.diagnostic_only }}
         shell: bash
         run: |
           {
@@ -157,19 +162,18 @@ jobs:
             echo
             echo "- Commit: `$GITHUB_SHA`"
             echo '- Target: isolated review Supabase project `zxikzybpodxecgpkncix`'
-            echo '- Migration: `202609240001_deep_dive_a2_identifiers`'
-            echo '- Hosted pgTAP verification: passed'
-            echo '- Migration history and forced RLS verification: passed'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Report diagnostic-only result
-        if: ${{ inputs.diagnostic_only }}
-        shell: bash
-        run: |
-          {
-            echo '## RTS Formation review database preflight diagnostic'
-            echo
-            echo "- Diagnostic commit: `$GITHUB_SHA`"
-            echo '- Exact A2 migration source: `d84cc87cc8f8c9a60fa60e600c7f320e2ff3698c`'
-            echo '- Mode: read-only preflight; no migrations applied and hosted persistence verification skipped'
+            echo "- Pending at start: `${{ steps.migration_plan.outputs.pending_versions || 'none' }}`"
+            echo "- Pending after application: `${{ steps.confirmed_plan.outputs.pending_versions || 'none' }}`"
+            if [[ "${{ steps.migration_plan.outputs.baseline_required }}" == 'true' ]]; then
+              echo '- Historical baseline: bootstrapped once after the pre-A2 audit passed; historical SQL was not replayed'
+            else
+              echo '- Historical baseline: already present; no history repair was run'
+            fi
+            if [[ -z "${{ steps.confirmed_plan.outputs.pending_versions }}" ]]; then
+              echo '- Migration changes: none; exact no-op rerun'
+            else
+              echo '- Migration changes: expected pending migrations applied'
+            fi
+            echo '- A1 existing review data: unchanged'
+            echo '- Isolated hosted verification and migration ledger checks: passed'
           } >> "$GITHUB_STEP_SUMMARY"

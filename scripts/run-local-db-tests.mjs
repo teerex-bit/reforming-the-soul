@@ -22,14 +22,19 @@ if (errors.length) {
 }
 
 const executable = process.platform === 'win32' ? 'supabase.cmd' : 'supabase';
-const result = spawnSync(executable, ['test', 'db', '--local', '--workdir', project], {
-  cwd: project,
-  env: process.env,
-  stdio: 'inherit',
-  shell: false,
-});
-if (result.error) {
-  process.stderr.write(`${result.error.message}\n`);
-  process.exit(1);
+for (const args of [
+  ['test', 'db', '--local', '--workdir', project],
+  ['test', 'db', '--local', '--workdir', project, 'scripts/hosted-review-verification.sql'],
+]) {
+  const result = spawnSync(executable, args, {
+    cwd: project,
+    env: process.env,
+    stdio: 'inherit',
+    shell: false,
+  });
+  if (result.error) {
+    process.stderr.write(`${result.error.message}\n`);
+    process.exit(1);
+  }
+  if (result.status !== 0) process.exit(result.status ?? 1);
 }
-process.exit(result.status ?? 1);
