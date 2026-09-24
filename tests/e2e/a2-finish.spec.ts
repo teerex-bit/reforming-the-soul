@@ -80,3 +80,55 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await resetLocalE2eAccount(user.email);
   }
 });
+
+test('A2 Skip for now advances without saving a reflection and resumes there', async ({ page }, testInfo) => {
+  const user = e2eUser('a2-skip-for-now', testInfo.project.name);
+  const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+  await resetLocalE2eAccount(user.email);
+
+  try {
+    await page.goto(appRuntimeUrl('/sign-up'));
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByLabel('Password').fill(user.password);
+    await Promise.all([
+      page.waitForURL(/\/dashboard$/),
+      page.getByRole('button', { name: 'Create account' }).click(),
+    ]);
+
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you?section=reflection'));
+    await expect(page.getByRole('heading', { level: 1, name: 'What are you beginning to recognize?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Skip for now' }).click();
+    await expect(page).toHaveURL(/section=go-deeper$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Try finishing a few sentences' })).toBeVisible();
+    await expect(page.getByRole('progressbar', { name: 'Section 5 of 7' })).toHaveJSProperty('value', 5);
+    await expect(page.getByText('Reflection saved.', { exact: true })).toHaveCount(0);
+
+    await Promise.all([
+      page.waitForURL(/\/sign-in$/),
+      page.getByRole('button', { name: 'Sign out' }).click(),
+    ]);
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByLabel('Password').fill(user.password);
+    await Promise.all([
+      page.waitForURL(/\/dashboard$/),
+      page.getByRole('button', { name: 'Sign in' }).click(),
+    ]);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you'));
+    await expect(page.getByRole('heading', { level: 1, name: 'Try finishing a few sentences' })).toBeVisible();
+    await expect(page.getByRole('progressbar', { name: 'Section 5 of 7' })).toHaveJSProperty('value', 5);
+
+    const state = await pool.query(
+      `select p.last_section_id, r.body
+       from public.deep_dive_module_progress p
+       left join public.deep_dive_reflections r
+         on (r.progress_id,r.user_id)=(p.id,p.user_id) and r.prompt_id='first-response'
+       where p.user_id=(select id from auth.users where email=$1)
+         and p.module_id='awaken.catch-yourself-being-you'`,
+      [user.email],
+    );
+    expect(state.rows).toEqual([{ last_section_id: 'go-deeper', body: null }]);
+  } finally {
+    await pool.end();
+    await resetLocalE2eAccount(user.email);
+  }
+});

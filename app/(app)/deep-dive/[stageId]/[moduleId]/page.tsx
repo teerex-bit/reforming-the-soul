@@ -24,7 +24,10 @@ async function A2Page({ query }: { query: { section?: string } }) {
   }
   async function saveReflection(_: A2ReflectionSaveState, formData: FormData): Promise<A2ReflectionSaveState> {
     'use server';
-    if (formData.get('skip') === 'true') return { saved: false };
+    if (formData.get('skip') === 'true') {
+      await saveA2Section('go-deeper');
+      redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
+    }
     await saveA2Reflection(String(formData.get('body') ?? ''));
     return { saved: true };
   }
