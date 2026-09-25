@@ -5,6 +5,10 @@ import {
   A1_REFLECTION_PROMPT_ID,
   A2_MODULE_ID,
   A2_REFLECTION_PROMPT_ID,
+  A3_MODULE_ID,
+  A3_REFLECTION_PROMPT_ID,
+  A4_MODULE_ID,
+  A4_REFLECTION_PROMPT_ID,
   type A1SectionId,
 } from '../../domain/deep-dive';
 
@@ -74,4 +78,37 @@ export async function deleteA2Reflection() {
 export async function completeA2() {
   const actor = await requireActor();
   return deepDiveRepository().complete({ actorId: actor.id, moduleId: A2_MODULE_ID });
+}
+
+export async function getA3() {
+  const actor = await requireActor();
+  return deepDiveRepository().get(actor.id, A3_MODULE_ID, A3_REFLECTION_PROMPT_ID);
+}
+export async function saveA3Section(sectionId: string) {
+  const actor = await requireActor();
+  return deepDiveRepository().saveSection({ actorId: actor.id, moduleId: A3_MODULE_ID, sectionId });
+}
+export async function saveA3Reflection(body: string) {
+  const actor = await requireActor();
+  return deepDiveRepository().saveReflection({ actorId: actor.id, moduleId: A3_MODULE_ID, promptId: A3_REFLECTION_PROMPT_ID, body });
+}
+export async function completeA3() {
+  const actor = await requireActor();
+  return deepDiveRepository().complete({ actorId: actor.id, moduleId: A3_MODULE_ID });
+}
+export async function getA4() {
+  const actor = await requireActor();
+  return deepDiveRepository().get(actor.id, A4_MODULE_ID, A4_REFLECTION_PROMPT_ID);
+}
+export async function saveA4Section(sectionId: string) {
+  const actor = await requireActor();
+  return deepDiveRepository().saveSection({ actorId: actor.id, moduleId: A4_MODULE_ID, sectionId });
+}
+export async function saveA4Reflection(body: string) {
+  const actor = await requireActor();
+  return deepDiveRepository().saveReflection({ actorId: actor.id, moduleId: A4_MODULE_ID, promptId: A4_REFLECTION_PROMPT_ID, body });
+}
+export async function completeA4() {
+  const actor = await requireActor();
+  return deepDiveRepository().complete({ actorId: actor.id, moduleId: A4_MODULE_ID });
 }

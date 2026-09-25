@@ -54,6 +54,8 @@ select set_config('rts.test_a1_progress_id', gen_random_uuid()::text, true);
 select set_config('rts.test_a1_reflection_id', gen_random_uuid()::text, true);
 select set_config('rts.test_a2_progress_id', gen_random_uuid()::text, true);
 select set_config('rts.test_a2_reflection_id', gen_random_uuid()::text, true);
+select set_config('rts.test_a3_progress_id', gen_random_uuid()::text, true);
+select set_config('rts.test_a4_progress_id', gen_random_uuid()::text, true);
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
   (current_setting('rts.test_actor_a')::uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rts-verify-' || current_setting('rts.test_run_id') || '-a@example.invalid', '', now(), '{}', '{}', now(), now()),
@@ -89,9 +91,24 @@ select pg_temp.rts_test_assert((select body = 'hosted A1 exact reflection' from 
 select pg_temp.rts_test_assert((select last_section_id = 'first-response' from public.deep_dive_module_progress where id = current_setting('rts.test_a2_progress_id')::uuid), 'A2 progress resumes at the saved section');
 select pg_temp.rts_test_assert((select body = 'hosted A2 exact reflection' from public.deep_dive_reflections where id = current_setting('rts.test_a2_reflection_id')::uuid), 'A2 reflection saves exact wording');
 
+insert into public.deep_dive_module_progress (id, user_id, curriculum_version_id, module_id, last_section_id)
+values (current_setting('rts.test_a3_progress_id')::uuid, current_setting('rts.test_actor_a')::uuid, 'phase-1-v1', 'awaken.your-reactions-have-a-history', 'reflection');
+insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body)
+values (current_setting('rts.test_actor_a')::uuid, current_setting('rts.test_a3_progress_id')::uuid, 'formation-history', 'hosted A3 exact reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where progress_id = current_setting('rts.test_a3_progress_id')::uuid and body = 'hosted A3 exact reflection'), 'A3 identifiers persist exact reflection');
+
+insert into public.deep_dive_module_progress (id, user_id, curriculum_version_id, module_id, last_section_id, completed_at)
+values (current_setting('rts.test_a4_progress_id')::uuid, current_setting('rts.test_actor_a')::uuid, 'phase-1-v1', 'awaken.formation-is-not-identity', 'carry-forward', now());
+insert into public.deep_dive_reflections (user_id, progress_id, prompt_id, body)
+values (current_setting('rts.test_actor_a')::uuid, current_setting('rts.test_a4_progress_id')::uuid, 'formation-and-identity', 'hosted A4 exact reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where id = current_setting('rts.test_a4_progress_id')::uuid and completed_at is not null), 'A4 completion state persists');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where progress_id = current_setting('rts.test_a4_progress_id')::uuid and body = 'hosted A4 exact reflection'), 'A4 identifiers persist exact reflection');
+
 select set_config('request.jwt.claim.sub', current_setting('rts.test_actor_b'), true);
 select pg_temp.rts_test_assert(not exists (select 1 from public.deep_dive_module_progress where id in (current_setting('rts.test_a1_progress_id')::uuid, current_setting('rts.test_a2_progress_id')::uuid)), 'another user cannot read this run’s progress');
 select pg_temp.rts_test_assert(not exists (select 1 from public.deep_dive_reflections where id in (current_setting('rts.test_a1_reflection_id')::uuid, current_setting('rts.test_a2_reflection_id')::uuid)), 'another user cannot read this run’s reflections');
+select pg_temp.rts_test_assert(not exists (select 1 from public.deep_dive_module_progress where id in (current_setting('rts.test_a3_progress_id')::uuid, current_setting('rts.test_a4_progress_id')::uuid)), 'another user cannot read A3/A4 progress');
+select pg_temp.rts_test_assert(not exists (select 1 from public.deep_dive_reflections where progress_id in (current_setting('rts.test_a3_progress_id')::uuid, current_setting('rts.test_a4_progress_id')::uuid)), 'another user cannot read A3/A4 reflections');
 update public.deep_dive_module_progress set last_section_id = 'tampered'
 where id = current_setting('rts.test_a2_progress_id')::uuid;
 select set_config('request.jwt.claim.sub', current_setting('rts.test_actor_a'), true);

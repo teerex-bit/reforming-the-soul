@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AppShell } from '../../../../../components/design-system/AppShell';
 import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/deep-dive/A1Lesson';
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
+import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
 import { A2_SECTIONS, type A2SectionId } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import { completeA1, completeA2, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
@@ -89,6 +90,8 @@ async function A2Page({ query }: { query: { section?: string } }) {
 export default async function A1Page({ params, searchParams }: { params: Promise<{ stageId: string; moduleId: string }>; searchParams: Promise<{ section?: string }> }) {
   const { stageId, moduleId } = await params; const query = await searchParams;
   if (stageId === 'awaken' && moduleId === 'catch-yourself-being-you') return A2Page({ query });
+  if (stageId === 'awaken' && moduleId === 'your-reactions-have-a-history') return NewAwakenPage({ module: 'a3', query });
+  if (stageId === 'awaken' && moduleId === 'formation-is-not-identity') return NewAwakenPage({ module: 'a4', query });
   if (stageId !== 'awaken' || moduleId !== 'pay-attention') notFound();
   const progress = await getA1();
   const requested = query.section as A1SectionId | undefined;

@@ -16,6 +16,8 @@ export default async function StagePage({ params }: { params: Promise<{ stageId:
         <div className="deep-dive-module-links" aria-label="Awaken lessons">
           <Link className="button" href="/deep-dive/awaken/pay-attention">Begin Pay Attention</Link>
           <Link className="button button--secondary" href="/deep-dive/awaken/catch-yourself-being-you">Begin Catch Yourself Being You · A2</Link>
+          <Link className="button button--secondary" href="/deep-dive/awaken/your-reactions-have-a-history">Your Reactions Have a History · A3</Link>
+          <Link className="button button--secondary" href="/deep-dive/awaken/formation-is-not-identity">Formation Is Not Identity · A4</Link>
         </div>
       </section>
     </AppShell>

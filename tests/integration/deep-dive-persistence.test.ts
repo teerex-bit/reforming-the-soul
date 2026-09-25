@@ -5,6 +5,10 @@ import {
   A1_REFLECTION_PROMPT_ID,
   A2_MODULE_ID,
   A2_REFLECTION_PROMPT_ID,
+  A3_MODULE_ID,
+  A3_REFLECTION_PROMPT_ID,
+  A4_MODULE_ID,
+  A4_REFLECTION_PROMPT_ID,
 } from '../../domain/deep-dive';
 import { deepDiveRepository } from '../../server/data/deep-dive-repository';
 import { createTestPool, withAuthenticatedActor } from '../helpers/db';
@@ -71,5 +75,21 @@ describe('Deep Dive module persistence contract', () => {
 
     expect(result.rows).toEqual([]);
     await expect(repository.get(otherId, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID)).resolves.toBeNull();
+  });
+
+  it('keeps A3 and A4 progress, completion, and reflections distinct from A1/A2', async () => {
+    for (const [moduleId, promptId, body] of [
+      [A3_MODULE_ID, A3_REFLECTION_PROMPT_ID, 'I may have learned to withdraw.'],
+      [A4_MODULE_ID, A4_REFLECTION_PROMPT_ID, 'Withdrawal is not my identity.'],
+    ] as const) {
+      await repository.saveSection({ actorId: ownerId, moduleId, sectionId: 'reflection' });
+      await repository.saveReflection({ actorId: ownerId, moduleId, promptId, body });
+      await expect(repository.get(ownerId, moduleId, promptId)).resolves.toMatchObject({ lastSectionId: 'reflection', reflection: body, completedAt: null });
+      await repository.complete({ actorId: ownerId, moduleId });
+      await expect(repository.get(ownerId, moduleId, promptId)).resolves.toMatchObject({ lastSectionId: 'carry-forward', reflection: body });
+      await expect(repository.get(otherId, moduleId, promptId)).resolves.toBeNull();
+    }
+    await expect(repository.get(ownerId, A1_MODULE_ID, A1_REFLECTION_PROMPT_ID)).resolves.toMatchObject({ reflection: 'A1 wording stays exact.' });
+    await expect(repository.get(ownerId, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID)).resolves.toMatchObject({ reflection: 'My first response was to withdraw.' });
   });
 });

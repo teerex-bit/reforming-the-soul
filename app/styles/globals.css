@@ -115,6 +115,19 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .deep-dive-home__next { margin-top: 1.5rem; }
 .deep-dive-home__next a { color: var(--color-navy); font-weight: 700; }
 .deep-dive-home__quiet-link { display: inline-block; margin-top: .25rem; font-weight: 700; }
+.deep-dive-lesson--a3, .deep-dive-lesson--a4 { max-width: 80rem; }
+.a3-thread, .a4-reframe { max-width: 75rem; margin: 2.5rem 0; padding: clamp(1.2rem, 3vw, 2.5rem); border-top: 2px solid var(--color-gold); background: var(--color-paper); }
+.a3-thread { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 1rem; }
+.a3-thread label, .a4-reframe label { display: grid; gap: .8rem; color: var(--color-navy); font-weight: 700; }
+.a3-thread select, .a3-thread input, .a4-reframe input { min-width: 0; width: 100%; padding: .8rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-ivory); font: inherit; }
+.a3-thread__result { grid-column: 1/-1; padding-top: 1.25rem; border-top: 1px solid var(--color-line); }
+.a3-thread__result p, .a4-reframe [role="region"] p { color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.25rem, 2vw, 1.85rem); line-height: 1.45; overflow-wrap: anywhere; }
+.a4-reframe [role="region"] { margin-top: 1.5rem; padding: 1.25rem 0 0; border-top: 1px solid var(--color-line); }
+.a4-carry-practice { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; max-width: 70rem; margin-top: 2.5rem; }
+.a4-carry-practice > div { padding: 1rem 0; border-top: 1px solid var(--color-line); }
+.a4-carry-practice strong { color: var(--color-green); letter-spacing: .07em; }
+.a4-carry-practice p { margin: .7rem 0 0; }
+@media (max-width: 700px) { .a3-thread { grid-template-columns: 1fr; } .a3-thread > span { transform: rotate(-90deg); justify-self: center; } .a3-thread__result { grid-column: 1; } .a4-carry-practice { grid-template-columns: 1fr; gap: .6rem; } }
 
 /* A1 / Pay Attention: pause, observe, and let the space do the work. */
 .deep-dive-lesson--a1 { max-width: 80rem; }
