@@ -98,8 +98,14 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.screenshot({ path: testInfo.outputPath(`a2-completed-${testInfo.project.name}.png`), fullPage: true });
     await forward.click();
     await expect(page).toHaveURL(/your-reactions-have-a-history$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken'));
+    await page.getByRole('link', { name: 'Review Catch Yourself Being You · A2' }).click();
+    await expect(page).toHaveURL(/catch-yourself-being-you\?section=entry$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Catch Yourself Being You' })).toBeVisible();
+    await page.getByRole('link', { name: 'Continue' }).click();
+    await expect(page).toHaveURL(/section=patterns$/);
     await page.goto(appRuntimeUrl('/deep-dive'));
-    await page.getByRole('link', { name: 'Catch Yourself Being You · A2' }).click();
+    await page.getByRole('link', { name: 'Review Catch Yourself Being You · A2' }).click();
     await expect(page).toHaveURL(/section=entry$/);
     await expect(page.getByRole('link', { name: '← Back' })).toBeVisible();
     await page.getByRole('link', { name: 'Continue' }).click();

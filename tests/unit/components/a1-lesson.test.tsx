@@ -5,6 +5,11 @@ import { A1_SECTIONS } from '../../../content/deep-dive/v1';
 import { AWAKEN_INTRODUCTION } from '../../../content/deep-dive/v1';
 import StagePage from '../../../app/(app)/deep-dive/[stageId]/page';
 
+vi.mock('../../../server/services/deep-dive-service', () => ({
+  getA1: vi.fn(async () => null), getA2: vi.fn(async () => null),
+  getA3: vi.fn(async () => null), getA4: vi.fn(async () => null),
+}));
+
 afterEach(cleanup);
 
 const section = (id: string) => A1_SECTIONS.find(item => item.id === id)!;
@@ -97,7 +102,7 @@ describe('A1 participant experience', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Awaken' })).toBeInTheDocument();
     expect(screen.getByText(AWAKEN_INTRODUCTION)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Begin Pay Attention' })).toHaveAttribute('href', '/deep-dive/awaken/pay-attention');
+    expect(screen.getByRole('link', { name: 'Begin Pay Attention · A1' })).toHaveAttribute('href', '/deep-dive/awaken/pay-attention');
     expect(screen.queryByRole('heading', { name: 'Can we talk later?' })).not.toBeInTheDocument();
   });
 });

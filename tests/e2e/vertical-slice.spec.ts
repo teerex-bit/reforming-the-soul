@@ -138,7 +138,7 @@ test('the exact approved vertical slice works end to end', async ({ page }, test
        where pr.practice_id=$1 and pr.user_id=$2`,
       [practiceId, userId],
     )).rows[0]?.body ?? null).toBe(VERTICAL_SLICE.practice.outcome);
-    await page.getByLabel('What are you noticing now?').fill(VERTICAL_SLICE.practice.review);
+    await page.getByLabel('Your reflection').fill(VERTICAL_SLICE.practice.review);
     await page.getByRole('button', { name: 'Save review' }).click();
     await expectPracticeState(pool, practiceId, userId, 'reviewed');
     await expect.poll(async () => (await pool.query(

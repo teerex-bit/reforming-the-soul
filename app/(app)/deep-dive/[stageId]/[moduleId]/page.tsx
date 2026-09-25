@@ -19,7 +19,7 @@ function LessonProgress({ module, title, index, total }: { module: 'A1' | 'A2'; 
 
 async function A2Page({ query }: { query: { section?: string } }) {
   const progress = await getA2();
-  const candidate = query.section ?? progress?.lastSectionId ?? 'entry';
+  const candidate = query.section ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
   const requestedIndex = A2_SECTIONS.findIndex(section => section.id === candidate);
   const index = requestedIndex < 0 ? 0 : requestedIndex;
   const section = A2_SECTIONS[index];
@@ -96,7 +96,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   if (stageId !== 'awaken' || moduleId !== 'pay-attention') notFound();
   const progress = await getA1();
   const requested = query.section as A1SectionId | undefined;
-  const currentId = requested ?? progress?.lastSectionId ?? 'entry';
+  const currentId = requested ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
   const index = Math.max(0, A1_SECTIONS.findIndex(s => s.id === currentId)); const section = A1_SECTIONS[index];
   async function saveSection(formData: FormData) { 'use server'; await saveA1Section(String(formData.get('section')) as A1SectionId); redirect(`/deep-dive/awaken/pay-attention?section=${String(formData.get('section'))}`); }
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {

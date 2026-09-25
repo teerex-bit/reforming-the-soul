@@ -13,7 +13,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   const title = a3 ? 'Your Reactions Have a History' : 'Formation Is Not Identity';
   const prefix = `/deep-dive/awaken/${slug}`;
   const progress = a3 ? await getA3() : await getA4();
-  const requested = query.section ?? progress?.lastSectionId ?? 'entry';
+  const requested = query.section ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
   const index = Math.max(0, sections.findIndex(item => item.id === requested));
   const section = sections[index];
   const next = sections[index + 1];

@@ -4,6 +4,11 @@ import { A2Lesson } from '../../../components/deep-dive/A2Lesson';
 import { A2_SECTIONS } from '../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import StagePage from '../../../app/(app)/deep-dive/[stageId]/page';
 
+vi.mock('../../../server/services/deep-dive-service', () => ({
+  getA1: vi.fn(async () => null), getA2: vi.fn(async () => null),
+  getA3: vi.fn(async () => null), getA4: vi.fn(async () => null),
+}));
+
 afterEach(cleanup);
 
 describe('A2 participant experience', () => {
@@ -109,7 +114,7 @@ describe('A2 participant experience', () => {
   it('offers both lessons from the Awaken stage page', async () => {
     render(await StagePage({ params: Promise.resolve({ stageId: 'awaken' }) }));
 
-    expect(screen.getByRole('link', { name: 'Begin Pay Attention' })).toHaveAttribute('href', '/deep-dive/awaken/pay-attention');
+    expect(screen.getByRole('link', { name: 'Begin Pay Attention · A1' })).toHaveAttribute('href', '/deep-dive/awaken/pay-attention');
     expect(screen.getByRole('link', { name: 'Begin Catch Yourself Being You · A2' })).toHaveAttribute('href', '/deep-dive/awaken/catch-yourself-being-you');
   });
 });

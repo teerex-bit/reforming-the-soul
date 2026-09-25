@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { resetLocalE2eAccount } from '../helpers/local-e2e';
 import { appRuntimeUrl } from '../setup/app-runtime';
 import { e2eUser } from '../fixtures/users';
+import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
 
 test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, testInfo) => {
   const user = e2eUser('a3-a4-stage', testInfo.project.name);
@@ -36,6 +37,12 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await expect(page.getByRole('region', { name: /A[34] lesson progress/ })).toBeVisible();
       await page.getByRole('button', { name: 'Continue' }).click();
       await expect(page).toHaveURL(/section=teaching$/);
+      await page.goto(appRuntimeUrl('/deep-dive/awaken'));
+      const lessonTitle = slug === 'formation-is-not-identity' ? 'Formation Is Not Identity · A4' : 'Your Reactions Have a History · A3';
+      const resume = page.getByRole('link', { name: `Resume ${lessonTitle}` });
+      await expect(resume).toHaveAttribute('href', new RegExp('section=teaching$'));
+      await resume.click();
+      await expect(page.getByRole('heading', { level: 1, name: slug === 'formation-is-not-identity' ? 'Made new, still being formed' : 'What once made sense' })).toBeVisible();
       await page.getByRole('button', { name: 'Continue' }).click();
       if (slug === 'your-reactions-have-a-history') {
         await page.getByLabel('Recurring response').selectOption('Withdrawal');
@@ -73,11 +80,26 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await expect(back).toBeFocused();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: testInfo.outputPath(`${slug === 'formation-is-not-identity' ? 'a4' : 'a3'}-completed-${testInfo.project.name}.png`), fullPage: true });
+      const beforeReview = await pool.query('select p.last_section_id,p.completed_at,p.updated_at,r.body,r.updated_at as reflection_updated_at from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
       await forward.click();
       await expect(page).toHaveURL(slug === 'formation-is-not-identity' ? /see-clearly/ : /formation-is-not-identity$/);
       await expect(page.getByRole('heading', { level: 1, name: slug === 'formation-is-not-identity' ? /See Clearly/i : 'Formation Is Not Identity' })).toBeVisible();
+      await page.goto(appRuntimeUrl('/deep-dive/awaken'));
+      const reviewLink = page.getByRole('link', { name: `Review ${lessonTitle}` });
+      await expect(reviewLink).toHaveAttribute('href', new RegExp('section=entry$'));
+      await reviewLink.click();
+      await expect(page.getByRole('heading', { level: 1, name: slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History' })).toBeVisible();
+      const sections = slug === 'formation-is-not-identity' ? A4_SECTIONS : A3_SECTIONS;
+      for (const nextSection of sections.slice(1)) {
+        await page.getByRole('link', { name: 'Continue', exact: true }).click();
+        await expect(page).toHaveURL(new RegExp(`section=${nextSection.id}$`));
+        await expect(page.getByRole('heading', { level: 1, name: nextSection.title })).toBeVisible();
+        if (nextSection.id === 'reflection') await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+      }
+      const afterReview = await pool.query('select p.last_section_id,p.completed_at,p.updated_at,r.body,r.updated_at as reflection_updated_at from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
+      expect(afterReview.rows).toEqual(beforeReview.rows);
       await page.goto(appRuntimeUrl('/deep-dive'));
-      await page.getByRole('link', { name: new RegExp(`${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
+      await page.getByRole('link', { name: new RegExp(`Review ${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
       await expect(page).toHaveURL(/section=entry$/);
       await page.goto(appRuntimeUrl(`${base}?section=reflection`));
       await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);

@@ -29,7 +29,7 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page.getByRole('heading', { level: 1, name: 'Awaken' })).toBeVisible();
     await expect(page.getByText(/Awareness comes before correction or change/)).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Pay Attention' })).not.toBeVisible();
-    await page.getByRole('link', { name: 'Begin Pay Attention' }).click();
+    await page.getByRole('link', { name: 'Begin Pay Attention · A1' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Pay Attention' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Reforming the Soul' })).toHaveAttribute('src', '/assets/logos/rts-tree-wordmark.png');
     await expect(page.getByRole('progressbar', { name: 'Section 1 of 9' })).toHaveJSProperty('value', 1);
@@ -74,7 +74,7 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
       page.getByRole('button', { name: 'Sign in' }).click(),
     ]);
     await page.goto(appRuntimeUrl('/deep-dive'));
-    await page.getByRole('link', { name: 'Continue where I left off' }).click();
+    await page.getByRole('link', { name: 'Resume Pay Attention · A1' }).click();
     await expect(page).toHaveURL(/section=carry-forward$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Keep noticing' })).toBeVisible();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
@@ -91,6 +91,12 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await page.screenshot({ path: testInfo.outputPath(`a1-completed-${testInfo.project.name}.png`), fullPage: true });
     await forward.click();
     await expect(page).toHaveURL(/catch-yourself-being-you$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken'));
+    await page.getByRole('link', { name: 'Review Pay Attention · A1' }).click();
+    await expect(page).toHaveURL(/pay-attention\?section=entry$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Pay Attention' })).toBeVisible();
+    await page.getByRole('link', { name: 'Continue' }).click();
+    await expect(page).toHaveURL(/section=moment$/);
     await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention?section=carry-forward'));
     await expect(page.getByRole('link', { name: '← Back' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Review lesson from beginning/ })).toHaveCount(0);
