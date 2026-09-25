@@ -18,5 +18,8 @@ describe('See Clearly movements', () => {
   it('opens completed SC1 from entry for review', () => {
     render(<SeeClearlyStage status="review" />);
     expect(screen.getByRole('link', { name: 'Review SC1' })).toHaveAttribute('href', '/deep-dive/see-clearly/facts-and-interpretation?section=entry');
+    expect(screen.getByText('Up next')).toBeInTheDocument();
+    expect(document.getElementById('see-yourself-sc2')).toHaveTextContent('Follow the Formation Chain');
+    expect(document.getElementById('see-god-sc5')).toHaveTextContent('The God I Learned');
   });
 });

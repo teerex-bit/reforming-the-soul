@@ -51,7 +51,17 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(/section=carry-forward$/);
-    await expect(page.getByRole('link', { name: 'Back to See Clearly' })).toBeVisible();
+    const forward = page.getByRole('link', { name: 'Continue to Follow the Formation Chain' });
+    const backToGroup = page.getByRole('link', { name: 'Back to See Yourself Clearly' });
+    await expect(forward).toHaveAttribute('href', '/deep-dive/see-clearly#see-yourself-sc2');
+    await expect(backToGroup).toHaveAttribute('href', '/deep-dive/see-clearly#see-yourself-heading');
+    await expect(page.getByRole('link', { name: 'Back to See Clearly', exact: true })).toHaveCount(0);
+    await forward.focus();
+    await expect(forward).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(backToGroup).toBeFocused();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`sc1-completed-${testInfo.project.name}.png`), fullPage: true });
     const query = `select p.last_section_id,p.completed_at,p.updated_at,r.event_facts,r.automatic_interpretation,r.updated_at as record_updated_at,f.body,f.updated_at as reflection_updated_at
       from public.deep_dive_module_progress p join public.see_clearly_sc1_records r on (p.id,p.user_id,p.module_id)=(r.progress_id,r.user_id,r.module_id)
       join public.deep_dive_reflections f on (p.id,p.user_id)=(f.progress_id,f.user_id)
@@ -59,7 +69,12 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     const before = await pool.query(query, [user.email]);
     expect(before.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', event_facts: 'The message was read at 10:15.', automatic_interpretation: 'I had upset my friend.', body: 'I had already decided what the delay meant.' })]);
     expect(before.rows[0].completed_at).toBeTruthy();
-    await page.goto(appRuntimeUrl('/deep-dive/see-clearly'));
+    await forward.click();
+    await expect(page).toHaveURL(/\/deep-dive\/see-clearly#see-yourself-sc2$/);
+    await expect(page.locator('#see-yourself-sc2')).toContainText('Follow the Formation Chain');
+    await page.goto(appRuntimeUrl(`${base}?section=carry-forward`));
+    await page.getByRole('link', { name: 'Back to See Yourself Clearly' }).click();
+    await expect(page).toHaveURL(/\/deep-dive\/see-clearly#see-yourself-heading$/);
     await page.getByRole('link', { name: 'Review SC1' }).click();
     await expect(page).toHaveURL(/section=entry$/);
     for (const section of SC1_SECTIONS.slice(1)) {

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
+import { seeClearlyNavigation } from './see-clearly-navigation';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
 import { completeSC1, editSC1Reflection, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
@@ -64,10 +65,11 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     redirect(`${route}?section=carry-forward`);
   }
 
+  const completionNavigation = seeClearlyNavigation('sc1');
   const reviewReflection = completed || SC1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > SC1_SECTIONS.findIndex(item => item.id === 'reflection');
 
   return <AppShell stage="See Clearly"><section className="deep-dive-shell">
-    <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : '/deep-dive/see-clearly'}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SC1</span></div>
+    <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : completionNavigation.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SC1</span></div>
     <div className="deep-dive-layout">
       <section className="deep-dive-progress" aria-label="SC1 lesson progress">
         <div className="deep-dive-progress__identity"><span className="eyebrow">SEE CLEARLY · SC1</span><span aria-hidden="true">/</span><strong>Facts and Interpretation</strong></div>
@@ -79,7 +81,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
             {completed ? <Link className="button" href={`${route}?section=${next.id}`}>Continue</Link> : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">{index === 0 ? 'Begin' : 'Continue'}</button></form>}
           </> : <><p className="deep-dive-transition__title">Keep this distinction with you.</p>
-            {completed ? <Link className="button" href="/deep-dive/see-clearly">Back to See Clearly</Link> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+            {completed ? <nav className="deep-dive-completion-actions" aria-label="Continue your journey"><Link className="button" href={completionNavigation.nextHref!}>{completionNavigation.nextLabel}</Link><Link className="deep-dive-completion-actions__back" href={completionNavigation.backHref}>{completionNavigation.backLabel}</Link></nav> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
           </>}
         </footer>}
       </div>
