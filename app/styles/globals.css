@@ -286,6 +286,7 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .deep-dive-completion-actions .button { flex: 0 0 auto; }
 .deep-dive-completion-actions__back { color: var(--color-navy); font-size: .9rem; text-decoration: underline; text-underline-offset: .2em; }
 .deep-dive-completion-actions__back:hover { color: var(--color-green); }
+.deep-dive-completion-actions--pause .button--secondary { margin: 0; }
 .deep-dive-completion-actions a:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 4px; }
 .sc1-contrast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; max-width: 68rem; margin: 2rem 0; }
 .sc1-contrast > div { min-width: 0; padding: clamp(1.2rem, 3vw, 2rem); border-top: 3px solid var(--color-gold); background: var(--color-paper); }

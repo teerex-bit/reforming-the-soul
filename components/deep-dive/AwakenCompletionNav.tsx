@@ -9,6 +9,10 @@ const handoffs = {
 
 export function AwakenCompletionNav({ module }: { module: keyof typeof handoffs }) {
   const next = handoffs[module];
+  if (module === 'a1') return <nav className="deep-dive-completion-actions deep-dive-completion-actions--pause" aria-label="Continue your journey">
+    <Link className="button button--secondary" href="/deep-dive/awaken">Back to Awaken</Link>
+    <Link className="deep-dive-completion-actions__back" href={next.href}>{next.label}</Link>
+  </nav>;
   return <nav className="deep-dive-completion-actions" aria-label="Continue your journey">
     <Link className="button" href={next.href}>{next.label}</Link>
     <Link className="deep-dive-completion-actions__back" href="/deep-dive/awaken">Back to Awaken</Link>

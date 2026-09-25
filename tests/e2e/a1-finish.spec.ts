@@ -87,10 +87,12 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     const back = page.getByRole('link', { name: 'Back to Awaken' });
     await expect(forward).toBeVisible();
     await expect(back).toBeVisible();
-    await forward.focus();
-    await expect(forward).toBeFocused();
-    await page.keyboard.press('Tab');
+    await expect(page.getByText('Give this a little time.')).toBeVisible();
+    await expect(page.getByText('For the next day or two, simply notice what happens in ordinary moments. You do not need to analyze anything yet.')).toBeVisible();
+    await back.focus();
     await expect(back).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(forward).toBeFocused();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`a1-completed-${testInfo.project.name}.png`), fullPage: true });
     await forward.click();

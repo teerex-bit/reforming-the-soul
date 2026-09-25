@@ -11,5 +11,9 @@ export const A1_SECTIONS: readonly A1Section[] = [
   { id: 'reflection', eyebrow: 'REFLECTION', title: 'Notice a real moment', paragraphs: ['Think about a recent situation when your response seemed stronger than you expected. Do not try to explain everything yet. The goal is simply to notice.'], prompt: 'What happened? What did you feel or want to do immediately? Did the reaction feel familiar? Have you responded in a similar way in other situations?' },
   { id: 'go-deeper', eyebrow: 'GO DEEPER', title: 'Outside and inside', paragraphs: ['What could another person have observed from the outside? What were you experiencing on the inside? Were those two things the same, or did your internal response add meaning to what happened?', 'What happens around you matters, but so does what happens within you.'] },
   { id: 'practice', eyebrow: 'PRACTICE', title: 'Take this into your day', paragraphs: ['For the next few days, pay attention to moments when something inside you changes. You may notice tension, irritation, anxiety, defensiveness, withdrawal, urgency, or the desire to control a situation.', 'When you catch one of those moments, stop briefly and ask: “What just happened in me?” Then bring that moment before God without trying to force an answer.', 'A simple prayer is enough: “God, help me see what is happening in me.”'] },
-  { id: 'carry-forward', eyebrow: 'CARRY FORWARD', title: 'Keep noticing', paragraphs: ['You do not need to understand every reaction yet. For now, keep noticing the moments when something changes inside you. The more clearly you can recognize those moments, the easier it becomes to see the patterns that repeat.'] },
+  { id: 'carry-forward', eyebrow: 'CARRY FORWARD', title: 'Keep noticing', paragraphs: [
+    'You do not need to understand every reaction yet. For now, keep noticing the moments when something changes inside you. The more clearly you can recognize those moments, the easier it becomes to see the patterns that repeat.',
+    'Give this a little time.',
+    'For the next day or two, simply notice what happens in ordinary moments. You do not need to analyze anything yet.',
+  ] },
 ];
