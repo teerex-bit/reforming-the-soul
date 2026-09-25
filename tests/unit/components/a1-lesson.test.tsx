@@ -18,22 +18,48 @@ describe('A1 participant experience', () => {
     render(<A1Lesson section={section('reflection')} index={5} total={9} reflection={null} saveReflection={saveReflection} />);
 
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
-    fireEvent.click(screen.getByRole('button', { name: 'Save reflection' }));
+    expect(screen.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'A thought worth keeping' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save & continue' }));
     await waitFor(() => expect(saveReflection).toHaveBeenCalledOnce());
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
 
     confirmSave();
-    expect(await screen.findByRole('status')).toHaveTextContent('Reflection saved.');
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Reflection saved.'));
   });
 
   it('does not announce a save after the participant skips the optional reflection', async () => {
     const saveReflection = vi.fn(async (_state: { saved: boolean }, formData: FormData) => ({ saved: formData.get('skip') !== 'true' }));
     render(<A1Lesson section={section('reflection')} index={5} total={9} reflection={null} saveReflection={saveReflection} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue without writing' }));
 
     await waitFor(() => expect(saveReflection).toHaveBeenCalledOnce());
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('does not enable saving whitespace-only reflections', () => {
+    render(<A1Lesson section={section('reflection')} index={5} total={9} reflection={null} saveReflection={vi.fn()} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '   \n  ' } });
+    expect(screen.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
+  });
+
+  it('keeps the entered reflection available after a failed save', async () => {
+    const saveReflection = vi.fn(async () => ({ saved: false, error: 'Could not save your reflection. Please try again.' }));
+    render(<A1Lesson section={section('reflection')} index={5} total={9} reflection={null} saveReflection={saveReflection} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Keep these words' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save & continue' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save');
+    expect(screen.getByRole('textbox')).toHaveValue('Keep these words');
+    expect(screen.getByRole('button', { name: 'Save & continue' })).toBeEnabled();
+  });
+
+  it('makes the entire disclosure row operable and exposes its state', () => {
+    render(<A1Lesson section={section('teaching')} index={3} total={9} reflection={null} saveReflection={vi.fn()} />);
+    const disclosure = screen.getByRole('button', { name: /what does.*notice.*mean/i });
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('presents Luke 6:45 as Scripture with a visible translation attribution', () => {

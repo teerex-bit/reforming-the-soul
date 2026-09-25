@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import type { A2Section } from '../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 
-export type A2ReflectionSaveState = Readonly<{ saved: boolean }>;
+export type A2ReflectionSaveState = Readonly<{ saved: boolean; error?: string }>;
 type A2ReflectionAction = (state: A2ReflectionSaveState, formData: FormData) => Promise<A2ReflectionSaveState>;
 
 const SITUATIONS = [
@@ -49,9 +49,10 @@ function toggle(values: readonly string[], value: string) {
   return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
 }
 
-export function A2Lesson({ section, reflection, saveReflection }: { section: A2Section; reflection: string | null; saveReflection: A2ReflectionAction }) {
+export function A2Lesson({ section, reflection, saveReflection, review = false }: { section: A2Section; reflection: string | null; saveReflection: A2ReflectionAction; review?: boolean }) {
   const [saveState, formAction, pending] = useActionState(saveReflection, { saved: false });
   const [editedSinceSave, setEditedSinceSave] = useState(false);
+  const [body, setBody] = useState(reflection ?? '');
   const [situations, setSituations] = useState<string[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [activePracticeStep, setActivePracticeStep] = useState(0);
@@ -117,17 +118,18 @@ export function A2Lesson({ section, reflection, saveReflection }: { section: A2S
       ) : section.id === 'reflection' ? (
         <>
           <div className="deep-dive-a2-prompts">{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-          <form className="deep-dive-reflection a2-reflection" action={formAction}>
+          {review ? <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section> : <form className="deep-dive-reflection a2-reflection" action={formAction}>
             <label htmlFor="a2-reflection">{section.prompt}</label>
-            <textarea id="a2-reflection" name="body" defaultValue={reflection ?? ''} placeholder="Write only what you want to keep…" onChange={() => setEditedSinceSave(true)} />
+            <textarea id="a2-reflection" name="body" value={body} placeholder="Write only what you want to keep…" onChange={event => { setBody(event.target.value); setEditedSinceSave(true); }} />
             <div className="deep-dive-reflection__actions">
-              <button className="button" type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save reflection'}</button>
-              <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Skip for now</button>
+              <button className="button" type="submit" disabled={pending || !body.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
+              <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>
             </div>
             <p className="status-message status-message--saved" role="status" aria-live="polite" aria-atomic="true">
               {saveState.saved && !editedSinceSave ? 'Reflection saved.' : ''}
             </p>
-          </form>
+            {saveState.error ? <p className="field__error" role="alert">{saveState.error}</p> : null}
+          </form>}
         </>
       ) : section.id === 'go-deeper' ? (
         <div className="a2-sentence-path">

@@ -28,8 +28,15 @@ async function A2Page({ query }: { query: { section?: string } }) {
       await saveA2Section('go-deeper');
       redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
     }
-    await saveA2Reflection(String(formData.get('body') ?? ''));
-    return { saved: true };
+    const body = String(formData.get('body') ?? '');
+    if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
+    try {
+      await saveA2Reflection(body);
+      await saveA2Section('go-deeper');
+    } catch {
+      return { saved: false, error: 'Could not save your reflection. Your words are still here; please try again.' };
+    }
+    redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
   }
   async function finish() {
     'use server';
@@ -47,23 +54,24 @@ async function A2Page({ query }: { query: { section?: string } }) {
         </div>
         <div className="deep-dive-layout">
           <div className="deep-dive-content">
-            <A2Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={saveReflection} />
-            <footer className="deep-dive-transition">
+            <A2Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
+            {progress?.completedAt ? <Link className="deep-dive-review" href="/deep-dive/awaken/catch-yourself-being-you?section=entry">Review lesson from beginning</Link> : null}
+            {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-                  <form action={saveSection}>
+                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/catch-yourself-being-you?section=${next.id}`}>Continue</Link> : <form action={saveSection}>
                     <input type="hidden" name="section" value={next.id} />
                     <button className="button" type="submit">{section.id === 'entry' ? 'Begin' : section.id === 'reflection' ? 'Keep going' : 'Continue'}</button>
-                  </form>
+                  </form>}
                 </>
               ) : (
                 <>
                   <p className="deep-dive-transition__title">Take these observations with you.</p>
-                  <form action={finish}><button className="button" type="submit">Complete lesson</button></form>
+                  {progress?.completedAt ? <Link className="button" href="/deep-dive">Back to lessons</Link> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
                 </>
               )}
-            </footer>
+            </footer> : null}
           </div>
           <aside className="deep-dive-lesson-meta" aria-label="A2 lesson progress">
             <p className="eyebrow">AWAKEN · A2</p>
@@ -88,9 +96,19 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   async function saveSection(formData: FormData) { 'use server'; await saveA1Section(String(formData.get('section')) as A1SectionId); redirect(`/deep-dive/awaken/pay-attention?section=${String(formData.get('section'))}`); }
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {
     'use server';
-    if (formData.get('skip') === 'true') return { saved: false };
-    await saveA1Reflection(String(formData.get('body') ?? ''));
-    return { saved: true };
+    if (formData.get('skip') === 'true') {
+      await saveA1Section('go-deeper');
+      redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
+    }
+    const body = String(formData.get('body') ?? '');
+    if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
+    try {
+      await saveA1Reflection(body);
+      await saveA1Section('go-deeper');
+    } catch {
+      return { saved: false, error: 'Could not save your reflection. Your words are still here; please try again.' };
+    }
+    redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
   async function finish() { 'use server'; await completeA1(); redirect('/deep-dive'); }
   const next = A1_SECTIONS[index + 1];
@@ -103,23 +121,24 @@ export default async function A1Page({ params, searchParams }: { params: Promise
         </div>
         <div className="deep-dive-layout">
           <div className="deep-dive-content">
-            <A1Lesson section={section} index={index} total={A1_SECTIONS.length} reflection={progress?.reflection ?? null} saveReflection={saveReflection} />
-            <footer className="deep-dive-transition">
+            <A1Lesson section={section} index={index} total={A1_SECTIONS.length} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
+            {progress?.completedAt ? <Link className="deep-dive-review" href="/deep-dive/awaken/pay-attention?section=entry">Review lesson from beginning</Link> : null}
+            {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-                  <form action={saveSection}>
+                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/pay-attention?section=${next.id}`}>Continue</Link> : <form action={saveSection}>
                     <input type="hidden" name="section" value={next.id} />
                     <button className="button" type="submit">{section.id === 'entry' ? 'Begin' : section.id === 'moment' ? 'Notice it' : section.id === 'outside-inside' ? 'Keep going' : 'Continue'}</button>
-                  </form>
+                  </form>}
                 </>
               ) : (
                 <>
                   <p className="deep-dive-transition__title">You have reached the end of Pay Attention.</p>
-                  <form action={finish}><button className="button" type="submit">Complete lesson</button></form>
+                  {progress?.completedAt ? <Link className="button" href="/deep-dive">Back to lessons</Link> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
                 </>
               )}
-            </footer>
+            </footer> : null}
           </div>
           <aside className="deep-dive-lesson-meta" aria-label="A1 lesson progress">
             <p className="eyebrow">AWAKEN · A1</p>

@@ -108,16 +108,18 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 
 .app-shell-content { width: min(100%, var(--content-wide)); margin: 0 auto; }
 
-.deep-dive-shell, .deep-dive-home { max-width: 78rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) var(--gutter-page); }
+.deep-dive-shell, .deep-dive-home { max-width: 96rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) var(--gutter-page); }
 .deep-dive-home { max-width: 67rem; }
 .deep-dive-module-links { display: flex; flex-wrap: wrap; gap: .85rem; align-items: center; }
 .deep-dive-home__next { margin-top: 1.5rem; }
 .deep-dive-home__next a { color: var(--color-navy); font-weight: 700; }
 
 /* A1 / Pay Attention: pause, observe, and let the space do the work. */
-.deep-dive-lesson--a1 { max-width: 57rem; }
-.deep-dive-lesson--a1.deep-dive-lesson--entry > p:not(.eyebrow) { max-width: 41rem; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.42; }
-.a1-opening-moment { display: grid; grid-template-columns: minmax(15rem, .88fr) minmax(18rem, 1.12fr); align-items: center; gap: clamp(2rem, 6vw, 5rem); max-width: 55rem; padding: clamp(1.5rem, 4vw, 3rem) 0 clamp(2rem, 5vw, 4rem); }
+.deep-dive-lesson--a1 { max-width: 73rem; }
+.deep-dive-lesson--a1.deep-dive-lesson--entry > p:not(.eyebrow) { max-width: 59rem; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.42; }
+.a1-opening-moment { display: grid; grid-template-columns: minmax(15rem, .88fr) minmax(18rem, 1.12fr); align-items: center; gap: clamp(2rem, 6vw, 5rem); max-width: 70rem; padding: clamp(1.5rem, 4vw, 3rem) 0 clamp(2rem, 5vw, 4rem); }
+.a1-response-lines { padding-left: 1rem; border-left: 1px solid var(--color-gold); }
+.a1-response-lines p { margin: 0 0 .55rem; line-height: 1.5; }
 .a1-message { position: relative; padding: clamp(1.5rem, 3.5vw, 2.5rem); border: 1px solid color-mix(in srgb, var(--color-navy) 10%, transparent); border-radius: 1.15rem 1.15rem 1.15rem .25rem; background: var(--color-paper); box-shadow: 0 1rem 2.5rem color-mix(in srgb, var(--color-navy) 7%, transparent); }
 .a1-message::after { position: absolute; bottom: -1rem; left: 1.7rem; width: 1.4rem; height: 1.4rem; border-left: 1px solid color-mix(in srgb, var(--color-navy) 10%, transparent); background: var(--color-paper); content: ""; transform: skewY(-40deg) rotate(-10deg); }
 .a1-message__sender { color: var(--color-green); font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
@@ -126,13 +128,13 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .a1-pause p { max-width: 29rem; margin: 0 0 .8rem; font-size: clamp(1.03rem, 1.45vw, 1.2rem); }
 .a1-pause p:last-child { margin-bottom: 0; }
 .a1-pause__mark { display: block; margin-bottom: .8rem; color: var(--color-green); font-size: .7rem; font-weight: 700; letter-spacing: .16em; }
-.a1-comparison { display: grid; grid-template-columns: 1fr 1fr; max-width: 55rem; margin: clamp(2rem, 5vw, 4rem) 0 1.5rem; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
-.a1-comparison__side { min-height: 13rem; padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 3vw, 2.5rem); }
+.a1-comparison { display: grid; grid-template-columns: 1fr 1fr; max-width: 73rem; margin: clamp(2.5rem, 5vw, 4.5rem) 0 2rem; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); background: linear-gradient(110deg, var(--color-paper), color-mix(in srgb, var(--color-sage) 30%, var(--color-paper))); }
+.a1-comparison__side { min-height: 17rem; padding: clamp(1.75rem, 4vw, 3.5rem) clamp(1.5rem, 3vw, 3rem); }
 .a1-comparison__side + .a1-comparison__side { border-left: 1px solid var(--color-line); }
 .a1-comparison__side .eyebrow { margin-bottom: 1.25rem; }
-.a1-comparison__side p:last-child { max-width: 22rem; margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.35; }
+.a1-comparison__side p:last-child { max-width: 28rem; margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.4; }
 .a1-comparison__side--inside { background: color-mix(in srgb, var(--color-sage) 54%, transparent); }
-.a1-comparison__bridge { max-width: 43rem !important; margin: 0 0 1.2rem; }
+.a1-comparison__bridge { max-width: 62rem !important; margin: 0 0 1.2rem; }
 .a1-teaching { max-width: 47rem; padding: clamp(.25rem, 1vw, .75rem) 0 clamp(1rem, 3vw, 2rem) clamp(1.2rem, 3vw, 2rem); border-left: 1px solid var(--color-line); }
 .a1-teaching p { margin: 0 0 1.3rem; }
 .a1-teaching p:last-child { color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.45rem, 2.6vw, 2rem); line-height: 1.35; }
@@ -147,12 +149,12 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .a1-calm-ending p:last-child { margin-bottom: 0; }
 
 /* A2 / Catch Yourself Being You: map repetitions across situations. */
-.deep-dive-lesson--a2 { max-width: 60rem; }
+.deep-dive-lesson--a2 { max-width: 73rem; }
 .a2-mirror { position: relative; overflow: hidden; padding: clamp(1.8rem, 4.5vw, 3.5rem); border: 0; border-top: 1px solid var(--color-gold); border-bottom: 1px solid var(--color-line); background: linear-gradient(115deg, var(--color-paper), color-mix(in srgb, var(--color-sage) 45%, var(--color-ivory))); }
 .a2-mirror::after { position: absolute; top: 50%; right: clamp(-5rem, 1vw, 1rem); width: clamp(10rem, 25vw, 19rem); aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent); border-radius: 50%; content: ""; transform: translateY(-50%); pointer-events: none; }
 .a2-mirror__label { position: relative; z-index: 1; display: block; margin-bottom: 1.5rem; color: var(--color-green); font-size: .7rem; font-weight: 700; letter-spacing: .17em; }
 .a2-mirror blockquote { position: relative; z-index: 1; max-width: 40rem; }
-.a2-pattern-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 clamp(1.5rem, 4vw, 3rem); min-width: 0; max-width: 60rem; margin: clamp(2rem, 5vw, 4rem) 0; padding-top: 1.4rem; border-top: 1px solid var(--color-line); }
+.a2-pattern-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 clamp(1.5rem, 4vw, 3rem); min-width: 0; max-width: 73rem; margin: clamp(2rem, 5vw, 4rem) 0; padding-top: 1.4rem; border-top: 1px solid var(--color-line); }
 .a2-pattern-map__situations, .a2-pattern-map__responses, .a2-pattern-map__reflection { min-width: 0; }
 .a2-pattern-map fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .a2-pattern-map legend { width: 100%; padding: 0; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.25rem, 2vw, 1.65rem); line-height: 1.3; }
@@ -177,10 +179,13 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .a2-sentence-path__closing { max-width: 45rem; margin: 1.6rem 0 0; }
 .a2-reflection { border: 0; border-top: 1px solid var(--color-gold); border-radius: 0; background: transparent; padding-left: 0; padding-right: 0; }
 .a2-practice-intro { max-width: 55rem; }
-.a2-practice { max-width: 57rem; margin: clamp(2rem, 5vw, 4rem) 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
+.a2-practice { max-width: 73rem; margin: clamp(2rem, 5vw, 4rem) 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
 .a2-practice__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .a2-practice__steps li { min-width: 0; }
 .a2-practice__steps button { display: flex; flex-direction: column; align-items: flex-start; gap: .55rem; width: 100%; min-height: 6.3rem; padding: 1rem; border: 0; border-bottom: 2px solid transparent; color: var(--color-navy); background: transparent; text-align: left; cursor: pointer; }
+.a2-practice__steps button::after { content: '⌄'; align-self: flex-end; margin-top: -1.6rem; font-size: 1.25rem; line-height: 1; transition: transform .2s ease; }
+.a2-practice__steps button[aria-pressed="true"]::after { transform: rotate(180deg); }
+.a2-practice__steps button:hover, .a2-practice__steps button:focus-visible { background: color-mix(in srgb, var(--color-sage) 42%, var(--color-paper)); }
 .a2-practice__steps li + li button { border-left: 1px solid var(--color-line); }
 .a2-practice__steps button[aria-pressed="true"] { border-bottom-color: var(--color-gold); background: var(--color-paper); }
 .a2-practice__number { color: var(--color-green); font-size: .68rem; font-weight: 700; letter-spacing: .12em; }
@@ -202,27 +207,30 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .deep-dive-introduction { max-width: 52rem; margin: 0 0 clamp(2rem, 4vw, 3rem); font-size: clamp(1.12rem, 1.8vw, 1.35rem); line-height: 1.75; }
 .deep-dive-topline { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-line); color: var(--color-green); font-size: .75rem; }
 .deep-dive-topline a { color: var(--color-navy); font-weight: 700; text-decoration: none; }
-.deep-dive-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(13rem, 17rem); column-gap: clamp(3rem, 8vw, 8rem); align-items: start; padding-top: clamp(2.75rem, 6vw, 5rem); }
+.deep-dive-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 15rem); column-gap: clamp(2rem, 4vw, 4rem); align-items: start; padding-top: clamp(2.75rem, 6vw, 5rem); }
 .deep-dive-content { grid-column: 1; grid-row: 1; min-width: 0; }
 .deep-dive-lesson-meta { grid-column: 2; grid-row: 1; position: sticky; top: 2rem; margin-top: .4rem; padding: 1.25rem 0 1.25rem 1.25rem; border-left: 2px solid var(--color-gold); }
 .deep-dive-lesson-meta .eyebrow { margin-bottom: .65rem; }
 .deep-dive-lesson-meta h2 { margin: 0 0 1.25rem; font-size: 1.65rem; line-height: 1.2; }
 .deep-dive-lesson-meta label { display: block; margin-bottom: .6rem; color: var(--color-text); font-size: .82rem; }
 .deep-dive-lesson-meta progress { display: block; width: 100%; height: .4rem; accent-color: var(--color-green); }
-.deep-dive-lesson { max-width: 54rem; padding: 0 0 1rem; }
-.deep-dive-lesson .deep-dive-section-label { margin: 0 0 .9rem; }
-.deep-dive-lesson h1 { max-width: 53rem; margin: 0 0 clamp(1.25rem, 3vw, 2rem); font-size: clamp(2.8rem, 5.4vw, 5rem); letter-spacing: -0.035em; line-height: 1.08; }
+.deep-dive-lesson { padding: 0 0 1rem; }
+.deep-dive-lesson .deep-dive-section-label { margin: 0 0 1.35rem; }
+.deep-dive-lesson h1 { max-width: 68rem; margin: 0 0 clamp(1.8rem, 3vw, 2.75rem); font-size: clamp(2.8rem, 5.4vw, 5rem); letter-spacing: -.025em; line-height: 1.12; text-wrap: balance; }
 .deep-dive-lesson > p, .deep-dive-guidance > p { max-width: 45rem; margin: 0 0 1.1rem; }
 .deep-dive-paired { padding: 1rem 1.25rem; border-left: 3px solid var(--color-gold); background: var(--color-paper); }
-.deep-dive-reveal { max-width: 45rem; margin: 2rem 0; padding: 1.1rem 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
-.deep-dive-reveal button { border: 0; padding: 0; color: var(--color-navy); background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
+.deep-dive-reveal { max-width: 62rem; margin: 2rem 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); }
+.deep-dive-reveal button { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; border: 0; padding: 1.15rem .4rem; color: var(--color-navy); background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
+.deep-dive-reveal button:hover, .deep-dive-reveal button:focus-visible { background: color-mix(in srgb, var(--color-sage) 42%, transparent); }
+.deep-dive-reveal__icon { flex: none; font-size: 1.5rem; line-height: 1; transition: transform .2s ease; }
+.deep-dive-reveal button[aria-expanded="true"] .deep-dive-reveal__icon { transform: rotate(180deg); }
 .deep-dive-reveal > p { max-width: 45rem; margin: 1rem 0 0; }
 .deep-dive-scripture { max-width: 48rem; margin: clamp(1.75rem, 4vw, 3rem) 0; padding: clamp(1.35rem, 3.5vw, 2.5rem); border-left: 3px solid var(--color-gold); background: var(--color-paper); }
 .deep-dive-scripture blockquote { margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.4rem, 2.7vw, 2.05rem); line-height: 1.55; }
 .deep-dive-scripture blockquote p { margin: 0; }
 .deep-dive-scripture figcaption { margin-top: 1.1rem; color: var(--color-green); font-size: .78rem; font-style: normal; font-weight: 700; letter-spacing: .07em; }
 .deep-dive-scripture cite { font-style: normal; }
-.deep-dive-reflection { display: grid; gap: 1rem; max-width: 48rem; margin: 2rem 0 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); border-top: 3px solid var(--color-gold); border-radius: var(--radius-panel); background: var(--color-paper); }
+.deep-dive-reflection { display: grid; gap: 1rem; max-width: 65rem; margin: 2rem 0 0; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); border-top: 3px solid var(--color-gold); border-radius: var(--radius-panel); background: var(--color-paper); }
 .deep-dive-reflection label { color: var(--color-navy); font-family: var(--font-display); font-size: 1.15rem; line-height: 1.5; }
 .deep-dive-reflection textarea { min-height: 10rem; width: 100%; padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); color: var(--color-text); background: var(--color-ivory); line-height: 1.6; resize: vertical; }
 .deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
@@ -232,7 +240,11 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .deep-dive-guidance > :last-child { margin-bottom: 0; }
 .deep-dive-guidance--carry-forward { background: var(--color-paper); }
 .deep-dive-guidance__label { margin: 0 0 1rem; color: var(--color-green); font-size: .74rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
-.deep-dive-transition { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; max-width: 54rem; margin-top: clamp(2rem, 5vw, 4rem); padding-top: 1.4rem; border-top: 1px solid var(--color-line); }
+.deep-dive-transition { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; max-width: 73rem; margin-top: clamp(2rem, 5vw, 4rem); padding-top: 1.4rem; border-top: 1px solid var(--color-line); }
+.deep-dive-review { display: inline-block; margin-top: 1.5rem; font-weight: 700; }
+.deep-dive-saved-reflection { max-width: 65rem; margin: 2rem 0; padding: 1.5rem 2rem; border-top: 1px solid var(--color-gold); background: var(--color-paper); }
+.deep-dive-saved-reflection h2 { margin: 0 0 .6rem; font-size: 1.3rem; }
+.deep-dive-saved-reflection p { margin: 0; white-space: pre-wrap; }
 .deep-dive-transition .eyebrow { margin: 0 0 .35rem; }
 .deep-dive-transition__title { margin: 0; color: var(--color-navy); font-family: var(--font-display); font-size: 1.25rem; line-height: 1.35; }
 .deep-dive-transition form { flex: 0 0 auto; }

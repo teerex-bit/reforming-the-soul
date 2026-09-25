@@ -2,13 +2,14 @@
 import { useActionState, useEffect, useState } from 'react';
 import type { A1Section } from '../../content/deep-dive/v1/awaken/pay-attention';
 
-export type A1ReflectionSaveState = Readonly<{ saved: boolean }>;
+export type A1ReflectionSaveState = Readonly<{ saved: boolean; error?: string }>;
 type A1ReflectionAction = (state: A1ReflectionSaveState, formData: FormData) => Promise<A1ReflectionSaveState>;
 
-export function A1Lesson({ section, index, total, reflection, saveReflection }: { section: A1Section; index: number; total: number; reflection: string | null; saveReflection: A1ReflectionAction }) {
+export function A1Lesson({ section, index, total, reflection, saveReflection, review = false }: { section: A1Section; index: number; total: number; reflection: string | null; saveReflection: A1ReflectionAction; review?: boolean }) {
   const [open, setOpen] = useState(false);
   const [saveState, formAction, pending] = useActionState(saveReflection, { saved: false });
   const [editedSinceSave, setEditedSinceSave] = useState(false);
+  const [body, setBody] = useState(reflection ?? '');
 
   useEffect(() => {
     if (!pending && saveState.saved) setEditedSinceSave(false);
@@ -28,7 +29,9 @@ export function A1Lesson({ section, index, total, reflection, saveReflection }: 
           </div>
           <div className="a1-pause">
             <span className="a1-pause__mark" aria-hidden="true">01</span>
-            {section.paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
+            <p>{section.paragraphs[0]}</p>
+            <p>{section.paragraphs[1].split(': ')[0]}:</p>
+            <div className="a1-response-lines">{section.paragraphs[1].split(': ')[1].split(/(?<=\.)\s+/).map(line => <p key={line}>{line}</p>)}</div>
           </div>
         </div>
       ) : section.id === 'outside-inside' ? (
@@ -70,27 +73,30 @@ export function A1Lesson({ section, index, total, reflection, saveReflection }: 
       ) : renderParagraphs()}
       {section.reveal ? (
         <div className="deep-dive-reveal">
-          <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>{section.reveal.label}</button>
+          <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}><span>{section.reveal.label}</span><span className="deep-dive-reveal__icon" aria-hidden="true">⌄</span></button>
           {open ? <p>{section.reveal.text}</p> : null}
         </div>
       ) : null}
-      {section.id === 'reflection' ? (
+      {section.id === 'reflection' && review ? (
+        <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section>
+      ) : section.id === 'reflection' ? (
         <form className="deep-dive-reflection" action={formAction}>
           <label htmlFor="a1-reflection">{section.prompt}</label>
           <textarea
             id="a1-reflection"
             name="body"
-            defaultValue={reflection ?? ''}
+            value={body}
             placeholder="Write only what you want to keep..."
-            onChange={() => setEditedSinceSave(true)}
+            onChange={event => { setBody(event.target.value); setEditedSinceSave(true); }}
           />
           <div className="deep-dive-reflection__actions">
-            <button className="button" type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save reflection'}</button>
-            <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Skip for now</button>
+            <button className="button" type="submit" disabled={pending || !body.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
+            <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>
           </div>
           <p className="status-message status-message--saved" role="status" aria-live="polite" aria-atomic="true">
             {saveState.saved && !editedSinceSave ? 'Reflection saved.' : ''}
           </p>
+          {saveState.error ? <p className="field__error" role="alert">{saveState.error}</p> : null}
         </form>
       ) : null}
     </article>

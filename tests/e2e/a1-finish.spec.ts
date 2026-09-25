@@ -48,10 +48,9 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
 
     await expect(page.getByRole('heading', { level: 1, name: 'Notice a real moment' })).toBeVisible();
     await page.getByLabel(/What happened\?/).fill(reflection);
-    await page.getByRole('button', { name: 'Save reflection' }).click();
-    await expect(page.getByRole('status')).toHaveText('Reflection saved.');
-
-    await advance(page, 'Continue', 7);
+    await page.getByRole('button', { name: 'Save & continue' }).click();
+    await expect(page).toHaveURL(/section=go-deeper$/);
+    await expect(page.getByRole('progressbar', { name: 'Section 7 of 9' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1, name: 'Outside and inside' })).toBeVisible();
     await advance(page, 'Continue', 8);
     await expect(page.getByRole('heading', { level: 1, name: 'Take this into your day' })).toBeVisible();
@@ -78,7 +77,7 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page.getByRole('heading', { level: 1, name: 'Keep noticing' })).toBeVisible();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
-    await expect(page.getByRole('link', { name: 'Open lesson' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Review lesson from beginning' })).toBeVisible();
 
     const persisted = await pool.query(
       `select p.last_section_id, p.completed_at, r.body
@@ -90,6 +89,32 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     );
     expect(persisted.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', body: reflection })]);
     expect(persisted.rows[0].completed_at).toBeTruthy();
+  } finally {
+    await pool.end();
+    await resetLocalE2eAccount(user.email);
+  }
+});
+
+test('A1 continues without writing and resumes at the next section', async ({ page }, testInfo) => {
+  const user = e2eUser('a1-no-reflection', testInfo.project.name);
+  const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+  await resetLocalE2eAccount(user.email);
+  try {
+    await page.goto(appRuntimeUrl('/sign-up'));
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByLabel('Password').fill(user.password);
+    await Promise.all([page.waitForURL(/\/dashboard$/), page.getByRole('button', { name: 'Create account' }).click()]);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention?section=reflection'));
+    await expect(page.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
+    await page.getByRole('textbox').fill('   ');
+    await expect(page.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Continue without writing' }).click();
+    await expect(page).toHaveURL(/section=go-deeper$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention'));
+    await expect(page).toHaveURL(/pay-attention$/);
+    await expect(page.getByRole('heading', { name: 'Outside and inside' })).toBeVisible();
+    const state = await pool.query(`select p.last_section_id, r.body from public.deep_dive_module_progress p left join public.deep_dive_reflections r on (r.progress_id,r.user_id)=(p.id,p.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id='awaken.pay-attention'`, [user.email]);
+    expect(state.rows).toEqual([expect.objectContaining({ last_section_id: 'go-deeper', body: null })]);
   } finally {
     await pool.end();
     await resetLocalE2eAccount(user.email);

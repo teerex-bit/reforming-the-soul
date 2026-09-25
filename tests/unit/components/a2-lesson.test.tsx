@@ -24,11 +24,22 @@ describe('A2 participant experience', () => {
     render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection="Saved thought" saveReflection={saveReflection} />);
 
     expect(screen.getByLabelText(/write about any of these questions/i)).toHaveValue('Saved thought');
-    fireEvent.click(screen.getByRole('button', { name: 'Save reflection' }));
+    expect(screen.getByRole('button', { name: 'Save & continue' })).toBeEnabled();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'A thought worth keeping' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save & continue' }));
     await waitFor(() => expect(saveReflection).toHaveBeenCalledOnce());
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     confirmSave();
-    expect(await screen.findByRole('status')).toHaveTextContent('Reflection saved.');
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Reflection saved.'));
+  });
+
+  it('keeps whitespace-only text unsavable and permits continuing without writing', async () => {
+    const saveReflection = vi.fn(async () => ({ saved: false }));
+    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection={null} saveReflection={saveReflection} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '   ' } });
+    expect(screen.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue without writing' }));
+    await waitFor(() => expect(saveReflection).toHaveBeenCalledOnce());
   });
 
   it('clearly teaches a no-interpretation daily practice', () => {

@@ -51,9 +51,8 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'What are you beginning to recognize?' })).toBeVisible();
     await page.getByLabel(/write about any of these questions/i).fill(reflection);
-    await page.getByRole('button', { name: 'Save reflection' }).click();
-    await expect(page.getByRole('status')).toHaveText('Reflection saved.');
-    await page.getByRole('button', { name: 'Keep going' }).click();
+    await page.getByRole('button', { name: 'Save & continue' }).click();
+    await expect(page).toHaveURL(/section=go-deeper$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Try finishing a few sentences' })).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Notice the next repetition' })).toBeVisible();
@@ -84,6 +83,13 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await expect(page.getByRole('heading', { level: 1, name: 'A pattern is something you can notice' })).toBeVisible();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
+    await page.getByRole('link', { name: /Review lesson from beginning: Catch Yourself Being You/ }).click();
+    await expect(page).toHaveURL(/section=entry$/);
+    await page.getByRole('link', { name: 'Continue' }).click();
+    await expect(page).toHaveURL(/section=patterns$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you?section=reflection'));
+    await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+    await expect(page.getByRole('button', { name: 'Save & continue' })).toHaveCount(0);
 
     const persisted = await pool.query(
       `select p.last_section_id, p.completed_at, r.body
@@ -123,7 +129,7 @@ test('A2 Skip for now advances without saving a reflection and resumes there', a
 
     await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you?section=reflection'));
     await expect(page.getByRole('heading', { level: 1, name: 'What are you beginning to recognize?' })).toBeVisible();
-    await page.getByRole('button', { name: 'Skip for now' }).click();
+    await page.getByRole('button', { name: 'Continue without writing' }).click();
     await expect(page).toHaveURL(/section=go-deeper$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Try finishing a few sentences' })).toBeVisible();
     await expect(page.getByRole('progressbar', { name: 'Section 5 of 7' })).toHaveJSProperty('value', 5);
