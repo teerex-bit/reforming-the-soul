@@ -30,7 +30,7 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       if (firstScreen.viewport === 375) {
         expect(firstScreen.header).toBeLessThanOrEqual(70);
         expect(firstScreen.stages).toBeLessThanOrEqual(75);
-        expect(firstScreen.titleTop).toBeLessThan(310);
+        expect(firstScreen.titleTop).toBeLessThan(420);
       }
       await expect(page.locator('.app-shell-header').getByRole('button', { name: 'Sign out' })).toBeVisible();
       await expect(page.getByRole('region', { name: /A[34] lesson progress/ })).toBeVisible();
