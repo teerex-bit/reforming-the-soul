@@ -49,6 +49,7 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(/section=carry-forward$/);
+    await expect(page.getByRole('link', { name: 'Back to See Clearly' })).toBeVisible();
     const query = `select p.last_section_id,p.completed_at,p.updated_at,r.event_facts,r.automatic_interpretation,r.updated_at as record_updated_at,f.body,f.updated_at as reflection_updated_at
       from public.deep_dive_module_progress p join public.see_clearly_sc1_records r on (p.id,p.user_id,p.module_id)=(r.progress_id,r.user_id,r.module_id)
       join public.deep_dive_reflections f on (p.id,p.user_id)=(f.progress_id,f.user_id)
