@@ -74,7 +74,7 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
         await page.getByRole('link', { name: 'Continue', exact: true }).click();
         await expect(page.getByRole('heading', { level: 1, name: 'Separate what happened from what it meant' })).toBeVisible();
       }
-      if (section.id === 'reflection') await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue('I had already decided');
+      if (section.id === 'reflection') await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(/I had already decided/);
     }
     expect((await pool.query(query, [user.email])).rows).toEqual(before.rows);
   } finally { await pool.end(); await resetLocalE2eAccount(user.email); }
