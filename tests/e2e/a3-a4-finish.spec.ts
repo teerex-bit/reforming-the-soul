@@ -119,12 +119,12 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
         await page.getByRole('link', { name: 'Continue', exact: true }).click();
         await expect(page).toHaveURL(new RegExp(`section=${nextSection.id}$`));
         await expect(page.getByRole('heading', { level: 1, name: nextSection.title })).toBeVisible();
-        if (nextSection.id === 'reflection') await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+        if (nextSection.id === 'reflection') await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(reflection);
         if (nextSection.id === 'reflection') {
           await page.getByRole('link', { name: '← Back' }).click();
           await expect(page).toHaveURL(new RegExp(`section=${sections[sections.findIndex(item => item.id === nextSection.id) - 1].id}$`));
           await page.getByRole('link', { name: 'Continue', exact: true }).click();
-          await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+          await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(reflection);
         }
       }
       const afterReview = await pool.query('select p.last_section_id,p.completed_at,p.updated_at,r.body,r.updated_at as reflection_updated_at from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
@@ -133,7 +133,7 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await page.getByRole('link', { name: new RegExp(`Review ${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
       await expect(page).toHaveURL(/section=entry$/);
       await page.goto(appRuntimeUrl(`${base}?section=reflection`));
-      await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+      await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(reflection);
       const record = await pool.query('select p.last_section_id,p.completed_at,r.body from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
       expect(record.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', body: reflection })]);
       expect(record.rows[0].completed_at).toBeTruthy();

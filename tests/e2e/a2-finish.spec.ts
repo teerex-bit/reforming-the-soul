@@ -120,7 +120,7 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('link', { name: 'Continue' }).click();
     await expect(page).toHaveURL(/section=patterns$/);
     await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you?section=reflection'));
-    await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+    await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(reflection);
     await expect(page.getByRole('button', { name: 'Save & continue' })).toHaveCount(0);
 
     const persisted = await pool.query(
