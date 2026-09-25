@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { AwakenCompletionNav } from './AwakenCompletionNav';
+import { awakenBackHref } from './awaken-back-navigation';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
 import { getA3, getA4, saveA3Section, saveA4Section, saveA3Reflection, saveA4Reflection, completeA3, completeA4 } from '../../server/services/deep-dive-service';
@@ -49,7 +50,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
 
   const review = Boolean(progress?.completedAt);
   return <AppShell stage="Awaken"><section className="deep-dive-shell">
-    <div className="deep-dive-topline"><Link href="/deep-dive">← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> {a3 ? 'A3' : 'A4'}</span></div>
+    <div className="deep-dive-topline"><Link href={awakenBackHref(prefix, sections, index)}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> {a3 ? 'A3' : 'A4'}</span></div>
     <div className="deep-dive-layout">
       <section className="deep-dive-progress" aria-label={`${a3 ? 'A3' : 'A4'} lesson progress`}>
         <div className="deep-dive-progress__identity"><span className="eyebrow">AWAKEN · {a3 ? 'A3' : 'A4'}</span><span aria-hidden="true">/</span><strong>{title}</strong></div>

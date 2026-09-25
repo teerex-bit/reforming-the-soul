@@ -47,6 +47,10 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await advance(page, 'Keep going', 4);
     await advance(page, 'Continue', 5);
     await advance(page, 'Continue', 6);
+    await page.getByRole('link', { name: '← Back' }).click();
+    await expect(page.getByRole('progressbar', { name: 'Section 5 of 9' })).toBeVisible();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.getByRole('progressbar', { name: 'Section 6 of 9' })).toBeVisible();
 
     await expect(page.getByRole('heading', { level: 1, name: 'Notice a real moment' })).toBeVisible();
     await page.getByLabel(/What happened\?/).fill(reflection);
@@ -94,6 +98,9 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await page.goto(appRuntimeUrl('/deep-dive/awaken'));
     await page.getByRole('link', { name: 'Review Pay Attention · A1' }).click();
     await expect(page).toHaveURL(/pay-attention\?section=entry$/);
+    await page.getByRole('link', { name: '← Back' }).click();
+    await expect(page).toHaveURL(/\/deep-dive\/awaken$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention?section=entry'));
     await expect(page.getByRole('heading', { level: 1, name: 'Pay Attention' })).toBeVisible();
     await page.getByRole('link', { name: 'Continue' }).click();
     await expect(page).toHaveURL(/section=moment$/);

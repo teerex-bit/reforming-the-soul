@@ -26,6 +26,11 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await expect(page.locator('.deep-dive-lesson-meta')).toHaveCount(0);
     await page.getByRole('button', { name: 'Begin' }).click();
     await expect(page).toHaveURL(/section=patterns$/);
+    await page.getByRole('link', { name: '← Back' }).click();
+    await expect(page).toHaveURL(/section=entry$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you'));
+    await expect(page).toHaveURL(/catch-yourself-being-you$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Different moments, familiar moves' })).toBeVisible();
     await page.getByRole('checkbox', { name: 'A plan changes unexpectedly' }).check();
     await page.getByRole('checkbox', { name: 'I feel overlooked' }).check();
     await page.getByLabel('First internal move for A plan changes unexpectedly').selectOption('Urgency');
@@ -53,6 +58,10 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Seeing clearly' })).toBeVisible();
     await expect(page.getByRole('figure', { name: 'James 1:23–24 Scripture passage' })).toBeVisible();
+    await page.getByRole('link', { name: '← Back' }).click();
+    await expect(page).toHaveURL(/section=patterns$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/catch-yourself-being-you'));
+    await expect(page.getByRole('heading', { level: 1, name: 'Seeing clearly' })).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'What are you beginning to recognize?' })).toBeVisible();
     await page.getByLabel(/which response do you notice most often/i).fill(reflection);

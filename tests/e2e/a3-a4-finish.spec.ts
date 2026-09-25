@@ -37,6 +37,12 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await expect(page.getByRole('region', { name: /A[34] lesson progress/ })).toBeVisible();
       await page.getByRole('button', { name: 'Continue' }).click();
       await expect(page).toHaveURL(/section=teaching$/);
+      await page.getByRole('link', { name: '← Back' }).click();
+      await expect(page).toHaveURL(/section=entry$/);
+      await page.getByRole('link', { name: '← Back' }).click();
+      await expect(page).toHaveURL(/\/deep-dive\/awaken$/);
+      await page.goto(appRuntimeUrl(base));
+      await expect(page.getByRole('heading', { level: 1, name: slug === 'formation-is-not-identity' ? 'Made new, still being formed' : 'What once made sense' })).toBeVisible();
       await page.goto(appRuntimeUrl('/deep-dive/awaken'));
       const lessonTitle = slug === 'formation-is-not-identity' ? 'Formation Is Not Identity · A4' : 'Your Reactions Have a History · A3';
       const resume = page.getByRole('link', { name: `Resume ${lessonTitle}` });
@@ -95,6 +101,12 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
         await expect(page).toHaveURL(new RegExp(`section=${nextSection.id}$`));
         await expect(page.getByRole('heading', { level: 1, name: nextSection.title })).toBeVisible();
         if (nextSection.id === 'reflection') await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+        if (nextSection.id === 'reflection') {
+          await page.getByRole('link', { name: '← Back' }).click();
+          await expect(page).toHaveURL(new RegExp(`section=${sections[sections.findIndex(item => item.id === nextSection.id) - 1].id}$`));
+          await page.getByRole('link', { name: 'Continue', exact: true }).click();
+          await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText(reflection);
+        }
       }
       const afterReview = await pool.query('select p.last_section_id,p.completed_at,p.updated_at,r.body,r.updated_at as reflection_updated_at from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
       expect(afterReview.rows).toEqual(beforeReview.rows);
