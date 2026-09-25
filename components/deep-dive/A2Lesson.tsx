@@ -10,28 +10,31 @@ const SITUATIONS = [
   'Someone misunderstands me',
   'A plan changes unexpectedly',
   'Tension rises in a conversation',
+  'Someone seems disappointed in me',
   'I feel overlooked',
 ] as const;
 
-const RESPONSES = [
-  { label: 'Control' },
-  { label: 'Withdrawal' },
-  { label: 'Fixing' },
-  { label: 'Pleasing' },
-  { label: 'Proving' },
-  { label: 'Escaping' },
+const FIRST_MOVES = ['Tension', 'Urgency', 'Discomfort', 'Fear', 'Anxiety', 'Insecurity', 'Uncertainty', 'Something else'] as const;
+const RESPONSES = ['Control', 'Withdrawal', 'Fixing', 'Pleasing', 'Proving', 'Escaping', 'Something else'] as const;
+const RESPONSE_EXAMPLES = [
+  'Moving toward control may look like taking over, monitoring, insisting, or correcting.',
+  'Moving toward withdrawal may look like going quiet, distancing, or disengaging.',
+  'Moving toward fixing may look like solving immediately or managing someone else’s reaction.',
+  'Moving toward pleasing may look like agreeing quickly or avoiding a needed no.',
+  'Moving toward proving may look like defending, explaining harder, or working more.',
+  'Moving toward escape may look like distracting yourself, leaving, or avoiding the moment.',
 ] as const;
 
 const PRACTICE_STEPS = [
   {
     name: 'NOTICE',
     optional: false,
-    text: 'When a strong response appears, pause and ask: “Have I felt this before?” and “What was similar about those situations?”',
+    text: 'Something in me just changed. Pause long enough to notice it, even if that is all you can do.',
   },
   {
     name: 'NAME',
     optional: false,
-    text: 'Name only what you can observe. For example: “I noticed I became defensive when I felt misunderstood,” or “I wanted control when I felt unsure.”',
+    text: 'What am I feeling, wanting, or doing? Name only what you can observe, without explaining why.',
   },
   {
     name: 'ASK',
@@ -54,8 +57,15 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
   const [editedSinceSave, setEditedSinceSave] = useState(false);
   const [body, setBody] = useState(reflection ?? '');
   const [situations, setSituations] = useState<string[]>([]);
-  const [responses, setResponses] = useState<string[]>([]);
+  const [moves, setMoves] = useState<Record<string, { internal: string; response: string }>>({});
   const [activePracticeStep, setActivePracticeStep] = useState(0);
+  const [examplesOpen, setExamplesOpen] = useState(false);
+
+  const repeated = RESPONSES.map(response => ({ response, moments: situations.filter(situation => moves[situation]?.response === response) })).filter(group => group.moments.length > 1);
+  const firstMoves = [...new Set(situations.map(situation => moves[situation]?.internal).filter(Boolean))];
+  const updateMove = (situation: string, field: 'internal' | 'response', value: string) => {
+    setMoves(current => ({ ...current, [situation]: { internal: current[situation]?.internal ?? '', response: current[situation]?.response ?? '', [field]: value } }));
+  };
 
   useEffect(() => {
     if (!pending && saveState.saved) setEditedSinceSave(false);
@@ -65,8 +75,14 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
     <article className={`deep-dive-lesson deep-dive-lesson--a2 deep-dive-lesson--${section.id}`}>
       <p className="eyebrow deep-dive-section-label">{section.eyebrow}</p>
       <h1>{section.title}</h1>
-      {section.id === 'scripture' ? (
+      {section.id === 'entry' ? (
+        <div className="a2-opening">
+          <div className="a2-opening__situations">{section.paragraphs.slice(0, -1).map((paragraph, index) => <p key={paragraph}><span aria-hidden="true">0{index + 1}</span>{paragraph}</p>)}</div>
+          <p className="a2-opening__turn">{section.paragraphs[section.paragraphs.length - 1]}</p>
+        </div>
+      ) : section.id === 'scripture' ? (
         <>
+          <p className="a2-mirror-intro">A mirror does not create what is there. It helps you see what is already present.</p>
           <figure className="deep-dive-scripture a2-mirror" aria-label="James 1:23–24 Scripture passage">
             <span className="a2-mirror__label" aria-hidden="true">THE MIRROR</span>
             <blockquote><p>{section.paragraphs[0]}</p></blockquote>
@@ -80,8 +96,8 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
           <div className="a2-pattern-map">
             <div className="a2-pattern-map__situations">
               <fieldset>
-                <legend><span className="a2-pattern-map__step">01</span> Moments you recognize</legend>
-                <p className="a2-pattern-map__hint">Select more than one situation that feels familiar.</p>
+                <legend><span className="a2-pattern-map__step">01</span> Situations you recognize</legend>
+                <p className="a2-pattern-map__hint">Select the moments you want to compare.</p>
                 {SITUATIONS.map((situation, index) => (
                   <label className="a2-checkline" key={situation}>
                     <input type="checkbox" checked={situations.includes(situation)} onChange={() => setSituations(current => toggle(current, situation))} />
@@ -91,29 +107,43 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
               </fieldset>
             </div>
             <div className="a2-pattern-map__responses">
-              <fieldset>
-                <legend><span className="a2-pattern-map__step">02</span> Moves you may recognize</legend>
-                <p className="a2-pattern-map__hint">Across those moments, what do you tend to do?</p>
-                <div className="a2-response-weave">
-                  {RESPONSES.map(response => (
-                    <label className="a2-response-choice" key={response.label}>
-                      <input type="checkbox" checked={responses.includes(response.label)} onChange={() => setResponses(current => toggle(current, response.label))} />
-                      <span>{response.label}</span>
+              <h2><span className="a2-pattern-map__step">02</span> What happened in each moment?</h2>
+              <p className="a2-pattern-map__hint">You choose what you noticed. Leaving a field blank is fine.</p>
+              {situations.length ? situations.map(situation => (
+                <div className="a2-mapped-moment" key={situation}>
+                  <h3>{situation}</h3>
+                  <div className="a2-mapped-moment__choices">
+                    <label>First internal move for {situation}
+                      <select aria-label={`First internal move for ${situation}`} value={moves[situation]?.internal ?? ''} onChange={event => updateMove(situation, 'internal', event.target.value)}>
+                        <option value="">Choose only if noticed</option>
+                        {FIRST_MOVES.map(move => <option key={move}>{move}</option>)}
+                      </select>
                     </label>
-                  ))}
+                    <label>Typical response for {situation}
+                      <select aria-label={`Typical response for ${situation}`} value={moves[situation]?.response ?? ''} onChange={event => updateMove(situation, 'response', event.target.value)}>
+                        <option value="">Choose only if noticed</option>
+                        {RESPONSES.map(response => <option key={response}>{response}</option>)}
+                      </select>
+                    </label>
+                  </div>
                 </div>
-              </fieldset>
+              )) : <p className="a2-map-empty">Select a situation to begin connecting what happened inside with how you responded.</p>}
             </div>
             <section className="a2-pattern-map__reflection" role="region" aria-label="A response that repeats" aria-live="polite">
               <span className="eyebrow">WHAT MAY BE REPEATING</span>
-              {situations.length > 1 && responses.length ? (
-                <p><strong>{responses.join(' · ')}</strong><span>across</span><strong>{situations.length} situations</strong></p>
+              {repeated.length ? (
+                <p><strong>{repeated.map(group => group.response).join(' · ')}</strong><span>across</span><strong>{repeated[0].moments.length} situations</strong>{firstMoves.length ? <span>First moves you named: {firstMoves.join(' · ')}</span> : null}</p>
               ) : (
-                <p>Notice what connects these moments. You do not have to find a pattern or choose a label.</p>
+                <p>Notice what connects these moments. You do not have to find a repeated response or choose a label.</p>
               )}
               <small>This working map is only for noticing. These selections are not saved.</small>
             </section>
           </div>
+          <div className="deep-dive-reveal a2-response-disclosure">
+            <button type="button" aria-expanded={examplesOpen} onClick={() => setExamplesOpen(value => !value)}><span>What can these responses look like?</span><span className="deep-dive-reveal__icon" aria-hidden="true">⌄</span></button>
+            {examplesOpen ? <div className="a2-response-examples">{RESPONSE_EXAMPLES.map(example => <p key={example}>{example}</p>)}</div> : null}
+          </div>
+          <section className="a2-pattern-reveal"><h2>A pattern is not a label for who you are.</h2><p>It is something you have begun to notice yourself doing. One moment may seem random. Repeated moments begin to reveal a pattern. You can recognize it without explaining where it came from or trying to fix it today.</p></section>
         </>
       ) : section.id === 'reflection' ? (
         <>
@@ -132,16 +162,8 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
           </form>}
         </>
       ) : section.id === 'go-deeper' ? (
-        <div className="a2-sentence-path">
-          {section.paragraphs.slice(0, -1).map((paragraph, index) => <p key={index}><span aria-hidden="true">0{index + 1}</span>{paragraph}</p>)}
-          <p className="a2-sentence-path__closing">{section.paragraphs[section.paragraphs.length - 1]}</p>
-        </div>
-      ) : section.id === 'practice' ? (
         <>
-          <section className="deep-dive-guidance deep-dive-guidance--practice a2-practice-intro" aria-label="Practice for the next few days">
-            <p className="deep-dive-guidance__label">For the next few days</p>
-            {section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-          </section>
+          {section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
           <section className="a2-practice" aria-label="NOTICE to RECEIVE practice">
             <ol className="a2-practice__steps">
               {PRACTICE_STEPS.map((step, index) => (
@@ -159,6 +181,11 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
             </div>
           </section>
         </>
+      ) : section.id === 'practice' ? (
+        <section className="deep-dive-guidance deep-dive-guidance--practice a2-practice-intro" aria-label="Practice for the next few days">
+          <p className="deep-dive-guidance__label">For the next few days</p>
+          {section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+        </section>
       ) : section.id === 'carry-forward' ? (
         <div className="a2-carry-forward">{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
       ) : section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}

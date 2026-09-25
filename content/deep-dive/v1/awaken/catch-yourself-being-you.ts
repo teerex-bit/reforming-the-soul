@@ -12,50 +12,47 @@ export const A2_SECTIONS: readonly A2Section[] = [
   {
     id: 'entry', eyebrow: 'AWAKEN · A2', title: 'Catch Yourself Being You',
     paragraphs: [
-      'Our responses can repeat. What looks like a series of separate moments may reveal a familiar way of moving through life.',
-      'You may become defensive when misunderstood, withdraw when tension rises, try to control a plan when it changes, or work harder when you feel overlooked. This lesson is an invitation to notice those repetitions without turning them into a label.',
+      'Someone misunderstands you.',
+      'Plans suddenly change.',
+      'Conflict begins.',
+      'Someone seems disappointed in you.',
+      'You feel overlooked.',
+      'Different situations. Same you.',
     ],
   },
   {
     id: 'patterns', eyebrow: 'NOTICE WHAT REPEATS', title: 'Different moments, familiar moves',
     paragraphs: [
-      'The same pattern can show up in different situations. Avoiding conflict might look like putting off a hard conversation, softening what you think, or agreeing before you are ready. Wanting things done “right” can sometimes become a way of trying to control what feels uncertain.',
-      'These examples are not categories to fit yourself into. They are ways to begin asking whether a response you have noticed before is showing up again.',
+      'Choose moments you recognize. For each one, name only the first movement you actually noticed, then the response that followed. You may leave either blank. This map stays on this page and is not saved.',
     ],
   },
   {
     id: 'scripture', eyebrow: 'A MOMENT TO CONSIDER', title: 'Seeing clearly',
     paragraphs: [
       'For if anyone is a hearer of the word and not a doer, he is like a man looking at his natural face in a mirror. For he sees himself, and goes away, and immediately forgets what kind of man he was.',
-      'James uses a mirror to describe the value of seeing honestly. In this lesson, the mirror is a way to notice recurring responses—perhaps impatience, fear, pride, insecurity, people-pleasing, resentment, or control. Seeing a pattern is not condemnation. Give yourself truthful attention without turning it into self-criticism.',
+      'James uses a mirror to describe the value of seeing honestly. Seeing a repeated response is not condemnation. Give yourself truthful attention without turning it into self-criticism.',
       'A repeated response may connect with what you believe, expect, or feel is at stake. We will explore those connections later. For now, simply notice what repeats.',
     ],
   },
   {
     id: 'reflection', eyebrow: 'YOUR REFLECTION', title: 'What are you beginning to recognize?',
     paragraphs: [
-      'Think across several moments you have noticed recently. Do any of them seem similar?',
-      'What situations tend to bring out your strongest response? When you feel threatened, uncomfortable, disappointed, or uncertain, what do you usually do?',
-      'Do you tend to move toward people, move away, or try to control what is happening? What response are you beginning to recognize more quickly?',
+      'Which response do you notice most often? What kinds of situations tend to bring it out?',
+      'You might notice yourself moving toward control, withdrawal, fixing, pleasing, proving, or escape. These are ways of responding, not labels for who you are. You can also describe something else in your own words.',
     ],
-    prompt: 'Write about any of these questions, in any order. Share only what you want to keep; your saved reflection belongs to your account.',
+    prompt: 'Which response do you notice most often, and what kinds of situations bring it out? Write only what you want to keep; your saved reflection belongs to your account.',
   },
   {
-    id: 'go-deeper', eyebrow: 'GO DEEPER', title: 'Try finishing a few sentences',
+    id: 'go-deeper', eyebrow: 'A SMALL PRACTICE', title: 'Notice, name, ask, receive',
     paragraphs: [
-      'I tend to become defensive when…',
-      'I tend to withdraw when…',
-      'I tend to become anxious when…',
-      'I tend to want control when…',
-      'What seems common across the situations that bring out my strongest responses is…',
-      'You do not need to complete every sentence or fit yourself into a category. Stay with what feels true, and notice what the moments may have in common.',
+      'Begin with what you can notice. Name it if you can. You may stop there. Asking God and receiving what becomes clear are invitations, not required outcomes.',
     ],
   },
   {
-    id: 'practice', eyebrow: 'A SMALL PRACTICE', title: 'Notice the next repetition',
+    id: 'practice', eyebrow: 'IN YOUR DAY', title: 'Catch yourself being you',
     paragraphs: [
-      'Over the next few days, when you notice a strong response, pause and ask: “Have I felt this before?” and “What was similar about those situations?”',
-      'Do not rush to interpret what you find. Collect observations. If it helps, write one sentence each day: “I noticed I became defensive when I felt misunderstood,” or “I wanted control when I felt unsure.”',
+      'Over the next few days, notice when a familiar response appears. Catch it as close to the moment as possible and name what is happening. If you want to, ask God what He wants you to notice. Receive only what becomes clear.',
+      'You are not trying to fix the pattern yet. Collect observations. One sentence is enough: “I noticed I became defensive when I felt misunderstood.” You can stop at noticing or naming without forcing an explanation.',
     ],
   },
   {

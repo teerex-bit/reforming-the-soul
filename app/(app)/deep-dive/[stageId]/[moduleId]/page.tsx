@@ -8,6 +8,13 @@ import { A2_SECTIONS, type A2SectionId } from '../../../../../content/deep-dive/
 import { completeA1, completeA2, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
 import type { A1SectionId } from '../../../../../domain/deep-dive';
 
+function LessonProgress({ module, title, index, total }: { module: 'A1' | 'A2'; title: string; index: number; total: number }) {
+  return <section className="deep-dive-progress" aria-label={`${module} lesson progress`}>
+    <div className="deep-dive-progress__identity"><span className="eyebrow">AWAKEN · {module}</span><span aria-hidden="true">/</span><strong>{title}</strong></div>
+    <div className="deep-dive-progress__track"><label htmlFor={`${module}-section-progress`}>Section {index + 1} of {total}</label><progress id={`${module}-section-progress`} value={index + 1} max={total} /></div>
+  </section>;
+}
+
 async function A2Page({ query }: { query: { section?: string } }) {
   const progress = await getA2();
   const candidate = query.section ?? progress?.lastSectionId ?? 'entry';
@@ -49,13 +56,13 @@ async function A2Page({ query }: { query: { section?: string } }) {
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
         <div className="deep-dive-topline">
-          <Link href="/deep-dive/awaken">Back to Awaken</Link>
+          <Link href={progress?.completedAt ? '/deep-dive' : '/deep-dive/awaken'}>{progress?.completedAt ? '← Back' : 'Back to Awaken'}</Link>
           <span>Formation Journey <span aria-hidden="true">/</span> A2</span>
         </div>
         <div className="deep-dive-layout">
+          <LessonProgress module="A2" title="Catch Yourself Being You" index={index} total={A2_SECTIONS.length} />
           <div className="deep-dive-content">
             <A2Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
-            {progress?.completedAt ? <Link className="deep-dive-review" href="/deep-dive/awaken/catch-yourself-being-you?section=entry">Review lesson from beginning</Link> : null}
             {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
@@ -68,17 +75,11 @@ async function A2Page({ query }: { query: { section?: string } }) {
               ) : (
                 <>
                   <p className="deep-dive-transition__title">Take these observations with you.</p>
-                  {progress?.completedAt ? <Link className="button" href="/deep-dive">Back to lessons</Link> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+                  {!progress?.completedAt ? <form action={finish}><button className="button" type="submit">Complete lesson</button></form> : null}
                 </>
               )}
             </footer> : null}
           </div>
-          <aside className="deep-dive-lesson-meta" aria-label="A2 lesson progress">
-            <p className="eyebrow">AWAKEN · A2</p>
-            <h2>Catch Yourself Being You</h2>
-            <label htmlFor="a2-section-progress">Section {index + 1} of {A2_SECTIONS.length}</label>
-            <progress id="a2-section-progress" value={index + 1} max={A2_SECTIONS.length} />
-          </aside>
         </div>
       </section>
     </AppShell>
@@ -116,13 +117,13 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
         <div className="deep-dive-topline">
-          <Link href="/deep-dive/awaken">Back to Awaken</Link>
+          <Link href={progress?.completedAt ? '/deep-dive' : '/deep-dive/awaken'}>{progress?.completedAt ? '← Back' : 'Back to Awaken'}</Link>
           <span>Formation Journey <span aria-hidden="true">/</span> A1</span>
         </div>
         <div className="deep-dive-layout">
+          <LessonProgress module="A1" title="Pay Attention" index={index} total={A1_SECTIONS.length} />
           <div className="deep-dive-content">
             <A1Lesson section={section} index={index} total={A1_SECTIONS.length} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
-            {progress?.completedAt ? <Link className="deep-dive-review" href="/deep-dive/awaken/pay-attention?section=entry">Review lesson from beginning</Link> : null}
             {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
@@ -135,17 +136,11 @@ export default async function A1Page({ params, searchParams }: { params: Promise
               ) : (
                 <>
                   <p className="deep-dive-transition__title">You have reached the end of Pay Attention.</p>
-                  {progress?.completedAt ? <Link className="button" href="/deep-dive">Back to lessons</Link> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+                  {!progress?.completedAt ? <form action={finish}><button className="button" type="submit">Complete lesson</button></form> : null}
                 </>
               )}
             </footer> : null}
           </div>
-          <aside className="deep-dive-lesson-meta" aria-label="A1 lesson progress">
-            <p className="eyebrow">AWAKEN · A1</p>
-            <h2>Pay Attention</h2>
-            <label htmlFor="a1-section-progress">Section {index + 1} of {A1_SECTIONS.length}</label>
-            <progress id="a1-section-progress" value={index + 1} max={A1_SECTIONS.length} />
-          </aside>
         </div>
       </section>
     </AppShell>

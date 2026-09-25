@@ -13,10 +13,10 @@ export default async function DeepDiveHome() {
         <p className="eyebrow">AWAKEN</p>
         <h1>Pay Attention</h1>
         <p>Before you try to change yourself, learn to notice what is already happening inside you.</p>
-        <Link className="button" href={href}>
-          {progress?.completedAt ? 'Review lesson from beginning' : progress ? 'Continue where I left off' : 'Begin'}
+        <Link className={progress?.completedAt ? 'deep-dive-home__quiet-link' : 'button'} href={href}>
+          {progress?.completedAt ? 'Pay Attention' : progress ? 'Continue where I left off' : 'Begin'}
         </Link>
-        {(progress?.completedAt || a2Progress) ? <p className="deep-dive-home__next"><Link href={a2Progress ? `/deep-dive/awaken/catch-yourself-being-you?section=${a2Progress.completedAt ? 'entry' : a2Progress.lastSectionId}` : '/deep-dive/awaken/catch-yourself-being-you'}>{a2Progress?.completedAt ? 'Review lesson from beginning: ' : a2Progress ? 'Continue ' : 'Begin '}Catch Yourself Being You · A2</Link></p> : null}
+        {(progress?.completedAt || a2Progress) ? <p className="deep-dive-home__next"><Link href={a2Progress ? `/deep-dive/awaken/catch-yourself-being-you?section=${a2Progress.completedAt ? 'entry' : a2Progress.lastSectionId}` : '/deep-dive/awaken/catch-yourself-being-you'}>{a2Progress?.completedAt ? '' : a2Progress ? 'Continue ' : 'Begin '}Catch Yourself Being You · A2</Link></p> : null}
       </section>
     </AppShell>
   );

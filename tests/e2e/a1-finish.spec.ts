@@ -33,6 +33,8 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page.getByRole('heading', { level: 1, name: 'Pay Attention' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Reforming the Soul' })).toHaveAttribute('src', '/assets/logos/rts-tree-wordmark.png');
     await expect(page.getByRole('progressbar', { name: 'Section 1 of 9' })).toHaveJSProperty('value', 1);
+    await expect(page.getByRole('region', { name: 'A1 lesson progress' })).toBeVisible();
+    await expect(page.locator('.deep-dive-lesson-meta')).toHaveCount(0);
 
     await advance(page, 'Begin', 2);
     await expect(page).toHaveURL(/section=moment$/);
@@ -77,7 +79,10 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page.getByRole('heading', { level: 1, name: 'Keep noticing' })).toBeVisible();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
     await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
-    await expect(page.getByRole('link', { name: 'Review lesson from beginning' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Pay Attention' })).toBeVisible();
+    await page.getByRole('link', { name: 'Pay Attention' }).click();
+    await expect(page.getByRole('link', { name: '← Back' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Review lesson from beginning/ })).toHaveCount(0);
 
     const persisted = await pool.query(
       `select p.last_section_id, p.completed_at, r.body
