@@ -13,7 +13,7 @@ export function AppShell({ children, stage, accountAction }: AppShellProps) {
     <div className="app-shell">
       <header className="app-shell-header">
         <Wordmark href="/dashboard" />
-        {accountAction ? <div className="app-shell-account">{accountAction}</div> : null}
+        <div className="app-shell-account">{accountAction ?? <form action="/auth/callback?action=sign-out" method="post"><button className="app-shell-sign-out" type="submit">Sign out</button></form>}</div>
       </header>
       <StageContext currentStage={stage} />
       <main className="app-shell-content" id="main-content">{children}</main>

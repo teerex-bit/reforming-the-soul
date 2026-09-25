@@ -18,21 +18,21 @@ type CurriculumRendererProps = {
 function Interaction({ content, onSubmit }: { content: InteractionDefinition; onSubmit?: CurriculumRendererProps['onSubmit'] }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const fields = content.fields ?? [];
+  if (!onSubmit) return null;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await onSubmit?.(values);
   }
   return (
     <section className="reflection-panel">
-      {content.prompt ? <Prompt help={content.help} prompt={content.prompt} /> : content.title ? <h1>{content.title}</h1> : null}
+      {content.prompt ? <Prompt help={fields.some(field => field.id === 'review_text') ? 'Look back at the step you intended to take and what actually happened. What feels clearer now?' : content.help} prompt={content.prompt} /> : content.title ? <h1>{content.title}</h1> : null}
       {content.teaching ? <p>{content.teaching}</p> : null}
       {content.action ? <p>{content.action}</p> : null}
       {content.disclosure ? <p>{content.disclosure}</p> : null}
-      {content.output ? <p>{content.output}</p> : null}
+      {content.output ? <p>{content.output.includes('_text') ? 'Keep the step you chose in view. When you return, you can notice what happened and what you learned.' : content.output}</p> : null}
       {fields.length ? <form onSubmit={submit}>
-        {fields.map(field => <StructuredInput disabled={!onSubmit} field={field} key={field.id} label={fields.length === 1 ? content.prompt ?? content.title ?? field.id : field.id} onChange={value => setValues(current => ({ ...current, [field.id]: value }))} value={values[field.id] ?? ''} />)}
-        {!onSubmit ? <p role="status">This interaction is not available yet.</p> : null}
-        <Button disabled={!onSubmit} type="submit">{content.saveAction ?? content.action ?? 'Save and continue'}</Button>
+        {fields.map(field => <StructuredInput field={field} key={field.id} label={field.id === 'review_text' ? 'Your reflection' : fields.length === 1 ? content.prompt ?? content.title ?? field.id : field.id} onChange={value => setValues(current => ({ ...current, [field.id]: value }))} value={values[field.id] ?? ''} />)}
+        <Button type="submit">{content.saveAction ?? content.action ?? 'Save and continue'}</Button>
       </form> : content.action ? <p>{content.action}</p> : null}
     </section>
   );
@@ -41,6 +41,7 @@ function Interaction({ content, onSubmit }: { content: InteractionDefinition; on
 function InteractionSequence({ nodes, onSubmit }: { nodes: readonly CurriculumNode[]; onSubmit?: CurriculumRendererProps['onSubmit'] }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const interactions = nodes.flatMap(node => node.content.kind === 'interaction' ? [node.content] : []);
+  if (!onSubmit) return null;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await onSubmit?.(values);
@@ -48,10 +49,9 @@ function InteractionSequence({ nodes, onSubmit }: { nodes: readonly CurriculumNo
   return <section className="reflection-panel"><form onSubmit={submit}>
     {interactions.map(content => <div key={content.prompt ?? content.title}>
       {content.prompt ? <Prompt help={content.help} prompt={content.prompt} /> : content.title ? <h1>{content.title}</h1> : null}
-      {(content.fields ?? []).map(field => <StructuredInput disabled={!onSubmit} field={field} key={field.id} label={content.prompt ?? content.title ?? field.id} onChange={value => setValues(current => ({ ...current, [field.id]: value }))} value={values[field.id] ?? ''} />)}
+      {(content.fields ?? []).map(field => <StructuredInput field={field} key={field.id} label={content.prompt ?? content.title ?? field.id} onChange={value => setValues(current => ({ ...current, [field.id]: value }))} value={values[field.id] ?? ''} />)}
     </div>)}
-    {!onSubmit ? <p role="status">This interaction is not available yet.</p> : null}
-    <Button disabled={!onSubmit} type="submit">Save and continue</Button>
+    <Button type="submit">Save and continue</Button>
   </form></section>;
 }
 
@@ -60,5 +60,6 @@ export function CurriculumRenderer({ node, nodes, onSubmit }: CurriculumRenderer
   if (!node) return null;
   if (node.content.kind === 'session' || node.content.kind === 'module') return <Teaching title={node.content.title}>{node.content.kind === 'session' ? node.content.teaching : ''}</Teaching>;
   if (node.content.kind === 'bridge') return <Bridge content={node.content} />;
+  if (!onSubmit) return null;
   return <><Interaction content={node.content} onSubmit={onSubmit} /><Scripture /></>;
 }

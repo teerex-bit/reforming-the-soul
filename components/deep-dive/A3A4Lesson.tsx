@@ -17,7 +17,7 @@ function Reflection({ section, reflection, saveReflection, review }: LessonProps
   if (review) return <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section>;
   return <form className="deep-dive-reflection" action={action}>
     <label htmlFor="new-awaken-reflection">{section.prompt}</label>
-    <textarea id="new-awaken-reflection" name="body" value={body} onChange={event => { setBody(event.target.value); setEdited(true); }} />
+    <textarea id="new-awaken-reflection" name="body" rows={3} value={body} onChange={event => { setBody(event.target.value); setEdited(true); }} />
     <div className="deep-dive-reflection__actions">
       <button className="button" type="submit" disabled={pending || !body.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
       <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>

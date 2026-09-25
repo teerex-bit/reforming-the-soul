@@ -55,14 +55,24 @@ describe('CurriculumRenderer', () => {
     expect(screen.getByRole('radio', { name: 'expectation' })).toBeInTheDocument();
   });
 
-  it('preserves an authored action while making an unhandled interaction explicitly unavailable', () => {
+  it('does not expose an unhandled interaction', () => {
     const node = PHASE_1_NODES.find(candidate => candidate.id === 'awaken.pay-attention.reflect');
     if (!node) throw new Error('Awaken reflect fixture is missing');
 
     render(<CurriculumRenderer node={node} />);
 
-    expect(screen.getByText('Reflect with AI')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save my added insight' })).toBeDisabled();
-    expect(screen.getByRole('status')).toHaveTextContent('This interaction is not available yet.');
+    expect(screen.queryByText('Reflect with AI')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByText(/not available yet/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps the practice review question in one heading and uses a distinct field label', () => {
+    const node = PHASE_1_NODES.find(candidate => candidate.id === 'become.practice.review');
+    if (!node) throw new Error('Practice review fixture is missing');
+    render(<CurriculumRenderer node={node} onSubmit={vi.fn()} />);
+    expect(screen.getByRole('heading', { name: 'What are you noticing now?' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Your reflection')).toBeInTheDocument();
+    expect(screen.getAllByText('What are you noticing now?')).toHaveLength(1);
+    expect(screen.queryByText(/Displays the original plan/)).not.toBeInTheDocument();
   });
 });

@@ -19,6 +19,20 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
     ] as const) {
       const base = `/deep-dive/awaken/${slug}`;
       await page.goto(appRuntimeUrl(base));
+      const firstScreen = await page.evaluate(() => ({
+        header: document.querySelector('.app-shell-header')!.getBoundingClientRect().height,
+        stages: document.querySelector('.stage-context')!.getBoundingClientRect().height,
+        titleTop: document.querySelector('.deep-dive-lesson h1')!.getBoundingClientRect().top,
+        viewport: innerWidth,
+        document: document.documentElement.scrollWidth,
+      }));
+      expect(firstScreen.document).toBeLessThanOrEqual(firstScreen.viewport);
+      if (firstScreen.viewport === 375) {
+        expect(firstScreen.header).toBeLessThanOrEqual(70);
+        expect(firstScreen.stages).toBeLessThanOrEqual(75);
+        expect(firstScreen.titleTop).toBeLessThan(310);
+      }
+      await expect(page.locator('.app-shell-header').getByRole('button', { name: 'Sign out' })).toBeVisible();
       await expect(page.getByRole('region', { name: /A[34] lesson progress/ })).toBeVisible();
       await page.getByRole('button', { name: 'Continue' }).click();
       await expect(page).toHaveURL(/section=teaching$/);
@@ -35,6 +49,9 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       expect(widths.document).toBeLessThanOrEqual(widths.viewport);
       await page.screenshot({ path: testInfo.outputPath(`${slug}-${testInfo.project.name}.png`), fullPage: true });
       await page.getByRole('button', { name: 'Continue' }).click();
+      const reflectionHeight = await page.locator('.deep-dive-reflection textarea').evaluate(element => element.getBoundingClientRect().height);
+      if (firstScreen.viewport === 375) expect(reflectionHeight).toBeLessThan(145);
+      await page.screenshot({ path: testInfo.outputPath(`${slug}-reflection-${testInfo.project.name}.png`), fullPage: true });
       await page.getByRole('textbox', { name: /Where might|Which pattern/i }).fill(reflection);
       await page.getByRole('button', { name: 'Save & continue' }).click();
       await expect(page).toHaveURL(/section=practice$/);
