@@ -16,7 +16,7 @@ export default async function DeepDiveHome() {
         <Link className="button" href={href}>
           {progress?.completedAt ? 'Review lesson from beginning' : progress ? 'Continue where I left off' : 'Begin'}
         </Link>
-        {progress?.completedAt ? <p className="deep-dive-home__next"><Link href={a2Progress ? `/deep-dive/awaken/catch-yourself-being-you?section=${a2Progress.completedAt ? 'entry' : a2Progress.lastSectionId}` : '/deep-dive/awaken/catch-yourself-being-you'}>{a2Progress?.completedAt ? 'Review lesson from beginning: ' : a2Progress ? 'Continue ' : 'Begin '}Catch Yourself Being You · A2</Link></p> : null}
+        {(progress?.completedAt || a2Progress) ? <p className="deep-dive-home__next"><Link href={a2Progress ? `/deep-dive/awaken/catch-yourself-being-you?section=${a2Progress.completedAt ? 'entry' : a2Progress.lastSectionId}` : '/deep-dive/awaken/catch-yourself-being-you'}>{a2Progress?.completedAt ? 'Review lesson from beginning: ' : a2Progress ? 'Continue ' : 'Begin '}Catch Yourself Being You · A2</Link></p> : null}
       </section>
     </AppShell>
   );
