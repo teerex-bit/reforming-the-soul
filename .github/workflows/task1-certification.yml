@@ -108,14 +108,16 @@ jobs:
 
       - name: Browser and visual-authority tests
         run: npm run test:e2e
-      - name: Preserve A1/A2 viewport screenshots
+      - name: Preserve Awaken viewport screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: a1-a2-viewport-screenshots
+          name: awaken-viewport-screenshots
           path: |
             test-results/**/a1-*.png
             test-results/**/a2-*.png
+            test-results/**/your-reactions-have-a-history-*.png
+            test-results/**/formation-is-not-identity-*.png
           if-no-files-found: error
           retention-days: 14
 
