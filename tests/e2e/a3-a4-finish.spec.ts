@@ -58,6 +58,7 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await page.screenshot({ path: testInfo.outputPath(`${slug === 'formation-is-not-identity' ? 'a4' : 'a3'}-completed-${testInfo.project.name}.png`), fullPage: true });
       await forward.click();
       await expect(page).toHaveURL(slug === 'formation-is-not-identity' ? /see-clearly/ : /formation-is-not-identity$/);
+      await expect(page.getByRole('heading', { level: 1, name: slug === 'formation-is-not-identity' ? /See Clearly/i : 'Formation Is Not Identity' })).toBeVisible();
       await page.goto(appRuntimeUrl('/deep-dive'));
       await page.getByRole('link', { name: new RegExp(`${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
       await expect(page).toHaveURL(/section=entry$/);
