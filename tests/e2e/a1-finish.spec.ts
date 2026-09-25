@@ -78,9 +78,20 @@ test('Awaken introduction and A1 complete responsively with confirmed reflection
     await expect(page).toHaveURL(/section=carry-forward$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Keep noticing' })).toBeVisible();
     await page.getByRole('button', { name: 'Complete lesson' }).click();
-    await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
-    await expect(page.getByRole('link', { name: 'Pay Attention' })).toBeVisible();
-    await page.getByRole('link', { name: 'Pay Attention' }).click();
+    await expect(page).toHaveURL(/pay-attention\?section=carry-forward$/);
+    const forward = page.getByRole('link', { name: 'Continue to A2' });
+    const back = page.getByRole('link', { name: 'Back to Awaken' });
+    await expect(forward).toBeVisible();
+    await expect(back).toBeVisible();
+    await forward.focus();
+    await expect(forward).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(back).toBeFocused();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`a1-completed-${testInfo.project.name}.png`), fullPage: true });
+    await forward.click();
+    await expect(page).toHaveURL(/catch-yourself-being-you$/);
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention?section=carry-forward'));
     await expect(page.getByRole('link', { name: '← Back' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Review lesson from beginning/ })).toHaveCount(0);
 

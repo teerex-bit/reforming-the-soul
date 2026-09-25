@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AppShell } from '../../../../../components/design-system/AppShell';
 import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/deep-dive/A1Lesson';
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
+import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
 import { A2_SECTIONS, type A2SectionId } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
@@ -49,7 +50,7 @@ async function A2Page({ query }: { query: { section?: string } }) {
   async function finish() {
     'use server';
     await completeA2();
-    redirect('/deep-dive');
+    redirect('/deep-dive/awaken/catch-yourself-being-you?section=carry-forward');
   }
 
   const next = A2_SECTIONS[index + 1];
@@ -76,7 +77,7 @@ async function A2Page({ query }: { query: { section?: string } }) {
               ) : (
                 <>
                   <p className="deep-dive-transition__title">Take these observations with you.</p>
-                  {!progress?.completedAt ? <form action={finish}><button className="button" type="submit">Complete lesson</button></form> : null}
+                  {progress?.completedAt ? <AwakenCompletionNav module="a2" /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
                 </>
               )}
             </footer> : null}
@@ -114,7 +115,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     }
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
-  async function finish() { 'use server'; await completeA1(); redirect('/deep-dive'); }
+  async function finish() { 'use server'; await completeA1(); redirect('/deep-dive/awaken/pay-attention?section=carry-forward'); }
   const next = A1_SECTIONS[index + 1];
   return (
     <AppShell stage="Awaken">
@@ -139,7 +140,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
               ) : (
                 <>
                   <p className="deep-dive-transition__title">You have reached the end of Pay Attention.</p>
-                  {!progress?.completedAt ? <form action={finish}><button className="button" type="submit">Complete lesson</button></form> : null}
+                  {progress?.completedAt ? <AwakenCompletionNav module="a1" /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
                 </>
               )}
             </footer> : null}

@@ -118,6 +118,8 @@ jobs:
             test-results/**/a2-*.png
             test-results/**/your-reactions-have-a-history-*.png
             test-results/**/formation-is-not-identity-*.png
+            test-results/**/a3-completed-*.png
+            test-results/**/a4-completed-*.png
           if-no-files-found: error
           retention-days: 14
 

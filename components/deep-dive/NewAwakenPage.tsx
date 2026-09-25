@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
+import { AwakenCompletionNav } from './AwakenCompletionNav';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
 import { getA3, getA4, saveA3Section, saveA4Section, saveA3Reflection, saveA4Reflection, completeA3, completeA4 } from '../../server/services/deep-dive-service';
@@ -43,7 +44,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   async function finish() {
     'use server';
     if (a3) await completeA3(); else await completeA4();
-    redirect('/deep-dive');
+    redirect(`${prefix}?section=carry-forward`);
   }
 
   const review = Boolean(progress?.completedAt);
@@ -59,7 +60,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
         {(section.id !== 'reflection' || review) ? <footer className="deep-dive-transition">
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
             {review ? <Link className="button" href={`${prefix}?section=${next.id}`}>Continue</Link> : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">Continue</button></form>}
-          </> : <><p className="deep-dive-transition__title">{a3 ? 'Carry this thread with you.' : 'Awaken is complete. See Clearly is next.'}</p>{!review ? <form action={finish}><button className="button" type="submit">Complete lesson</button></form> : null}</>}
+          </> : <><p className="deep-dive-transition__title">{a3 ? 'Carry this thread with you.' : 'Awaken is complete. See Clearly is next.'}</p>{review ? <AwakenCompletionNav module={a3 ? 'a3' : 'a4'} /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}</>}
         </footer> : null}
       </div>
     </div>

@@ -46,7 +46,19 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
         await expect(page.getByText('ASK · OPTIONAL')).toBeVisible();
       }
       await page.getByRole('button', { name: 'Complete lesson' }).click();
-      await expect(page).toHaveURL(appRuntimeUrl('/deep-dive'));
+      await expect(page).toHaveURL(/section=carry-forward$/);
+      const label = slug === 'formation-is-not-identity' ? 'Continue to See Clearly' : 'Continue to A4';
+      const forward = page.getByRole('link', { name: label });
+      const back = page.getByRole('link', { name: 'Back to Awaken' });
+      await forward.focus();
+      await expect(forward).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(back).toBeFocused();
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath(`${slug === 'formation-is-not-identity' ? 'a4' : 'a3'}-completed-${testInfo.project.name}.png`), fullPage: true });
+      await forward.click();
+      await expect(page).toHaveURL(slug === 'formation-is-not-identity' ? /see-clearly/ : /formation-is-not-identity$/);
+      await page.goto(appRuntimeUrl('/deep-dive'));
       await page.getByRole('link', { name: new RegExp(`${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
       await expect(page).toHaveURL(/section=entry$/);
       await page.goto(appRuntimeUrl(`${base}?section=reflection`));
