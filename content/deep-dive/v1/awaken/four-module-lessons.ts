@@ -12,7 +12,7 @@ export const A3_SECTIONS: readonly NewAwakenSection[] = [
     'Recognizing a history does not assign blame to someone else or excuse harm we may have caused. It gives us a way to notice what was formed without pretending we know every cause. We can take responsibility for what we do now while remaining honest about how a response developed.',
   ] },
   { id: 'trace', eyebrow: 'TRACE A THREAD', title: 'What might have shaped it?', paragraphs: [
-    'Begin with one recurring response you actually recognize. Consider a possible source, then what the response may once have helped you accomplish, protect, or avoid. You may choose “I’m not sure” at any point, and nothing in this working thread is saved or interpreted for you.',
+    'Begin with one recurring response you actually recognize. Consider a possible source, then what the response may once have helped you accomplish, protect, or avoid. You may choose “I’m not sure” at any point. These selections are just for reflection and are not saved.',
   ] },
   { id: 'reflection', eyebrow: 'YOUR REFLECTION', title: 'What are you beginning to see?', paragraphs: [
     'Where might this response have learned to make sense, and what might it once have helped you accomplish, protect, or avoid? Write only what you want to keep. You can also continue without writing or without knowing the answer.',
@@ -31,7 +31,7 @@ export const A4_SECTIONS: readonly NewAwakenSection[] = [
     'It is easy to turn a familiar pattern into a name for ourselves: “I’m just controlling,” “I’m bad at conflict,” or “I’m just this way.” Those statements may point to something real we need to face, but they say more than a pattern can tell us. A response is something to recognize and bring into the light, not the whole truth of a person.',
   ] },
   { id: 'teaching', eyebrow: 'NEW LIFE AND CONTINUING CHANGE', title: 'Made new, still being formed', paragraphs: [
-    'The curriculum’s new-creation promise gives us a different place to begin: in Christ, we are not trapped inside the patterns we learned. Being made new does not mean every thought, emotion, bodily response, habit, relationship pattern, and desire was retrained instantly. Discovering old formation does not cancel what happened in Christ; it shows where the work of transformation can continue.',
+    'In Christ, old formation is no longer the final word about who you are. Being made new does not mean every thought, emotion, bodily response, habit, relationship pattern, and desire was retrained instantly. Discovering old formation does not cancel what happened in Christ; it shows where the work of transformation can continue.',
     'Change reaches deeper than managing outward behavior. As we learn to notice an automatic response, we can bring it to God and practice a different way of living over time. We do not need to deny the pattern to believe that change is possible.',
   ] },
   { id: 'reframe', eyebrow: 'SEPARATE THE TWO', title: 'A pattern is not a name', paragraphs: [
@@ -41,7 +41,7 @@ export const A4_SECTIONS: readonly NewAwakenSection[] = [
     'Which pattern have you been treating as “just who I am”? If you have already seen a small sign that change is possible, you may name it too. Write only what feels useful to keep.',
   ], prompt: 'Which pattern have you been treating as “just who I am”? What would you say about it now?' },
   { id: 'practice', eyebrow: 'IN YOUR DAY', title: 'Notice without forcing an answer', paragraphs: [
-    'When a familiar response appears, notice and name what is happening without judging your identity by it. If you want to, ask God what He wants you to see and stay with what becomes clear. You can stop at noticing; neither asking nor receiving requires an immediate answer.',
+    'When a familiar response appears, notice and name what is happening without judging your identity by it. Ask God what He wants you to see, then stay with what becomes clear. You can leave the question open; receiving does not require an immediate answer.',
   ] },
   { id: 'carry-forward', eyebrow: 'CARRY FORWARD', title: 'Ready to see clearly', paragraphs: [
     'You can notice an internal response, recognize a recurring pattern, and consider that it has a history. What was formed in you is real, but it is not the whole truth of who you are. You can bring what you notice to God without forcing an interpretation.',

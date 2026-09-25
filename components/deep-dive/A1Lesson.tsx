@@ -1,11 +1,12 @@
 'use client';
 import { useActionState, useEffect, useState } from 'react';
 import type { A1Section } from '../../content/deep-dive/v1/awaken/pay-attention';
+import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type A1ReflectionSaveState = Readonly<{ saved: boolean; error?: string }>;
 type A1ReflectionAction = (state: A1ReflectionSaveState, formData: FormData) => Promise<A1ReflectionSaveState>;
 
-export function A1Lesson({ section, index, total, reflection, saveReflection, review = false }: { section: A1Section; index: number; total: number; reflection: string | null; saveReflection: A1ReflectionAction; review?: boolean }) {
+export function A1Lesson({ section, index, total, reflection, saveReflection, editReflection, review = false }: { section: A1Section; index: number; total: number; reflection: string | null; saveReflection: A1ReflectionAction; editReflection: ReviewReflectionAction; review?: boolean }) {
   const [open, setOpen] = useState(false);
   const [saveState, formAction, pending] = useActionState(saveReflection, { saved: false });
   const [editedSinceSave, setEditedSinceSave] = useState(false);
@@ -78,7 +79,7 @@ export function A1Lesson({ section, index, total, reflection, saveReflection, re
         </div>
       ) : null}
       {section.id === 'reflection' && review ? (
-        <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section>
+        <ReviewReflection id="a1-reflection" label={section.prompt ?? 'Your reflection'} reflection={reflection} action={editReflection} />
       ) : section.id === 'reflection' ? (
         <form className="deep-dive-reflection" action={formAction}>
           <label htmlFor="a1-reflection">{section.prompt}</label>

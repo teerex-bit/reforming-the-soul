@@ -92,4 +92,50 @@ describe('Deep Dive module persistence contract', () => {
     await expect(repository.get(ownerId, A1_MODULE_ID, A1_REFLECTION_PROMPT_ID)).resolves.toMatchObject({ reflection: 'A1 wording stays exact.' });
     await expect(repository.get(ownerId, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID)).resolves.toMatchObject({ reflection: 'My first response was to withdraw.' });
   });
+
+  it('allows later reflection writing and revision without changing progress or completion', async () => {
+    for (const [moduleId, promptId] of [
+      [A1_MODULE_ID, A1_REFLECTION_PROMPT_ID],
+      [A2_MODULE_ID, A2_REFLECTION_PROMPT_ID],
+      [A3_MODULE_ID, A3_REFLECTION_PROMPT_ID],
+      [A4_MODULE_ID, A4_REFLECTION_PROMPT_ID],
+    ] as const) {
+      await repository.complete({ actorId: ownerId, moduleId });
+      // A1/A2 already have text; remove it to model a participant who skipped.
+      await repository.deleteReflection({ actorId: ownerId, moduleId, promptId });
+      const before = (await pool.query(
+        `select id,last_section_id,completed_at,updated_at from public.deep_dive_module_progress
+         where user_id=$1 and module_id=$2`, [ownerId, moduleId],
+      )).rows[0];
+
+      await repository.editReflection({ actorId: ownerId, moduleId, promptId, body: 'A later thought.' });
+      await expect(repository.get(ownerId, moduleId, promptId)).resolves.toMatchObject({ reflection: 'A later thought.' });
+      await repository.editReflection({ actorId: ownerId, moduleId, promptId, body: 'A revised thought.' });
+      await expect(repository.get(ownerId, moduleId, promptId)).resolves.toMatchObject({ reflection: 'A revised thought.' });
+
+      const after = (await pool.query(
+        `select id,last_section_id,completed_at,updated_at from public.deep_dive_module_progress
+         where user_id=$1 and module_id=$2`, [ownerId, moduleId],
+      )).rows[0];
+      expect(after).toEqual(before);
+      await expect(repository.get(otherId, moduleId, promptId)).resolves.toBeNull();
+    }
+  });
+
+  it('keeps incomplete resume in place after a skipped reflection is written later', async () => {
+    await repository.saveSection({ actorId: otherId, moduleId: A1_MODULE_ID, sectionId: 'practice' });
+    const before = (await pool.query(
+      `select id,last_section_id,completed_at,updated_at from public.deep_dive_module_progress
+       where user_id=$1 and module_id=$2`, [otherId, A1_MODULE_ID],
+    )).rows[0];
+    await repository.editReflection({ actorId: otherId, moduleId: A1_MODULE_ID, promptId: A1_REFLECTION_PROMPT_ID, body: 'I returned to write.' });
+    await expect(repository.get(otherId, A1_MODULE_ID, A1_REFLECTION_PROMPT_ID)).resolves.toMatchObject({
+      lastSectionId: 'practice', completedAt: null, reflection: 'I returned to write.',
+    });
+    const after = (await pool.query(
+      `select id,last_section_id,completed_at,updated_at from public.deep_dive_module_progress
+       where user_id=$1 and module_id=$2`, [otherId, A1_MODULE_ID],
+    )).rows[0];
+    expect(after).toEqual(before);
+  });
 });

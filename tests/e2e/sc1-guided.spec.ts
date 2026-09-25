@@ -18,7 +18,9 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await page.goto(appRuntimeUrl('/see-clearly'));
     await expect(page).toHaveURL(/\/deep-dive\/see-clearly$/);
     await expect(page.getByRole('heading', { name: 'See Clearly' })).toBeVisible();
-    await page.getByRole('link', { name: /Begin · Facts and Interpretation/ }).click();
+    await expect(page.getByRole('heading', { name: 'See Yourself Clearly' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'See God Clearly' })).toBeVisible();
+    await page.getByRole('link', { name: 'Begin SC1' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Facts and Interpretation' })).toBeVisible();
     const initial = await page.evaluate(() => ({ title: document.querySelector('.deep-dive-lesson h1')!.getBoundingClientRect().top, scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
     expect(initial.scroll).toBeLessThanOrEqual(initial.viewport);
@@ -58,7 +60,7 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     expect(before.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', event_facts: 'The message was read at 10:15.', automatic_interpretation: 'I had upset my friend.', body: 'I had already decided what the delay meant.' })]);
     expect(before.rows[0].completed_at).toBeTruthy();
     await page.goto(appRuntimeUrl('/deep-dive/see-clearly'));
-    await page.getByRole('link', { name: /Review · Facts and Interpretation/ }).click();
+    await page.getByRole('link', { name: 'Review SC1' }).click();
     await expect(page).toHaveURL(/section=entry$/);
     for (const section of SC1_SECTIONS.slice(1)) {
       await page.getByRole('link', { name: 'Continue', exact: true }).click();

@@ -45,13 +45,13 @@ export const A2_SECTIONS: readonly A2Section[] = [
   {
     id: 'go-deeper', eyebrow: 'A SMALL PRACTICE', title: 'Notice, name, ask, receive',
     paragraphs: [
-      'Begin with what you can notice. Name it if you can. You may stop there. Asking God and receiving what becomes clear are invitations, not required outcomes.',
+      'Begin with what you can notice and name what is happening. Ask God what He wants you to see, then stay with what becomes clear. The question can remain open; you do not need to manufacture an answer.',
     ],
   },
   {
     id: 'practice', eyebrow: 'IN YOUR DAY', title: 'Catch yourself being you',
     paragraphs: [
-      'Over the next few days, notice when a familiar response appears. Catch it as close to the moment as possible and name what is happening. If you want to, ask God what He wants you to notice. Receive only what becomes clear.',
+      'Over the next few days, notice when a familiar response appears. Catch it as close to the moment as possible and name what is happening. Ask God what He wants you to notice, and stay with what becomes clear without forcing an answer.',
       'You are not trying to fix the pattern yet. Collect observations. One sentence is enough: “I noticed I became defensive when I felt misunderstood.” You can stop at noticing or naming without forcing an explanation.',
     ],
   },

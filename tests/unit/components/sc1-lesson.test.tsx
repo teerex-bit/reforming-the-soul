@@ -5,7 +5,7 @@ import { SC1_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sc1';
 
 afterEach(cleanup);
 
-const props = { record: null, reflection: null, sources: [], completed: false, saveResponse: vi.fn(), saveReflection: vi.fn() };
+const props = { record: null, reflection: null, sources: [], completed: false, reviewReflection: false, saveResponse: vi.fn(), saveReflection: vi.fn(), editReflection: vi.fn() };
 
 describe('SC1 guided lesson', () => {
   it('teaches with an observable contrast before inviting an interpretation', () => {

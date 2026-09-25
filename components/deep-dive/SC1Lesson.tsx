@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import type { SC1Section } from '../../content/deep-dive/v1/see-clearly/sc1';
 import type { SC1Record, SC1Source } from '../../server/data/see-clearly-sc1-repository';
+import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type SC1SaveState = Readonly<{ error?: string }>;
 type SC1Action = (state: SC1SaveState, formData: FormData) => Promise<SC1SaveState>;
@@ -12,8 +13,10 @@ type Props = Readonly<{
   reflection: string | null;
   sources: readonly SC1Source[];
   completed: boolean;
+  reviewReflection: boolean;
   saveResponse: SC1Action;
   saveReflection: SC1Action;
+  editReflection: ReviewReflectionAction;
 }>;
 
 function Contrast() {
@@ -53,10 +56,10 @@ function Moment({ record, sources, completed, saveResponse }: Pick<Props, 'recor
   </form>;
 }
 
-function Reflection({ reflection, completed, saveReflection }: Pick<Props, 'reflection' | 'completed' | 'saveReflection'>) {
+function Reflection({ reflection, reviewReflection, saveReflection, editReflection }: Pick<Props, 'reflection' | 'reviewReflection' | 'saveReflection' | 'editReflection'>) {
   const [state, action, pending] = useActionState(saveReflection, {});
   const [body, setBody] = useState(reflection ?? '');
-  if (completed) return <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section>;
+  if (reviewReflection) return <ReviewReflection id="sc1-reflection" label="A thought you want to keep (optional)" reflection={reflection} action={editReflection} />;
   return <form className="deep-dive-reflection" action={action}>
     <label htmlFor="sc1-reflection">A thought you want to keep (optional)</label>
     <textarea id="sc1-reflection" name="body" rows={3} value={body} onChange={event => setBody(event.target.value)} />
@@ -68,13 +71,13 @@ function Reflection({ reflection, completed, saveReflection }: Pick<Props, 'refl
   </form>;
 }
 
-export function SC1Lesson({ section, record, reflection, sources, completed, saveResponse, saveReflection }: Props) {
+export function SC1Lesson({ section, record, reflection, sources, completed, reviewReflection, saveResponse, saveReflection, editReflection }: Props) {
   return <article className={`deep-dive-lesson deep-dive-lesson--sc1 deep-dive-lesson--${section.id}`}>
     <p className="eyebrow deep-dive-section-label">{section.eyebrow}</p><h1>{section.title}</h1>
     {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
     {section.id === 'contrast' ? <Contrast /> : null}
     {section.id === 'interaction' ? <Moment record={record} sources={sources} completed={completed} saveResponse={saveResponse} /> : null}
-    {section.id === 'reflection' ? <Reflection reflection={reflection} completed={completed} saveReflection={saveReflection} /> : null}
+    {section.id === 'reflection' ? <Reflection reflection={reflection} reviewReflection={reviewReflection} saveReflection={saveReflection} editReflection={editReflection} /> : null}
     {section.id === 'practice' ? <div className="sc1-practice" role="note"><span className="eyebrow">A WAY TO BEGIN</span><p>“What did I see or hear? What meaning appeared in me?”</p></div> : null}
   </article>;
 }

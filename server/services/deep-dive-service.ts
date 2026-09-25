@@ -10,7 +10,15 @@ import {
   A4_MODULE_ID,
   A4_REFLECTION_PROMPT_ID,
   type A1SectionId,
+  type DeepDiveModuleId,
+  type DeepDivePromptId,
 } from '../../domain/deep-dive';
+
+export async function editDeepDiveReflection(moduleId: DeepDiveModuleId, promptId: DeepDivePromptId, body: string) {
+  if (!body.trim()) throw new Error('Write a reflection before saving.');
+  const actor = await requireActor();
+  return deepDiveRepository().editReflection({ actorId: actor.id, moduleId, promptId, body: body.trim() });
+}
 
 export async function getA1() {
   const actor = await requireActor();

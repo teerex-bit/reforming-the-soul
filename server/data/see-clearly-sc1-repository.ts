@@ -122,6 +122,24 @@ export function seeClearlySC1Repository() {
         );
       });
     },
+    editReflection(actorId: string, body: string): Promise<void> {
+      return authenticated(actorId, async client => {
+        const progress = (await client.query<{ id: string }>(
+          `select p.id from public.deep_dive_module_progress p
+           join public.see_clearly_sc1_records r
+             on (r.progress_id,r.user_id,r.module_id)=(p.id,p.user_id,p.module_id)
+           where p.user_id=$1 and p.module_id=$2`, [actorId, SC1_MODULE_ID],
+        )).rows[0];
+        if (!progress) throw new Error('Complete the SC1 moment before reflecting.');
+        await client.query(
+          `insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+           values($1,$2,$3,$4)
+           on conflict(progress_id,prompt_id,user_id)
+           do update set body=excluded.body,updated_at=now()`,
+          [actorId, progress.id, SC1_REFLECTION_PROMPT_ID, body],
+        );
+      });
+    },
     complete(actorId: string): Promise<void> {
       return authenticated(actorId, async client => {
         const progress = (await client.query<{ id: string }>(

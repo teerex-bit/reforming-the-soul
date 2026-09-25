@@ -3,14 +3,15 @@ import Link from 'next/link';
 import { AppShell } from '../../../../../components/design-system/AppShell';
 import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/deep-dive/A1Lesson';
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
+import type { ReviewReflectionState } from '../../../../../components/deep-dive/ReviewReflection';
 import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
 import { awakenBackHref } from '../../../../../components/deep-dive/awaken-back-navigation';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { SC1Page } from '../../../../../components/deep-dive/SC1Page';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
 import { A2_SECTIONS, type A2SectionId } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
-import { completeA1, completeA2, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
-import type { A1SectionId } from '../../../../../domain/deep-dive';
+import { completeA1, completeA2, editDeepDiveReflection, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
+import { A1_MODULE_ID, A1_REFLECTION_PROMPT_ID, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID, type A1SectionId } from '../../../../../domain/deep-dive';
 
 function LessonProgress({ module, title, index, total }: { module: 'A1' | 'A2'; title: string; index: number; total: number }) {
   return <section className="deep-dive-progress" aria-label={`${module} lesson progress`}>
@@ -55,7 +56,17 @@ async function A2Page({ query }: { query: { section?: string } }) {
     redirect('/deep-dive/awaken/catch-yourself-being-you?section=carry-forward');
   }
 
+  async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
+    'use server';
+    const body = String(formData.get('body') ?? '').trim();
+    if (!body) return { error: 'Write a reflection before saving.' };
+    try { await editDeepDiveReflection(A2_MODULE_ID, A2_REFLECTION_PROMPT_ID, body); }
+    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    return { savedBody: body };
+  }
+
   const next = A2_SECTIONS[index + 1];
+  const reviewReflection = Boolean(progress?.completedAt) || A2_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > A2_SECTIONS.findIndex(item => item.id === 'reflection');
   return (
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
@@ -66,8 +77,8 @@ async function A2Page({ query }: { query: { section?: string } }) {
         <div className="deep-dive-layout">
           <LessonProgress module="A2" title="Catch Yourself Being You" index={index} total={A2_SECTIONS.length} />
           <div className="deep-dive-content">
-            <A2Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
-            {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
+            <A2Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={saveReflection} editReflection={editReflection} review={reviewReflection} />
+            {(section.id !== 'reflection' || reviewReflection) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
@@ -119,7 +130,16 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
   async function finish() { 'use server'; await completeA1(); redirect('/deep-dive/awaken/pay-attention?section=carry-forward'); }
+  async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
+    'use server';
+    const body = String(formData.get('body') ?? '').trim();
+    if (!body) return { error: 'Write a reflection before saving.' };
+    try { await editDeepDiveReflection(A1_MODULE_ID, A1_REFLECTION_PROMPT_ID, body); }
+    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    return { savedBody: body };
+  }
   const next = A1_SECTIONS[index + 1];
+  const reviewReflection = Boolean(progress?.completedAt) || A1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > A1_SECTIONS.findIndex(item => item.id === 'reflection');
   return (
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
@@ -130,8 +150,8 @@ export default async function A1Page({ params, searchParams }: { params: Promise
         <div className="deep-dive-layout">
           <LessonProgress module="A1" title="Pay Attention" index={index} total={A1_SECTIONS.length} />
           <div className="deep-dive-content">
-            <A1Lesson section={section} index={index} total={A1_SECTIONS.length} reflection={progress?.reflection ?? null} saveReflection={saveReflection} review={Boolean(progress?.completedAt)} />
-            {(section.id !== 'reflection' || progress?.completedAt) ? <footer className="deep-dive-transition">
+            <A1Lesson section={section} index={index} total={A1_SECTIONS.length} reflection={progress?.reflection ?? null} saveReflection={saveReflection} editReflection={editReflection} review={reviewReflection} />
+            {(section.id !== 'reflection' || reviewReflection) ? <footer className="deep-dive-transition">
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>

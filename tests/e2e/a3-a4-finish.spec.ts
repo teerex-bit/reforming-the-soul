@@ -54,9 +54,28 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
         await page.getByLabel('Recurring response').selectOption('Withdrawal');
         await page.getByLabel('Possible source').selectOption("I'm not sure");
         await expect(page.getByRole('region', { name: 'Your working thread' })).toContainText('Withdrawal');
+        const cards = await page.locator('.a3-thread__card').evaluateAll(elements => elements.map(element => {
+          const { x, y, width, height } = element.getBoundingClientRect();
+          const control = element.querySelector('select, input')!.getBoundingClientRect();
+          return { x, y, width, height, controlY: control.y };
+        }));
+        expect(cards).toHaveLength(3);
+        if (firstScreen.viewport === 1536) {
+          expect(Math.max(...cards.map(card => card.width)) - Math.min(...cards.map(card => card.width))).toBeLessThan(1);
+          expect(new Set(cards.map(card => card.y))).toHaveProperty('size', 1);
+          expect(new Set(cards.map(card => card.controlY))).toHaveProperty('size', 1);
+        } else {
+          expect(cards[0].y).toBeLessThan(cards[1].y);
+          expect(cards[1].y).toBeLessThan(cards[2].y);
+        }
+        expect(page.locator('.a3-thread').getByText('←')).toHaveCount(0);
       } else {
-        await page.getByLabel('A pattern you recognize').fill('withdraw');
+        await page.getByLabel('A pattern you recognize').fill('I like to be in control.');
+        await page.getByRole('button', { name: 'See another way to say it' }).click();
         await expect(page.getByRole('region', { name: 'Your working reframe' })).toContainText('not the whole truth');
+        await expect(page.getByRole('region', { name: 'Your working reframe' })).toContainText('I like to be in control.');
+        await page.getByLabel('A different way to say it').fill('I sometimes move toward control, but it is not the whole truth of who I am.');
+        await expect(page.getByLabel('A different way to say it')).toHaveValue(/I sometimes move toward control/);
       }
       const widths = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
       expect(widths.document).toBeLessThanOrEqual(widths.viewport);
@@ -73,7 +92,7 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await page.getByRole('button', { name: 'Continue' }).click();
       if (slug === 'formation-is-not-identity') {
         await expect(page.getByRole('heading', { level: 1, name: 'Ready to see clearly' })).toBeVisible();
-        await expect(page.getByText('ASK · OPTIONAL')).toBeVisible();
+        await expect(page.getByText('ASK', { exact: true })).toBeVisible();
       }
       await page.getByRole('button', { name: 'Complete lesson' }).click();
       await expect(page).toHaveURL(/section=carry-forward$/);

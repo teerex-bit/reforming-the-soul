@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
+import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
-import { completeSC1, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
+import { completeSC1, editSC1Reflection, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
 
 const route = '/deep-dive/see-clearly/facts-and-interpretation';
 
@@ -49,11 +50,21 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     }
     redirect(`${route}?section=practice`);
   }
+  async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
+    'use server';
+    const body = String(formData.get('body') ?? '').trim();
+    if (!body) return { error: 'Write a reflection before saving.' };
+    try { await editSC1Reflection(body); }
+    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    return { savedBody: body };
+  }
   async function finish() {
     'use server';
     await completeSC1();
     redirect(`${route}?section=carry-forward`);
   }
+
+  const reviewReflection = completed || SC1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > SC1_SECTIONS.findIndex(item => item.id === 'reflection');
 
   return <AppShell stage="See Clearly"><section className="deep-dive-shell">
     <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : '/deep-dive/see-clearly'}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SC1</span></div>
@@ -63,8 +74,8 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
         <div className="deep-dive-progress__track"><label htmlFor="sc1-progress">Section {index + 1} of {SC1_SECTIONS.length}</label><progress id="sc1-progress" value={index + 1} max={SC1_SECTIONS.length} /></div>
       </section>
       <div className="deep-dive-content">
-        <SC1Lesson section={section} record={record} reflection={progress?.reflection ?? null} sources={sources} completed={completed} saveResponse={saveResponse} saveReflection={saveReflection} />
-        {(section.id !== 'interaction' && section.id !== 'reflection' || completed) && <footer className="deep-dive-transition">
+        <SC1Lesson section={section} record={record} reflection={progress?.reflection ?? null} sources={sources} completed={completed} reviewReflection={reviewReflection} saveResponse={saveResponse} saveReflection={saveReflection} editReflection={editReflection} />
+        {(section.id !== 'interaction' && section.id !== 'reflection' || completed || section.id === 'reflection' && reviewReflection) && <footer className="deep-dive-transition">
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
             {completed ? <Link className="button" href={`${route}?section=${next.id}`}>Continue</Link> : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">{index === 0 ? 'Begin' : 'Continue'}</button></form>}
           </> : <><p className="deep-dive-transition__title">Keep this distinction with you.</p>

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import type { A2Section } from '../../content/deep-dive/v1/awaken/catch-yourself-being-you';
+import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type A2ReflectionSaveState = Readonly<{ saved: boolean; error?: string }>;
 type A2ReflectionAction = (state: A2ReflectionSaveState, formData: FormData) => Promise<A2ReflectionSaveState>;
@@ -28,23 +29,19 @@ const RESPONSE_EXAMPLES = [
 const PRACTICE_STEPS = [
   {
     name: 'NOTICE',
-    optional: false,
     text: 'Something in me just changed. Pause long enough to notice it, even if that is all you can do.',
   },
   {
     name: 'NAME',
-    optional: false,
     text: 'What am I feeling, wanting, or doing? Name only what you can observe, without explaining why.',
   },
   {
     name: 'ASK',
-    optional: true,
-    text: 'If you want to, bring what you noticed to God: “God, what do You want me to see here?” You do not have to manufacture an answer.',
+    text: 'God, what do You want me to see here? You may leave the question open.',
   },
   {
     name: 'RECEIVE',
-    optional: true,
-    text: 'Stay with what becomes clear and leave what does not. Uncertainty is an acceptable outcome.',
+    text: 'Stay with what becomes clear without forcing an answer.',
   },
 ] as const;
 
@@ -52,7 +49,7 @@ function toggle(values: readonly string[], value: string) {
   return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
 }
 
-export function A2Lesson({ section, reflection, saveReflection, review = false }: { section: A2Section; reflection: string | null; saveReflection: A2ReflectionAction; review?: boolean }) {
+export function A2Lesson({ section, reflection, saveReflection, editReflection, review = false }: { section: A2Section; reflection: string | null; saveReflection: A2ReflectionAction; editReflection: ReviewReflectionAction; review?: boolean }) {
   const [saveState, formAction, pending] = useActionState(saveReflection, { saved: false });
   const [editedSinceSave, setEditedSinceSave] = useState(false);
   const [body, setBody] = useState(reflection ?? '');
@@ -148,7 +145,7 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
       ) : section.id === 'reflection' ? (
         <>
           <div className="deep-dive-a2-prompts">{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-          {review ? <section className="deep-dive-saved-reflection" aria-label="Your saved reflection"><h2>Your reflection</h2><p>{reflection || 'You continued without writing.'}</p></section> : <form className="deep-dive-reflection a2-reflection" action={formAction}>
+          {review ? <ReviewReflection id="a2-reflection" label={section.prompt ?? 'Your reflection'} reflection={reflection} action={editReflection} /> : <form className="deep-dive-reflection a2-reflection" action={formAction}>
             <label htmlFor="a2-reflection">{section.prompt}</label>
             <textarea id="a2-reflection" name="body" value={body} placeholder="Write only what you want to keep…" onChange={event => { setBody(event.target.value); setEditedSinceSave(true); }} />
             <div className="deep-dive-reflection__actions">
@@ -168,15 +165,15 @@ export function A2Lesson({ section, reflection, saveReflection, review = false }
             <ol className="a2-practice__steps">
               {PRACTICE_STEPS.map((step, index) => (
                 <li key={step.name}>
-                  <button type="button" aria-pressed={activePracticeStep === index} aria-controls="a2-practice-panel" onClick={() => setActivePracticeStep(index)}>
+                  <button type="button" aria-label={step.name} aria-pressed={activePracticeStep === index} aria-controls="a2-practice-panel" onClick={() => setActivePracticeStep(index)}>
                     <span className="a2-practice__number">0{index + 1}</span>
-                    <span>{step.name}{step.optional ? <small>Optional</small> : null}</span>
+                    <span>{step.name}</span>
                   </button>
                 </li>
               ))}
             </ol>
             <div className="a2-practice__panel" id="a2-practice-panel" role="region" aria-label={PRACTICE_STEPS[activePracticeStep].name}>
-              <p className="eyebrow">{PRACTICE_STEPS[activePracticeStep].name}{PRACTICE_STEPS[activePracticeStep].optional ? ' · OPTIONAL' : ''}</p>
+              <p className="eyebrow">{PRACTICE_STEPS[activePracticeStep].name}</p>
               <p>{PRACTICE_STEPS[activePracticeStep].text}</p>
             </div>
           </section>

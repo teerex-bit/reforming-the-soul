@@ -32,6 +32,12 @@ export async function saveSC1Reflection(body: string) {
   return seeClearlySC1Repository().saveReflection(actor.id, body);
 }
 
+export async function editSC1Reflection(body: string) {
+  if (!body.trim()) throw new Error('Write a reflection before saving.');
+  const actor = await requireActor();
+  return seeClearlySC1Repository().editReflection(actor.id, body.trim());
+}
+
 export async function completeSC1() {
   const actor = await requireActor();
   return seeClearlySC1Repository().complete(actor.id);

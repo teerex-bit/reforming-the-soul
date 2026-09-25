@@ -5,21 +5,14 @@ import { AWAKEN_INTRODUCTION } from '../../../../content/deep-dive/v1';
 import { awakenModuleNavigation } from '../../../../components/deep-dive/awaken-module-navigation';
 import { getA1, getA2, getA3, getA4 } from '../../../../server/services/deep-dive-service';
 import { getSC1 } from '../../../../server/services/see-clearly-sc1-service';
+import { SeeClearlyStage } from '../../../../components/deep-dive/SeeClearlyStage';
 
 export default async function StagePage({ params }: { params: Promise<{ stageId: string }> }) {
   const { stageId } = await params;
   if (stageId === 'see-clearly') {
     const { progress } = await getSC1();
-    const completed = Boolean(progress?.completedAt);
-    const href = `/deep-dive/see-clearly/facts-and-interpretation${completed ? '?section=entry' : ''}`;
-    return <AppShell stage="See Clearly"><section className="deep-dive-home deep-dive-home--see-clearly">
-      <p className="eyebrow">THE FORMATION JOURNEY · SEE CLEARLY</p>
-      <h1>See Clearly</h1>
-      <p className="deep-dive-introduction">Begin by noticing the lens through which you interpret yourself and ordinary life. This first lesson gives you space to distinguish what happened from what you made it mean.</p>
-      <div className="deep-dive-module-links" aria-label="See Clearly lessons">
-        <Link className="button" href={href}>{completed ? 'Review' : progress ? 'Resume' : 'Begin'} · Facts and Interpretation · SC1</Link>
-      </div>
-    </section></AppShell>;
+    const status = progress?.completedAt ? 'review' : progress ? 'resume' : 'begin';
+    return <AppShell stage="See Clearly"><SeeClearlyStage status={status} /></AppShell>;
   }
   if (stageId !== 'awaken') notFound();
   const [a1, a2, a3, a4] = await Promise.all([getA1(), getA2(), getA3(), getA4()]);

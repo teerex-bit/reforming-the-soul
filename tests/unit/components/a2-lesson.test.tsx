@@ -14,7 +14,7 @@ afterEach(cleanup);
 describe('A2 participant experience', () => {
   it('teaches the pattern and preserves the passage attribution', () => {
     const section = A2_SECTIONS.find(item => item.id === 'scripture')!;
-    render(<A2Lesson section={section} reflection={null} saveReflection={vi.fn()} />);
+    render(<A2Lesson editReflection={vi.fn()} section={section} reflection={null} saveReflection={vi.fn()} />);
 
     expect(screen.getByRole('figure', { name: /James 1:23–24/i })).toBeInTheDocument();
     expect(screen.getByText(/World English Bible/)).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe('A2 participant experience', () => {
     const saveReflection = vi.fn(() => new Promise<{ saved: boolean }>(resolve => {
       confirmSave = () => resolve({ saved: true });
     }));
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection="Saved thought" saveReflection={saveReflection} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection="Saved thought" saveReflection={saveReflection} />);
 
     expect(screen.getByLabelText(/which response do you notice most often/i)).toHaveValue('Saved thought');
     expect(screen.getByRole('button', { name: 'Save & continue' })).toBeEnabled();
@@ -40,7 +40,7 @@ describe('A2 participant experience', () => {
 
   it('keeps whitespace-only text unsavable and permits continuing without writing', async () => {
     const saveReflection = vi.fn(async () => ({ saved: false }));
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection={null} saveReflection={saveReflection} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection={null} saveReflection={saveReflection} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '   ' } });
     expect(screen.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Continue without writing' }));
@@ -48,7 +48,7 @@ describe('A2 participant experience', () => {
   });
 
   it('clearly teaches a no-interpretation daily practice', () => {
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'practice')!} reflection={null} saveReflection={vi.fn()} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'practice')!} reflection={null} saveReflection={vi.fn()} />);
 
     expect(screen.getByRole('region', { name: 'Practice for the next few days' })).toHaveTextContent('notice when a familiar response appears');
     expect(screen.getByRole('region', { name: 'Practice for the next few days' })).toHaveTextContent(/collect observations/i);
@@ -56,7 +56,7 @@ describe('A2 participant experience', () => {
 
   it('lets the participant connect situations to recurring responses without saving those choices', () => {
     const saveReflection = vi.fn();
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'patterns')!} reflection={null} saveReflection={saveReflection} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'patterns')!} reflection={null} saveReflection={saveReflection} />);
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'A plan changes unexpectedly' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'I feel overlooked' }));
@@ -71,14 +71,14 @@ describe('A2 participant experience', () => {
   });
 
   it('opens with ordinary situations before teaching the idea of patterns', () => {
-    render(<A2Lesson section={A2_SECTIONS[0]} reflection={null} saveReflection={vi.fn()} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS[0]} reflection={null} saveReflection={vi.fn()} />);
     expect(screen.getByText('Someone misunderstands you.')).toBeInTheDocument();
     expect(screen.getByText('Plans suddenly change.')).toBeInTheDocument();
     expect(screen.getByText(/Different situations\. Same you\./)).toBeInTheDocument();
   });
 
   it('explains response families through an accessible disclosure without assigning identities', () => {
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'patterns')!} reflection={null} saveReflection={vi.fn()} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'patterns')!} reflection={null} saveReflection={vi.fn()} />);
     const button = screen.getByRole('button', { name: /what can these responses look like/i });
     expect(button).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(button);
@@ -88,7 +88,7 @@ describe('A2 participant experience', () => {
 
   it('retains private wording and a retry action after a failed reflection save', async () => {
     const saveReflection = vi.fn(async () => ({ saved: false, error: 'Could not save your reflection. Please try again.' }));
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection={null} saveReflection={saveReflection} />);
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection={null} saveReflection={saveReflection} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'My own words' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save & continue' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not save');
@@ -96,19 +96,20 @@ describe('A2 participant experience', () => {
     expect(screen.getByRole('button', { name: 'Save & continue' })).toBeEnabled();
   });
 
-  it('makes NOTICE, NAME, ASK, RECEIVE a navigable practice and marks ASK and RECEIVE optional', () => {
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'go-deeper')!} reflection={null} saveReflection={vi.fn()} />);
+  it('makes NOTICE, NAME, ASK, RECEIVE a navigable practice without optional labels', () => {
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'go-deeper')!} reflection={null} saveReflection={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /ASK.*optional/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'ASK' }));
     expect(screen.getByRole('region', { name: 'ASK' })).toHaveTextContent('God, what do You want me to see here?');
-    fireEvent.click(screen.getByRole('button', { name: /RECEIVE.*optional/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'RECEIVE' }));
     expect(screen.getByRole('region', { name: 'RECEIVE' })).toHaveTextContent(/stay with what becomes clear/i);
+    expect(screen.queryByText(/optional/i)).not.toBeInTheDocument();
   });
 
-  it('keeps completed reflection read-only', () => {
-    render(<A2Lesson section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection="Saved thought" saveReflection={vi.fn()} review />);
-    expect(screen.getByRole('region', { name: 'Your saved reflection' })).toHaveTextContent('Saved thought');
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  it('allows completed reflection revision', () => {
+    render(<A2Lesson editReflection={vi.fn()} section={A2_SECTIONS.find(item => item.id === 'reflection')!} reflection="Saved thought" saveReflection={vi.fn()} review />);
+    expect(screen.getByRole('textbox')).toHaveValue('Saved thought');
+    expect(screen.getByRole('button', { name: 'Save reflection' })).toBeDisabled();
   });
 
   it('offers both lessons from the Awaken stage page', async () => {

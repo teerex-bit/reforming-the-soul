@@ -68,9 +68,9 @@ test('A2 saves, resumes, and completes with an isolated account on mobile and de
     await page.getByRole('button', { name: 'Save & continue' }).click();
     await expect(page).toHaveURL(/section=go-deeper$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Notice, name, ask, receive' })).toBeVisible();
-    await page.getByRole('button', { name: /ASK.*optional/i }).click();
+    await page.getByRole('button', { name: 'ASK' }).click();
     await expect(page.getByRole('region', { name: 'ASK' })).toContainText('God, what do You want me to see here?');
-    await page.getByRole('button', { name: /RECEIVE.*optional/i }).click();
+    await page.getByRole('button', { name: 'RECEIVE' }).click();
     await expect(page.getByRole('region', { name: 'RECEIVE', exact: true })).toContainText(/stay with what becomes clear/i);
     await page.screenshot({ path: testInfo.outputPath(`a2-practice-${testInfo.project.name}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Continue' }).click();

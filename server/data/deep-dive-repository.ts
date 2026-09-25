@@ -34,6 +34,7 @@ export interface DeepDiveRepository {
   get(actorId: string, moduleId: DeepDiveModuleId, promptId: DeepDivePromptId): Promise<DeepDiveProgress | null>;
   saveSection(input: Input & { moduleId: DeepDiveModuleId; sectionId: string }): Promise<void>;
   saveReflection(input: Input & { moduleId: DeepDiveModuleId; promptId: DeepDivePromptId; body: string }): Promise<void>;
+  editReflection(input: Input & { moduleId: DeepDiveModuleId; promptId: DeepDivePromptId; body: string }): Promise<void>;
   deleteReflection(input: Input & { moduleId: DeepDiveModuleId; promptId: DeepDivePromptId }): Promise<void>;
   complete(input: Input & { moduleId: DeepDiveModuleId }): Promise<void>;
 }
@@ -79,6 +80,22 @@ export function deepDiveRepository(): DeepDiveRepository {
          select $1,id,$3,$4 from public.deep_dive_module_progress where user_id=$1 and module_id=$2
          on conflict(progress_id,prompt_id,user_id) do update set body=excluded.body,updated_at=now()`,
         [input.actorId, input.moduleId, input.promptId, input.body],
+      );
+    }),
+
+    editReflection: input => authenticated(input.actorId, async client => {
+      const row = (await client.query<{ id: string }>(
+        `select id from public.deep_dive_module_progress
+         where user_id=$1 and module_id=$2 and curriculum_version_id='phase-1-v1'`,
+        [input.actorId, input.moduleId],
+      )).rows[0];
+      if (!row) throw new Error('Open the lesson before saving a reflection.');
+      await client.query(
+        `insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+         values($1,$2,$3,$4)
+         on conflict(progress_id,prompt_id,user_id)
+         do update set body=excluded.body,updated_at=now()`,
+        [input.actorId, row.id, input.promptId, input.body],
       );
     }),
 
