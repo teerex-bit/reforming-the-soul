@@ -68,7 +68,9 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
         await expect(page.getByRole('region', { name: 'Your saved moment' })).toContainText('The message was read at 10:15.');
         await page.getByRole('link', { name: '← Back' }).click();
         await expect(page).toHaveURL(/section=contrast$/);
+        await expect(page.getByRole('heading', { level: 1, name: 'The same event, more than one meaning' })).toBeVisible();
         await page.getByRole('link', { name: 'Continue', exact: true }).click();
+        await expect(page.getByRole('heading', { level: 1, name: 'Separate what happened from what it meant' })).toBeVisible();
       }
       if (section.id === 'reflection') await expect(page.getByRole('region', { name: 'Your saved reflection' })).toContainText('I had already decided');
     }
