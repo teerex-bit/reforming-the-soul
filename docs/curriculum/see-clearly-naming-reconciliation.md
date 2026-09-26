@@ -42,6 +42,12 @@ SY2 uses `see-clearly.sy2`, `sy2-reflection`, and `see_clearly_sy2_records`. Its
 
 The future module IDs and reflection IDs are reserved only: SY3 `see-clearly.sy3` / `sy3-reflection`; SY4 `see-clearly.sy4` / `sy4-reflection`; SG1 `see-clearly.sg1` / `sg1-reflection`; SG2 `see-clearly.sg2` / `sg2-reflection`; SG3 `see-clearly.sg3` / `sg3-reflection`; SG4 `see-clearly.sg4` / `sg4-reflection`. None of these later modules is implemented by SY2.
 
+## SY3 authored allocation decision (design only)
+
+SY3 consolidates the learned self-story, performance/worth, shame/hiding, and protective responses into one story-and-recognition lesson. It asks what recurring, tentative conclusion the participant may have learned to carry. It does not answer whether that conclusion is true; SY4 takes up that question. The historical lessons remain source material rather than current navigation.
+
+**SY3 has no dedicated Scripture section.** Psalm 139:13–14 and Ephesians 2:10 from the original story lesson answer the truth/identity question and are reserved for SY4. Genesis 3, 1 John 1:7, Proverbs 4:23, and 2 Corinthians 12:9 remain narrower historical shame/protection source material; none is inserted merely to fill an SY3 Scripture slot. This is an intentional allocation, not a missing passage. Do not rewrite the historical documents. The proposed participant copy, data contract, and migration specification are in [SY3 authored design and data gate](sy3-authored-design-and-data-gate.md). No SY3 identifiers have been added to the database.
+
 The historical `SC2` shorthand in older navigation and tests is not a persisted identifier. Public Overview numbers are separate. If `1-2` or `2-2` appear in further source material, verify their meaning before assigning an alias.
 
 ## Evidence checked
