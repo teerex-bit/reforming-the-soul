@@ -62,4 +62,15 @@ describe('See Clearly movements', () => {
     expect(screen.getByRole('link', { name: 'Review SG3' })).toHaveAttribute('href', '/deep-dive/see-clearly/jesus-shows-us-the-father?section=entry');
     expect(screen.getByText('Up next: SG4 — Can I Trust God Here?')).toBeInTheDocument();
   });
+  it('opens SG4 after SG3 and keeps completed See Clearly available for review', () => {
+    render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="review" sy4Status="review"
+      sg1Status="review" sg2Status="review" sg3Status="review" sg4Status="begin" />);
+    expect(screen.getByRole('link', { name: 'Begin SG4' })).toHaveAttribute('href', '/deep-dive/see-clearly/can-i-trust-god-here');
+    cleanup();
+    render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="review" sy4Status="review"
+      sg1Status="review" sg2Status="review" sg3Status="review" sg4Status="review" />);
+    expect(screen.getByRole('link', { name: 'Review SG4' })).toHaveAttribute('href', '/deep-dive/see-clearly/can-i-trust-god-here?section=entry');
+    expect(screen.getByText('See Clearly complete · Become is next')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Begin Become/ })).not.toBeInTheDocument();
+  });
 });

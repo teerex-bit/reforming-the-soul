@@ -627,3 +627,22 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .sg3-observation__form textarea { width: 100%; min-width: 0; min-height: 9rem; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font: inherit; resize: vertical; }
 .sg3-observation > form:last-child { margin-top: 1rem; }
 @media (max-width: 40rem) { .sg3-observation .deep-dive-reflection__actions .button { width: 100%; } }
+
+.deep-dive-lesson--sg4 { max-width: 54rem; margin-inline: auto; }
+.deep-dive-lesson--sg4 > p:not(.eyebrow) { max-width: 67ch; }
+.deep-dive-content:has(.deep-dive-lesson--sg4) > .deep-dive-transition { max-width: 54rem; margin-inline: auto; }
+.sg4-trust { max-width: 49rem; margin: 2rem 0; border-top: 1px solid var(--color-gold); }
+.sg4-trust__context { margin: 1rem 0; padding: 1rem 0; border-bottom: 1px solid var(--color-line); }
+.sg4-trust__context summary { color: var(--color-navy); cursor: pointer; font-weight: 600; }
+.sg4-trust__context blockquote { margin: .7rem 0; padding-left: 1rem; border-left: 2px solid var(--color-gold); overflow-wrap: anywhere; }
+.sg4-trust__form { display: grid; gap: 1.5rem; }
+.sg4-trust__moment, .sg4-trust__meaning { min-width: 0; }
+.sg4-trust__moment { padding: 1.5rem 0 0; }
+.sg4-trust__meaning { padding: 1.25rem 0 0; border-top: 1px solid var(--color-line); }
+.sg4-trust__form label { display: block; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.3rem, 2vw, 1.75rem); }
+.sg4-trust__form p:not(.eyebrow) { max-width: 60ch; margin: .35rem 0 .75rem; }
+.sg4-trust__form textarea { width: 100%; min-width: 0; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font: inherit; resize: vertical; }
+.sg4-trust__moment textarea { min-height: 5rem; }
+.sg4-trust__meaning textarea { min-height: 9rem; }
+.sg4-trust > form:last-child { margin-top: 1rem; }
+@media (max-width: 40rem) { .sg4-trust .deep-dive-reflection__actions .button { width: 100%; } }

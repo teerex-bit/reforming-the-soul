@@ -15,6 +15,7 @@ import { SY4Page } from '../../../../../components/deep-dive/SY4Page';
 import { SG1Page } from '../../../../../components/deep-dive/SG1Page';
 import { SG2Page } from '../../../../../components/deep-dive/SG2Page';
 import { SG3Page } from '../../../../../components/deep-dive/SG3Page';
+import { SG4Page } from '../../../../../components/deep-dive/SG4Page';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
 import { A2_SECTIONS } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import { completeA1, completeA2, editDeepDiveReflection, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
@@ -113,6 +114,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   if (stageId === 'see-clearly' && moduleId === 'the-god-i-learned') return SG1Page({ query });
   if (stageId === 'see-clearly' && moduleId === 'what-i-expect-from-god') return SG2Page({ query });
   if (stageId === 'see-clearly' && moduleId === 'jesus-shows-us-the-father') return SG3Page({ query });
+  if (stageId === 'see-clearly' && moduleId === 'can-i-trust-god-here') return SG4Page({ query });
   if (stageId === 'awaken' && moduleId === 'catch-yourself-being-you') return A2Page({ query });
   if (stageId === 'awaken' && moduleId === 'your-reactions-have-a-history') return NewAwakenPage({ module: 'a3', query });
   if (stageId === 'awaken' && moduleId === 'formation-is-not-identity') return NewAwakenPage({ module: 'a4', query });

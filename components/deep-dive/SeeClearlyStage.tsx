@@ -13,7 +13,7 @@ const godLessons = [
   'Can I Trust God Here?',
 ] as const;
 
-export function SeeClearlyStage({ status, sy2Status, sy3Status, sy4Status, sg1Status, sg2Status, sg3Status }: { status: 'begin' | 'resume' | 'review'; sy2Status?: 'begin' | 'resume' | 'review'; sy3Status?: 'begin' | 'resume' | 'review'; sy4Status?: 'begin' | 'resume' | 'review'; sg1Status?: 'begin' | 'resume' | 'review'; sg2Status?: 'begin' | 'resume' | 'review'; sg3Status?: 'begin' | 'resume' | 'review' }) {
+export function SeeClearlyStage({ status, sy2Status, sy3Status, sy4Status, sg1Status, sg2Status, sg3Status, sg4Status }: { status: 'begin' | 'resume' | 'review'; sy2Status?: 'begin' | 'resume' | 'review'; sy3Status?: 'begin' | 'resume' | 'review'; sy4Status?: 'begin' | 'resume' | 'review'; sg1Status?: 'begin' | 'resume' | 'review'; sg2Status?: 'begin' | 'resume' | 'review'; sg3Status?: 'begin' | 'resume' | 'review'; sg4Status?: 'begin' | 'resume' | 'review' }) {
   const href = `/deep-dive/see-clearly/facts-and-interpretation${status === 'review' ? '?section=entry' : ''}`;
   return <section className="deep-dive-home deep-dive-home--see-clearly">
     <p className="eyebrow">THE FORMATION JOURNEY · SEE CLEARLY</p>
@@ -39,13 +39,15 @@ export function SeeClearlyStage({ status, sy2Status, sy3Status, sy4Status, sg1St
         <p className="eyebrow">PART II</p>
         <h2 id="see-god-heading">See God Clearly</h2>
         {sy4Status === 'review' && sg2Status !== 'review' ? <p className="see-clearly-movement__next">Up next: {sg1Status === 'review' ? 'SG2 — What I Expect From God' : 'SG1 — The God I Learned'}</p> : null}
-        {sg2Status === 'review' ? <p className="see-clearly-movement__next">Up next: {sg3Status === 'review' ? 'SG4 — Can I Trust God Here?' : 'SG3 — Jesus Shows Us the Father'}</p> : null}
+        {sg2Status === 'review' && sg4Status !== 'review' ? <p className="see-clearly-movement__next">Up next: {sg3Status === 'review' ? 'SG4 — Can I Trust God Here?' : 'SG3 — Jesus Shows Us the Father'}</p> : null}
+        {sg4Status === 'review' ? <p className="see-clearly-movement__next">See Clearly complete · Become is next</p> : null}
         <p>Then examine the picture of God you actually expect and live from.</p>
         <ol className="see-clearly-movement__lessons" aria-label="See God Clearly modules">
           {godLessons.map((title, index) => <li key={title} id={`see-god-sg${index + 1}`}><span className="see-clearly-movement__number">SG{index + 1}</span><span>{title}</span>
             {index === 0 && sy4Status === 'review' ? <Link className="button button--secondary" href={`/deep-dive/see-clearly/the-god-i-learned${sg1Status === 'review' ? '?section=entry' : ''}`}>{sg1Status === 'review' ? 'Review' : sg1Status === 'resume' ? 'Resume' : 'Begin'} SG1</Link> : null}
             {index === 1 && sg1Status === 'review' ? <Link className="button button--secondary" href={`/deep-dive/see-clearly/what-i-expect-from-god${sg2Status === 'review' ? '?section=entry' : ''}`}>{sg2Status === 'review' ? 'Review' : sg2Status === 'resume' ? 'Resume' : 'Begin'} SG2</Link> : null}
-            {index === 2 && sg2Status === 'review' ? <Link className="button button--secondary" href={`/deep-dive/see-clearly/jesus-shows-us-the-father${sg3Status === 'review' ? '?section=entry' : ''}`}>{sg3Status === 'review' ? 'Review' : sg3Status === 'resume' ? 'Resume' : 'Begin'} SG3</Link> : null}</li>)}
+            {index === 2 && sg2Status === 'review' ? <Link className="button button--secondary" href={`/deep-dive/see-clearly/jesus-shows-us-the-father${sg3Status === 'review' ? '?section=entry' : ''}`}>{sg3Status === 'review' ? 'Review' : sg3Status === 'resume' ? 'Resume' : 'Begin'} SG3</Link> : null}
+            {index === 3 && sg3Status === 'review' ? <Link className="button button--secondary" href={`/deep-dive/see-clearly/can-i-trust-god-here${sg4Status === 'review' ? '?section=entry' : ''}`}>{sg4Status === 'review' ? 'Review' : sg4Status === 'resume' ? 'Resume' : 'Begin'} SG4</Link> : null}</li>)}
         </ol>
       </section>
     </div>

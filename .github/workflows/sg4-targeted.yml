@@ -1,0 +1,67 @@
+name: SG4 Targeted Candidate Checks
+
+on:
+  push:
+    branches:
+      - test/sg4-targeted
+
+permissions:
+  contents: read
+
+jobs:
+  sg4-targeted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      RTS_TEST_MODE: '1'
+      SUPABASE_PROJECT_ID: rts-phase1-prototype
+      SUPABASE_URL: http://127.0.0.1:54321
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      AI_TEST_ADAPTER: fake
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx supabase start --workdir .
+      - name: Load isolated local credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_env="$(mktemp)"
+          trap 'rm -f "$status_env"' EXIT
+          npx supabase status --workdir . -o env > "$status_env"
+          set -a
+          source "$status_env"
+          set +a
+          test -n "${ANON_KEY:-}"
+          printf 'SUPABASE_ANON_KEY=%s\n' "$ANON_KEY" >> "$GITHUB_ENV"
+      - run: npx playwright install --with-deps chromium
+      - name: Focused lesson-state and SY4/SG1/SG2/SG3/SG4 unit checks
+        run: npx vitest run --config vitest.config.ts tests/unit/components/lesson-state.test.ts tests/unit/components/see-clearly-stage.test.tsx tests/unit/components/sy4-lesson.test.tsx tests/unit/components/sg1-lesson.test.tsx tests/unit/components/sg2-lesson.test.tsx tests/unit/components/sg3-lesson.test.tsx tests/unit/components/sg4-lesson.test.tsx
+      - name: Migration, RLS, and deletion checks
+        run: npm run test:db
+      - name: SG4 and directly affected browser flows
+        shell: bash
+        run: |
+          set -euo pipefail
+          export RTS_DATABASE_URL="$TEST_DATABASE_URL"
+          export DATABASE_URL="$TEST_DATABASE_URL"
+          export NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
+          npx playwright test tests/e2e/sg4-guided.spec.ts tests/e2e/sg3-guided.spec.ts tests/e2e/sg2-guided.spec.ts tests/e2e/sg1-guided.spec.ts tests/e2e/sy4-guided.spec.ts tests/e2e/sy3-guided.spec.ts tests/e2e/sy2-guided.spec.ts tests/e2e/sc1-guided.spec.ts tests/e2e/a1-finish.spec.ts tests/e2e/a2-finish.spec.ts tests/e2e/a3-a4-finish.spec.ts
+      - name: Preserve focused browser failures and viewports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sg4-targeted-browser-evidence
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Stop local Supabase
+        if: always()
+        run: npx supabase stop --workdir . --no-backup

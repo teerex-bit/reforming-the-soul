@@ -254,6 +254,23 @@ delete from public.see_clearly_sg3_records where user_id=current_setting('rts.te
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sg3-reflection'), 'SG3 observation deletion preserves reflection');
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sg3' and completed_at is not null), 'SG3 observation deletion preserves completion');
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sg4_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SG4 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+values (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sg4','carry-forward',now());
+insert into public.see_clearly_sg4_records(user_id,progress_id,situation,trust_meaning)
+select user_id,id,'  Waiting for a decision.  ','  I may act without securing the result.  '
+from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg4';
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sg4_records where situation='  Waiting for a decision.  ' and trust_meaning='  I may act without securing the result.  '), 'SG4 preserves exact participant trust wording');
+insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+select user_id,id,'sg4-reflection','I can take my next step.' from public.deep_dive_module_progress
+where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg4';
+delete from public.see_clearly_sg4_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sg4-reflection'), 'SG4 trust record deletion preserves reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sg4' and completed_at is not null), 'SG4 trust record deletion preserves completion');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;
