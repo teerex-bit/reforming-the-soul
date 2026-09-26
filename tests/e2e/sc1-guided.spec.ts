@@ -5,7 +5,7 @@ import { appRuntimeUrl } from '../setup/app-runtime';
 import { e2eUser } from '../fixtures/users';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
 
-test('SC1 teaches and saves a distinct fact and interpretation, resumes, and reviews without writes', async ({ page }, testInfo) => {
+test('SY1 teaches and saves a distinct fact and interpretation, resumes, and reviews without writes', async ({ page }, testInfo) => {
   const user = e2eUser('sc1-guided', testInfo.project.name);
   const base = '/deep-dive/see-clearly/facts-and-interpretation';
   const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
@@ -20,7 +20,7 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await expect(page.getByRole('heading', { name: 'See Clearly' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'See Yourself Clearly' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'See God Clearly' })).toBeVisible();
-    await page.getByRole('link', { name: 'Begin SC1' }).click();
+    await page.getByRole('link', { name: 'Begin SY1' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Facts and Interpretation' })).toBeVisible();
     const initial = await page.evaluate(() => ({ title: document.querySelector('.deep-dive-lesson h1')!.getBoundingClientRect().top, scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
     expect(initial.scroll).toBeLessThanOrEqual(initial.viewport);
@@ -75,7 +75,7 @@ test('SC1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await page.goto(appRuntimeUrl(`${base}?section=carry-forward`));
     await page.getByRole('link', { name: 'Back to See Yourself Clearly' }).click();
     await expect(page).toHaveURL(/\/deep-dive\/see-clearly#see-yourself-heading$/);
-    await page.getByRole('link', { name: 'Review SC1' }).click();
+    await page.getByRole('link', { name: 'Review SY1' }).click();
     await expect(page).toHaveURL(/section=entry$/);
     for (const section of SC1_SECTIONS.slice(1)) {
       await page.getByRole('link', { name: 'Continue', exact: true }).click();

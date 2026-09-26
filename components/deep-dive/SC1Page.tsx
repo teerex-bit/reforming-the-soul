@@ -69,10 +69,10 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   const reviewReflection = completed || SC1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > SC1_SECTIONS.findIndex(item => item.id === 'reflection');
 
   return <AppShell stage="See Clearly"><section className="deep-dive-shell">
-    <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : completionNavigation.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SC1</span></div>
+    <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : completionNavigation.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SY1</span></div>
     <div className="deep-dive-layout">
-      <section className="deep-dive-progress" aria-label="SC1 lesson progress">
-        <div className="deep-dive-progress__identity"><span className="eyebrow">SEE CLEARLY · SC1</span><span aria-hidden="true">/</span><strong>Facts and Interpretation</strong></div>
+      <section className="deep-dive-progress" aria-label="SY1 lesson progress">
+        <div className="deep-dive-progress__identity"><span className="eyebrow">SEE CLEARLY · SY1</span><span aria-hidden="true">/</span><strong>Facts and Interpretation</strong></div>
         <div className="deep-dive-progress__track"><label htmlFor="sc1-progress">Section {index + 1} of {SC1_SECTIONS.length}</label><progress id="sc1-progress" value={index + 1} max={SC1_SECTIONS.length} /></div>
       </section>
       <div className="deep-dive-content">

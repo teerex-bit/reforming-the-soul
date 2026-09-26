@@ -7,7 +7,7 @@ export type SC1Section = Readonly<{
 }>;
 
 export const SC1_SECTIONS: readonly SC1Section[] = [
-  { id: 'entry', eyebrow: 'SEE CLEARLY · PART I · SC1', title: 'Facts and Interpretation', paragraphs: [
+  { id: 'entry', eyebrow: 'SEE CLEARLY · PART I · SY1', title: 'Facts and Interpretation', paragraphs: [
     'A moment happens, and meaning often arrives almost at once. You may notice a look, a pause, or a change in someone’s voice and feel certain you know what it means. Seeing clearly begins by giving those two things their own names: what happened and the meaning you gave it.',
     'You do not need to prove your first interpretation wrong. It may be accurate, partly accurate, or uncertain. For now, the useful step is to notice that an interpretation has joined the event, because we can respond to both without realizing it.',
   ] },

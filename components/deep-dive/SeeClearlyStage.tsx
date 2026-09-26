@@ -26,10 +26,10 @@ export function SeeClearlyStage({ status }: { status: 'begin' | 'resume' | 'revi
         <p>First examine the lens through which you understand yourself and your experiences.</p>
         <ol className="see-clearly-movement__lessons" aria-label="See Yourself Clearly modules">
           {selfLessons.map((title, index) => <li key={title} id={`see-yourself-sc${index + 1}`}>
-            <span className="see-clearly-movement__number">SC{index + 1}</span>
+            <span className="see-clearly-movement__number">SY{index + 1}</span>
             <span>{title}</span>
             {index === 1 && status === 'review' ? <span className="see-clearly-movement__next">Up next</span> : null}
-            {index === 0 ? <Link className="button button--secondary" href={href}>{status === 'review' ? 'Review' : status === 'resume' ? 'Resume' : 'Begin'} SC1</Link> : null}
+            {index === 0 ? <Link className="button button--secondary" href={href}>{status === 'review' ? 'Review' : status === 'resume' ? 'Resume' : 'Begin'} SY1</Link> : null}
           </li>)}
         </ol>
       </section>
@@ -38,7 +38,7 @@ export function SeeClearlyStage({ status }: { status: 'begin' | 'resume' | 'revi
         <h2 id="see-god-heading">See God Clearly</h2>
         <p>Then examine the picture of God you actually expect and live from.</p>
         <ol className="see-clearly-movement__lessons" aria-label="See God Clearly modules">
-          {godLessons.map((title, index) => <li key={title} id={`see-god-sc${index + 5}`}><span className="see-clearly-movement__number">SC{index + 5}</span><span>{title}</span></li>)}
+          {godLessons.map((title, index) => <li key={title} id={`see-god-sc${index + 5}`}><span className="see-clearly-movement__number">SG{index + 1}</span><span>{title}</span></li>)}
         </ol>
       </section>
     </div>
