@@ -76,7 +76,7 @@ select is(
      'practice_returns', 'formation_links', 'ai_threads', 'ai_artifacts', 'ai_artifact_sources',
      'ai_context_grants', 'audit_events'
    ) and c.relrowsecurity and c.relforcerowsecurity),
-  16,
+  17,
   'all user-owned tables enable and force RLS'
 );
 select ok(
