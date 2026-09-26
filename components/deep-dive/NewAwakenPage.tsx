@@ -3,7 +3,7 @@ import { requestA4Reframe } from '../../server/ai/a4-reframe';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { AwakenCompletionNav } from './AwakenCompletionNav';
-import { lessonState } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson } from './lesson-state';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
@@ -23,13 +23,13 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   async function advance(formData: FormData) {
     'use server';
     const target = String(formData.get('section'));
-    const destination = await state.advance(target, async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
+    const destination = await advanceLessonSection(sections, prefix, target, async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
     if (destination) redirect(destination);
   }
   async function reflection(_: NewReflectionSaveState, formData: FormData): Promise<NewReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await state.advance('practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
+      const destination = await advanceLessonSection(sections, prefix, 'practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -53,7 +53,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   }
   async function finish() {
     'use server';
-    redirect(await state.finish(async () => { if (a3) await completeA3(); else await completeA4(); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt)));
+    redirect(await finishLesson(sections, prefix, async () => { if (a3) await completeA3(); else await completeA4(); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt)));
   }
 
   async function generateReframe(statement: string) {

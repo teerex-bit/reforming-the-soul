@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
 import { seeClearlyNavigation } from './see-clearly-navigation';
-import { lessonState } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson } from './lesson-state';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
 import { completeSC1, editSC1Reflection, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
@@ -19,7 +19,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   async function advance(formData: FormData) {
     'use server';
     const target = String(formData.get('section'));
-    const destination = await state.advance(target, saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
+    const destination = await advanceLessonSection(SC1_SECTIONS, route, target, saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
     if (destination) redirect(destination);
   }
   async function saveResponse(_: SC1SaveState, formData: FormData): Promise<SC1SaveState> {
@@ -37,11 +37,10 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   }
   async function saveReflection(_: SC1SaveState, formData: FormData): Promise<SC1SaveState> {
     'use server';
+    let destination: string | null = null;
     try {
       if (formData.get('skip') === 'true') {
-        const destination = await state.advance('practice', saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
-        if (destination) redirect(destination);
-        return {};
+        destination = await advanceLessonSection(SC1_SECTIONS, route, 'practice', saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
       }
       else {
         const body = String(formData.get('body') ?? '').trim();
@@ -51,7 +50,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     } catch {
       return { error: 'Could not save your reflection. Your words are still here; please try again.' };
     }
-    redirect(`${route}?section=practice`);
+    redirect(destination ?? `${route}?section=practice`);
   }
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
     'use server';
@@ -63,7 +62,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   }
   async function finish() {
     'use server';
-    redirect(await state.finish(completeSC1, async () => Boolean((await getSC1()).progress?.completedAt)));
+    redirect(await finishLesson(SC1_SECTIONS, route, completeSC1, async () => Boolean((await getSC1()).progress?.completedAt)));
   }
 
   const reviewReflection = state.reviewReflection;

@@ -5,7 +5,7 @@ import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
 import type { ReviewReflectionState } from '../../../../../components/deep-dive/ReviewReflection';
 import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
-import { lessonState } from '../../../../../components/deep-dive/lesson-state';
+import { lessonState, advanceLessonSection, finishLesson } from '../../../../../components/deep-dive/lesson-state';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { SC1Page } from '../../../../../components/deep-dive/SC1Page';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
@@ -28,13 +28,13 @@ async function A2Page({ query }: { query: { section?: string } }) {
   async function saveSection(formData: FormData) {
     'use server';
     const value = String(formData.get('section'));
-    const destination = await state.advance(value, saveA2Section, async () => Boolean((await getA2())?.completedAt));
+    const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', value, saveA2Section, async () => Boolean((await getA2())?.completedAt));
     if (destination) redirect(destination);
   }
   async function saveReflection(_: A2ReflectionSaveState, formData: FormData): Promise<A2ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await state.advance('go-deeper', saveA2Section, async () => Boolean((await getA2())?.completedAt));
+      const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', 'go-deeper', saveA2Section, async () => Boolean((await getA2())?.completedAt));
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -50,7 +50,7 @@ async function A2Page({ query }: { query: { section?: string } }) {
   }
   async function finish() {
     'use server';
-    redirect(await state.finish(completeA2, async () => Boolean((await getA2())?.completedAt)));
+    redirect(await finishLesson(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', completeA2, async () => Boolean((await getA2())?.completedAt)));
   }
 
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
@@ -107,11 +107,11 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   const progress = await getA1();
   const state = lessonState({ sections: A1_SECTIONS, pathname: '/deep-dive/awaken/pay-attention', groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { index, section, next } = state;
-  async function saveSection(formData: FormData) { 'use server'; const destination = await state.advance(String(formData.get('section')), saveA1Section, async () => Boolean((await getA1())?.completedAt)); if (destination) redirect(destination); }
+  async function saveSection(formData: FormData) { 'use server'; const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', String(formData.get('section')), saveA1Section, async () => Boolean((await getA1())?.completedAt)); if (destination) redirect(destination); }
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await state.advance('go-deeper', saveA1Section, async () => Boolean((await getA1())?.completedAt));
+      const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', 'go-deeper', saveA1Section, async () => Boolean((await getA1())?.completedAt));
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -125,7 +125,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     }
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
-  async function finish() { 'use server'; redirect(await state.finish(completeA1, async () => Boolean((await getA1())?.completedAt))); }
+  async function finish() { 'use server'; redirect(await finishLesson(A1_SECTIONS, '/deep-dive/awaken/pay-attention', completeA1, async () => Boolean((await getA1())?.completedAt))); }
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
     'use server';
     const body = String(formData.get('body') ?? '').trim();
