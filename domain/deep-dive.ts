@@ -1,6 +1,6 @@
 export type A1SectionId = 'entry' | 'moment' | 'outside-inside' | 'teaching' | 'scripture' | 'reflection' | 'go-deeper' | 'practice' | 'carry-forward';
-export type DeepDiveModuleId = 'awaken.pay-attention' | 'awaken.catch-yourself-being-you' | 'awaken.your-reactions-have-a-history' | 'awaken.formation-is-not-identity' | 'see-clearly.sc1' | 'see-clearly.sy2';
-export type DeepDivePromptId = 'real-moment' | 'first-response' | 'formation-history' | 'formation-and-identity' | 'sc1-reflection' | 'sy2-reflection';
+export type DeepDiveModuleId = 'awaken.pay-attention' | 'awaken.catch-yourself-being-you' | 'awaken.your-reactions-have-a-history' | 'awaken.formation-is-not-identity' | 'see-clearly.sc1' | 'see-clearly.sy2' | 'see-clearly.sy3';
+export type DeepDivePromptId = 'real-moment' | 'first-response' | 'formation-history' | 'formation-and-identity' | 'sc1-reflection' | 'sy2-reflection' | 'sy3-reflection';
 export const A1_MODULE_ID: DeepDiveModuleId = 'awaken.pay-attention';
 export const A1_REFLECTION_PROMPT_ID: DeepDivePromptId = 'real-moment';
 export const A2_MODULE_ID: DeepDiveModuleId = 'awaken.catch-yourself-being-you';
@@ -13,6 +13,8 @@ export const SC1_MODULE_ID: DeepDiveModuleId = 'see-clearly.sc1';
 export const SC1_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sc1-reflection';
 export const SY2_MODULE_ID: DeepDiveModuleId = 'see-clearly.sy2';
 export const SY2_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sy2-reflection';
+export const SY3_MODULE_ID: DeepDiveModuleId = 'see-clearly.sy3';
+export const SY3_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sy3-reflection';
 export const sy2ChainFields = ['perception', 'belief', 'expectation', 'desire', 'intention', 'choice', 'outcome'] as const;
 export type SY2ChainField = typeof sy2ChainFields[number];
 

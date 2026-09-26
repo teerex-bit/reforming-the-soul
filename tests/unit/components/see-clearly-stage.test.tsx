@@ -29,4 +29,13 @@ describe('See Clearly movements', () => {
     expect(screen.getByRole('link', { name: 'Begin SY2' })).toHaveAttribute('href', '/deep-dive/see-clearly/follow-the-formation-chain');
     expect(document.getElementById('see-yourself-sy3')).toHaveTextContent('The Learned Self-Story');
   });
+  it('offers SY3 after SY2 and marks SY4 next only after SY3 completion', () => {
+    render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="begin" />);
+    expect(screen.getByRole('link', { name: 'Begin SY3' })).toHaveAttribute('href', '/deep-dive/see-clearly/the-learned-self-story');
+    expect(document.getElementById('see-yourself-sy4')).not.toHaveTextContent('Up next');
+    cleanup();
+    render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="review" />);
+    expect(screen.getByRole('link', { name: 'Review SY3' })).toHaveAttribute('href', '/deep-dive/see-clearly/the-learned-self-story?section=entry');
+    expect(document.getElementById('see-yourself-sy4')).toHaveTextContent('Up next');
+  });
 });

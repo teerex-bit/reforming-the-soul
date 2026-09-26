@@ -50,7 +50,7 @@ There is no need to correct the sentence immediately or replace it with somethin
 
 **Reflection**
 
-When a moment seems to confirm your working story, what changes in the way you respond—and what, if anything, makes you pause before accepting that story? You may write about uncertainty instead of an answer.
+When this story shows up, what do you notice it changes in the way you respond?
 
 **In your day**
 
@@ -69,8 +69,7 @@ The story you learned may have shaped you deeply. That does not automatically ma
 | Source choice | If an owned SY2 record exists, radio choices **Use my SY2 trace** and **Start from what I have been noticing lately**. Default to the saved choice on review; otherwise let the participant choose, with no automatic transfer of words. Without an owned record, show only the latter path and a quiet note that no earlier trace is needed. |
 | Source reference | Selecting SY2 displays its exact participant-authored chain wording in a restrained read-only reference, with labels and empty links omitted. It is context, not a prefilled answer. If the source was later deleted, show **Your earlier SY2 trace is no longer available. Your own words here remain.** Do not reconstruct deleted wording. |
 | Recognition | One editable multiline field labeled **A story I sometimes carry is…** beneath the exact prompt in section 3. No authored answer options, theme selection, second situation field, automatic inference, or score. A short note permits tentative wording and “I'm not sure yet.” |
-| Optional question | One optional field labeled **A question I want to keep open…** may be offered as an alternative or companion to the hypothesis. It should not force a second answer. Either field alone can form a meaningful saved record. |
-| Save | **Save & continue** when either field contains non-whitespace participant wording. Preserve exact entered wording, including intentional surrounding spaces, once nonempty. Persist source selection only with a meaningful record, validate ownership again on the server, then advance after confirmed persistence. A subsequent edit can change or clear either field; clearing both deletes the private record or explicitly declines saving rather than retaining an empty row. |
+| Save | **Save & continue** when the story field contains non-whitespace participant wording. Preserve exact entered wording, including intentional surrounding spaces, once nonempty. Persist source selection only with a meaningful record, validate ownership again on the server, then advance after confirmed persistence. A subsequent edit remains possible. |
 | Skip | **Continue without saving a story** advances progress only. It does not create an empty SY3 row, implicitly save an SY2 link, or overwrite an existing saved story. |
 | Return/review | Resume at the furthest reached section; completed sections are freely navigable without progress writes. The hypothesis/question and source selection remain editable in review. Clearly distinguish saved text from unsaved local edits. |
 | Failure/auth | On save failure remain here with local wording and source choice intact, report that it was not saved, and allow retry. On expired auth provide a clear sign-in path without claiming success. Completion follows the shared confirmed-persistence contract. |
@@ -80,7 +79,7 @@ Narrative examples are authored and never selectable participant diagnoses. A so
 
 ## C. Minimum durable data contract
 
-One optional structured record per participant's SY3 progress, created only on intentional save of at least one nonblank participant field:
+One optional structured record per participant's SY3 progress, created only on intentional save of a nonblank participant story:
 
 | Field | Contract |
 | --- | --- |
@@ -90,16 +89,15 @@ One optional structured record per participant's SY3 progress, created only on i
 | `module_id` | Fixed `see-clearly.sy3` to bind progress identity. |
 | `source_sy2_record_id` | Nullable same-owner SY2 record reference; context only. |
 | `source_was_linked` | Non-content boolean for an unavailable selected source. Follow the proven SY2 pattern: true when a source is selected in the saved record, survives FK unlinking, and can be reset when the participant intentionally saves a different no-source choice. No other historical source text is retained. |
-| `self_story_hypothesis` | Nullable exact participant wording; no generated or normalized identity claim. |
-| `open_question` | Nullable exact participant wording; permits question-only save. |
+| `self_story_hypothesis` | Required nonblank exact participant wording; no generated or normalized identity claim. |
 | `created_at`, `updated_at` | Record lifecycle timestamps; no review-navigation update. |
 
-At least one of the two wording fields must be nonblank for a persisted record. The source flag or FK alone is not meaningful content. Existing `deep_dive_reflections` owns the single private reflection separately. Progress and completion remain separate from these writings. No transient examples, tags, confidence, cause, copied SY2 text, or AI content are stored.
+The story must be nonblank for a persisted record. Uncertainty may be expressed in the optional private reflection, or the participant may continue without saving a story. The source flag or FK alone is not meaningful content. Existing `deep_dive_reflections` owns the single private reflection separately. Progress and completion remain separate from these writings. No transient examples, tags, confidence, cause, copied SY2 text, or AI content are stored.
 
 ## D. Exact proposed migration specification — no SQL file
 
 1. Add **only** `see-clearly.sy3` to the existing `deep_dive_module_progress.module_id` check and **only** `sy3-reflection` to `deep_dive_reflections.prompt_id` check, retaining every existing allowed value and constraint behavior. Do not create any SY4 identifier.
-2. Create `public.see_clearly_sy3_records` with the fields in C. Primary key `id`; `user_id` references `auth.users(id)` with the established owner-deletion behavior. Set `module_id` default and check to exactly `see-clearly.sy3`. The hypothesis and question are nullable individually, with a meaningful-content check requiring at least one nonblank value. Limit reasonable text lengths consistently with existing service validation; preserve exact accepted wording rather than trimming it on storage.
+2. Create `public.see_clearly_sy3_records` with the fields in C. Primary key `id`; `user_id` references `auth.users(id)` with the established owner-deletion behavior. Set `module_id` default and check to exactly `see-clearly.sy3`. Require a nonblank `self_story_hypothesis`; preserve exact accepted wording rather than trimming it on storage.
 3. Add `unique(id,user_id)` for typed same-owner references and `unique(progress_id,user_id,module_id)` for the one-record-per-progress upsert. Add `(progress_id,user_id,module_id)` composite FK to `deep_dive_module_progress(id,user_id,module_id)` with `ON DELETE CASCADE`. The existing progress key supports this.
 4. Add nullable `(source_sy2_record_id,user_id)` composite FK to `see_clearly_sy2_records(id,user_id)`. On source deletion use **column-scoped** `ON DELETE SET NULL (source_sy2_record_id)` so non-null `user_id` remains intact. Existing SY2 `unique(id,user_id)` supports the reference. The source flag remains true after automatic unlink. The service verifies source ownership before insertion or change; database FK remains the final integrity guard.
 5. Follow current SY2 ownership controls: forced and enabled RLS, owner-only SELECT/INSERT/UPDATE/DELETE policies for `authenticated`, immutable-owner trigger using the existing `reject_user_id_change()` function, revoke broad table privileges, then grant the minimum established authenticated and privileged-owner CRUD privileges. Do not expand access to another participant's SY2 record.
@@ -110,9 +108,9 @@ The service transaction must validate the owned optional source, upsert the SY3 
 
 ## E. Test plan
 
-**Database and security:** clean reset/reapply; existing-baseline apply; second no-op; all prior module/reflection identifiers preserved; no-source hypothesis and question-only rows; reject empty and source-only rows; owned SY2 accepted; cross-user or nonexistent SY2 rejected in service and FK; immutable owner; forced RLS and owner-only read/write; source delete nulls only FK and retains flag, wording, question, reflection, and progress; source deletion through its own upstream dependency; SY3 private writing deletion leaves completion. Assert no new AI artifact or source dependency is created.
+**Database and security:** clean reset/reapply; existing-baseline apply; second no-op; all prior module/reflection identifiers preserved; no-source hypothesis rows; reject empty and source-only rows; owned SY2 accepted; cross-user or nonexistent SY2 rejected in service and FK; immutable owner; forced RLS and owner-only read/write; source delete nulls only FK and retains flag, wording, reflection, and progress; source deletion through its own upstream dependency; SY3 private writing deletion leaves completion. Assert no new AI artifact or source dependency is created.
 
-**Lesson:** first-visit guided sequence and future URL clamp; Back/Continue; resume at reached section; source/no-source choice and exact read-only context; tentative hypothesis and question-only saves; whitespace-only validation without altered accepted wording; skip with no record; existing record not overwritten by skip; edit and clear; reflection save/skip/edit/delete; rejected save and completion retry with local wording intact; expired auth recovery; intentional completion; arbitrary valid navigation and no-write review after completion; deleted-source notice; carry-forward route/group state points toward SY4 without making it accessible prematurely.
+**Lesson:** first-visit guided sequence and future URL clamp; Back/Continue; resume at reached section; source/no-source choice and exact read-only context; tentative hypothesis saves; whitespace-only validation without altered accepted wording; skip with no record; existing record not overwritten by skip; edit; reflection save/skip/edit/delete; rejected save and completion retry with local wording intact; expired auth recovery; intentional completion; arbitrary valid navigation and no-write review after completion; deleted-source notice; carry-forward route/group state points toward SY4 without making it accessible prematurely.
 
 **Visual and accessibility:** inspect 375, 768, 1536 rendered states with and without an SY2 source, long participant wording, validation/retry, and deleted source. Verify readable prose width, one primary editable story field, no horizontal overflow or cramped controls, keyboard source choice and form operation, visible focus, semantic labels and error announcements, logical reading order, and a story/recognition composition distinct from SY1's comparison and SY2's chain.
 

@@ -164,6 +164,26 @@ delete from public.see_clearly_sc1_records where user_id=current_setting('rts.te
 select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy2_records where user_id=current_setting('rts.test_actor_a')::uuid and source_sc1_record_id is null and belief='My exact participant wording'), 'source deletion unlinks and preserves SY2 words');
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sy2'), 'source deletion preserves SY2 progress');
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sy3_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SY3 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+values (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sy3','carry-forward',now());
+insert into public.see_clearly_sy3_records(user_id,progress_id,source_sy2_record_id,source_was_linked,self_story_hypothesis)
+select p.user_id,p.id,s.id,true,'  I may have learned...  '
+from public.deep_dive_module_progress p join public.see_clearly_sy2_records s on s.user_id=p.user_id
+where p.user_id=current_setting('rts.test_actor_a')::uuid and p.module_id='see-clearly.sy3';
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy3_records where self_story_hypothesis='  I may have learned...  '), 'SY3 links an owned SY2 source and retains exact wording');
+insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+select user_id,id,'sy3-reflection','I notice a response.' from public.deep_dive_module_progress
+where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sy3';
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sy3-reflection'), 'SY3 reflection is independent');
+delete from public.see_clearly_sy2_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy3_records where user_id=current_setting('rts.test_actor_a')::uuid and source_sy2_record_id is null and source_was_linked and self_story_hypothesis='  I may have learned...  '), 'SY2 deletion unlinks without erasing SY3 story');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sy3-reflection'), 'SY2 deletion retains SY3 reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sy3' and completed_at is not null), 'SY2 deletion retains SY3 completion');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;
