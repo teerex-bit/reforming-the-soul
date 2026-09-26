@@ -132,7 +132,9 @@ test('A3 and A4 form a concise, persistent Awaken handoff', async ({ page }, tes
       await page.goto(appRuntimeUrl('/deep-dive'));
       await page.getByRole('link', { name: new RegExp(`Review ${slug === 'formation-is-not-identity' ? 'Formation Is Not Identity' : 'Your Reactions Have a History'} · A[34]`) }).click();
       await expect(page).toHaveURL(/section=entry$/);
-      await page.goto(appRuntimeUrl(`${base}?section=reflection`));
+      await page.goto(appRuntimeUrl(base));
+      for (let index = 0; index < 3; index += 1) await page.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(page).toHaveURL(/section=reflection$/);
       await expect(page.locator('.deep-dive-reflection textarea')).toHaveValue(reflection);
       const record = await pool.query('select p.last_section_id,p.completed_at,r.body from public.deep_dive_module_progress p join public.deep_dive_reflections r on (p.id,p.user_id)=(r.progress_id,r.user_id) where p.user_id=(select id from auth.users where email=$1) and p.module_id=$2', [user.email, moduleId]);
       expect(record.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', body: reflection })]);

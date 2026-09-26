@@ -135,7 +135,9 @@ test('A1 continues without writing and resumes at the next section', async ({ pa
     await page.getByLabel('Email').fill(user.email);
     await page.getByLabel('Password').fill(user.password);
     await Promise.all([page.waitForURL(/\/dashboard$/), page.getByRole('button', { name: 'Create account' }).click()]);
-    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention?section=reflection'));
+    await page.goto(appRuntimeUrl('/deep-dive/awaken/pay-attention'));
+    for (const label of ['Begin', 'Notice it', 'Keep going', 'Continue', 'Continue']) await page.getByRole('button', { name: label, exact: true }).click();
+    await expect(page).toHaveURL(/section=reflection$/);
     await expect(page.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
     await page.getByRole('textbox').fill('   ');
     await expect(page.getByRole('button', { name: 'Save & continue' })).toBeDisabled();
