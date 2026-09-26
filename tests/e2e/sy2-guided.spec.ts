@@ -15,13 +15,29 @@ test('SY2 saves a partial participant trace, resumes, and reviews without changi
     await page.getByLabel('Email').fill(user.email);
     await page.getByLabel('Password').fill(user.password);
     await Promise.all([page.waitForURL(/\/dashboard$/), page.getByRole('button', { name: 'Create account' }).click()]);
+    await page.goto(appRuntimeUrl(`${base}?section=carry-forward`));
+    await expect(page.getByRole('heading', { name: 'Follow the Formation Chain' })).toBeVisible();
     await page.goto(appRuntimeUrl(base));
     await expect(page.getByRole('heading', { name: 'Follow the Formation Chain' })).toBeVisible();
     for (const section of SY2_SECTIONS.slice(1, 4)) {
       await page.getByRole('button', { name: section.id === 'chain' ? 'Begin' : 'Continue' }).click();
       await expect(page).toHaveURL(new RegExp(`section=${section.id}$`));
     }
+    await page.goto(appRuntimeUrl(`${base}?section=carry-forward`));
+    await expect(page.getByRole('heading', { name: 'Trace one real moment' })).toBeVisible();
+    await page.goto(appRuntimeUrl(`${base}?section=chain`));
+    await expect(page.getByRole('heading', { name: 'The formation chain' })).toBeVisible();
+    await page.goto(appRuntimeUrl(`${base}?section=trace`));
     await expect(page.getByText(/You do not need a saved SY1 moment/)).toBeVisible();
+    const context = page.getByRole('list', { name: 'Your place in the formation chain' });
+    await expect(context.locator('[aria-current="step"]')).toContainText('SEE');
+    await expect(context).toContainText('LIVE');
+    await expect(page.getByRole('button', { name: 'Next link' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue without saving this trace' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`sy2-trace-${testInfo.project.name}.png`), fullPage: true });
+    await page.getByLabel('What was I seeing in this moment?').focus();
+    await expect(page.getByLabel('What was I seeing in this moment?')).toBeFocused();
     await page.getByLabel('What was I seeing in this moment?').fill('  The room became quiet.  ');
     await page.getByRole('button', { name: 'Next link' }).click();
     await page.getByLabel('What did that make me believe was true?').fill('I had said too much.');
@@ -44,7 +60,7 @@ test('SY2 saves a partial participant trace, resumes, and reviews without changi
       } else {
         await page.getByRole('button', { name: 'Complete lesson' }).click();
         await expect(page).toHaveURL(/section=carry-forward$/);
-        await expect(page.getByRole('link', { name: /Return to See Yourself Clearly · SY3 is next/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Return to See Yourself Clearly · SY3 is next/ })).toBeVisible();
       }
     }
     const query = `select p.last_section_id,p.completed_at,p.updated_at,r.perception,r.belief,r.source_sc1_record_id,r.updated_at as record_updated_at,

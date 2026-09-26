@@ -5,7 +5,8 @@ import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
 import type { ReviewReflectionState } from '../../../../../components/deep-dive/ReviewReflection';
 import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
-import { lessonState, advanceLessonSection, finishLesson } from '../../../../../components/deep-dive/lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from '../../../../../components/deep-dive/lesson-state';
+import { LessonTransitionForm, type LessonTransitionState } from '../../../../../components/deep-dive/LessonTransitionForm';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { SC1Page } from '../../../../../components/deep-dive/SC1Page';
 import { SY2Page } from '../../../../../components/deep-dive/SY2Page';
@@ -26,16 +27,17 @@ async function A2Page({ query }: { query: { section?: string } }) {
   const state = lessonState({ sections: A2_SECTIONS, pathname: '/deep-dive/awaken/catch-yourself-being-you', groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { index, section, next } = state;
 
-  async function saveSection(formData: FormData) {
+  async function saveSection(_: LessonTransitionState, formData: FormData): Promise<LessonTransitionState> {
     'use server';
     const value = String(formData.get('section'));
-    const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', value, saveA2Section, async () => Boolean((await getA2())?.completedAt));
-    if (destination) redirect(destination);
+    const result = await attemptLessonTransition(() => advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', value, saveA2Section, async () => { const progress = await getA2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
   async function saveReflection(_: A2ReflectionSaveState, formData: FormData): Promise<A2ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', 'go-deeper', saveA2Section, async () => Boolean((await getA2())?.completedAt));
+      const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', 'go-deeper', saveA2Section, async () => { const progress = await getA2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -49,9 +51,11 @@ async function A2Page({ query }: { query: { section?: string } }) {
     }
     redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
   }
-  async function finish() {
+  async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {
     'use server';
-    redirect(await finishLesson(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', completeA2, async () => Boolean((await getA2())?.completedAt)));
+    const result = await attemptLessonTransition(() => finishLesson(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', completeA2, async () => { const progress = await getA2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
 
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
@@ -79,15 +83,12 @@ async function A2Page({ query }: { query: { section?: string } }) {
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/catch-yourself-being-you?section=${next.id}`}>Continue</Link> : <form action={saveSection}>
-                    <input type="hidden" name="section" value={next.id} />
-                    <button className="button" type="submit">{section.id === 'entry' ? 'Begin' : section.id === 'reflection' ? 'Keep going' : 'Continue'}</button>
-                  </form>}
+                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/catch-yourself-being-you?section=${next.id}`}>Continue</Link> : <LessonTransitionForm action={saveSection} section={next.id} label={section.id === 'entry' ? 'Begin' : section.id === 'reflection' ? 'Keep going' : 'Continue'} />}
                 </>
               ) : (
                 <>
                   <p className="deep-dive-transition__title">Take these observations with you.</p>
-                  {progress?.completedAt ? <AwakenCompletionNav module="a2" /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+                  {progress?.completedAt ? <AwakenCompletionNav module="a2" /> : <LessonTransitionForm action={finish} label="Complete lesson" />}
                 </>
               )}
             </footer> : null}
@@ -109,11 +110,11 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   const progress = await getA1();
   const state = lessonState({ sections: A1_SECTIONS, pathname: '/deep-dive/awaken/pay-attention', groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { index, section, next } = state;
-  async function saveSection(formData: FormData) { 'use server'; const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', String(formData.get('section')), saveA1Section, async () => Boolean((await getA1())?.completedAt)); if (destination) redirect(destination); }
+  async function saveSection(_: LessonTransitionState, formData: FormData): Promise<LessonTransitionState> { 'use server'; const result = await attemptLessonTransition(() => advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', String(formData.get('section')), saveA1Section, async () => { const progress = await getA1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; })); if (result.destination) redirect(result.destination); return result; }
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', 'go-deeper', saveA1Section, async () => Boolean((await getA1())?.completedAt));
+      const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', 'go-deeper', saveA1Section, async () => { const progress = await getA1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -127,7 +128,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     }
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
-  async function finish() { 'use server'; redirect(await finishLesson(A1_SECTIONS, '/deep-dive/awaken/pay-attention', completeA1, async () => Boolean((await getA1())?.completedAt))); }
+  async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> { 'use server'; const result = await attemptLessonTransition(() => finishLesson(A1_SECTIONS, '/deep-dive/awaken/pay-attention', completeA1, async () => { const progress = await getA1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; })); if (result.destination) redirect(result.destination); return result; }
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
     'use server';
     const body = String(formData.get('body') ?? '').trim();
@@ -152,15 +153,12 @@ export default async function A1Page({ params, searchParams }: { params: Promise
               {next ? (
                 <>
                   <div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/pay-attention?section=${next.id}`}>Continue</Link> : <form action={saveSection}>
-                    <input type="hidden" name="section" value={next.id} />
-                    <button className="button" type="submit">{section.id === 'entry' ? 'Begin' : section.id === 'moment' ? 'Notice it' : section.id === 'outside-inside' ? 'Keep going' : 'Continue'}</button>
-                  </form>}
+                  {progress?.completedAt ? <Link className="button" href={`/deep-dive/awaken/pay-attention?section=${next.id}`}>Continue</Link> : <LessonTransitionForm action={saveSection} section={next.id} label={section.id === 'entry' ? 'Begin' : section.id === 'moment' ? 'Notice it' : section.id === 'outside-inside' ? 'Keep going' : 'Continue'} />}
                 </>
               ) : (
                 <>
                   <p className="deep-dive-transition__title">You have reached the end of Pay Attention.</p>
-                  {progress?.completedAt ? <AwakenCompletionNav module="a1" /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+                  {progress?.completedAt ? <AwakenCompletionNav module="a1" /> : <LessonTransitionForm action={finish} label="Complete lesson" />}
                 </>
               )}
             </footer> : null}

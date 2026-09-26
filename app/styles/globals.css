@@ -262,6 +262,12 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .sy2-chain__index { display: block; margin-bottom: .9rem; color: var(--color-green); font-size: .7rem; letter-spacing: .12em; }
 .sy2-chain strong { display: block; max-width: 7rem; font-size: clamp(.73rem, 1vw, .95rem); line-height: 1.35; letter-spacing: .04em; }
 .sy2-trace { max-width: 49rem; margin: 2rem 0; padding: 1.5rem 0; border-top: 1px solid var(--color-gold); }
+.sy2-trace__chain { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; list-style: none; padding: 0; margin: 1rem 0 1.5rem; color: var(--color-muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
+.sy2-trace__chain li { display: inline-flex; align-items: center; white-space: nowrap; }
+.sy2-trace__chain li:not(:last-child)::after { content: '→'; color: var(--color-gold); margin-left: .6rem; }
+.sy2-trace__chain li[aria-current="step"] { color: var(--color-navy); text-decoration: underline; text-decoration-color: var(--color-gold); text-underline-offset: .4rem; }
+.sy2-trace__chain--passed { color: var(--color-green); }
+@media (max-width: 40rem) { .sy2-trace__chain { gap: .55rem .35rem; font-size: .66rem; line-height: 1.7; } .sy2-trace__chain li:not(:last-child)::after { margin-left: .35rem; } }
 .sy2-trace__source { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin: 0 0 1.2rem; padding: 0; border: 0; }
 .sy2-trace__source legend { width: 100%; margin-bottom: .5rem; color: var(--color-navy); font-weight: 700; }
 .sy2-trace__source label { display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }

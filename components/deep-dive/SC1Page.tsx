@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
 import { seeClearlyNavigation } from './see-clearly-navigation';
-import { lessonState, advanceLessonSection, finishLesson } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
 import { completeSC1, editSC1Reflection, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
@@ -16,11 +17,12 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   const state = lessonState({ sections: SC1_SECTIONS, pathname: route, groupHref: completionNavigation.backHref, requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { completed, index, section, next } = state;
 
-  async function advance(formData: FormData) {
+  async function advance(_: LessonTransitionState, formData: FormData): Promise<LessonTransitionState> {
     'use server';
     const target = String(formData.get('section'));
-    const destination = await advanceLessonSection(SC1_SECTIONS, route, target, saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
-    if (destination) redirect(destination);
+    const result = await attemptLessonTransition(() => advanceLessonSection(SC1_SECTIONS, route, target, saveSC1Section, async () => { const { progress } = await getSC1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
   async function saveResponse(_: SC1SaveState, formData: FormData): Promise<SC1SaveState> {
     'use server';
@@ -40,7 +42,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     let destination: string | null = null;
     try {
       if (formData.get('skip') === 'true') {
-        destination = await advanceLessonSection(SC1_SECTIONS, route, 'practice', saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
+        destination = await advanceLessonSection(SC1_SECTIONS, route, 'practice', saveSC1Section, async () => { const { progress } = await getSC1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       }
       else {
         const body = String(formData.get('body') ?? '').trim();
@@ -60,9 +62,11 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
     return { savedBody: body };
   }
-  async function finish() {
+  async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {
     'use server';
-    redirect(await finishLesson(SC1_SECTIONS, route, completeSC1, async () => Boolean((await getSC1()).progress?.completedAt)));
+    const result = await attemptLessonTransition(() => finishLesson(SC1_SECTIONS, route, completeSC1, async () => { const { progress } = await getSC1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
 
   const reviewReflection = state.reviewReflection;
@@ -78,9 +82,9 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
         <SC1Lesson section={section} record={record} reflection={progress?.reflection ?? null} sources={sources} completed={completed} reviewReflection={reviewReflection} saveResponse={saveResponse} saveReflection={saveReflection} editReflection={editReflection} />
         {(section.id !== 'interaction' && section.id !== 'reflection' || completed || section.id === 'reflection' && reviewReflection) && <footer className="deep-dive-transition">
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-            {completed ? <Link className="button" href={`${route}?section=${next.id}`}>Continue</Link> : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">{index === 0 ? 'Begin' : 'Continue'}</button></form>}
+            {completed ? <Link className="button" href={`${route}?section=${next.id}`}>Continue</Link> : <LessonTransitionForm action={advance} section={next.id} label={index === 0 ? 'Begin' : 'Continue'} />}
           </> : <><p className="deep-dive-transition__title">Keep this distinction with you.</p>
-            {completed ? <nav className="deep-dive-completion-actions" aria-label="Continue your journey"><Link className="button" href={completionNavigation.nextHref!}>{completionNavigation.nextLabel}</Link><Link className="deep-dive-completion-actions__back" href={completionNavigation.backHref}>{completionNavigation.backLabel}</Link></nav> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+            {completed ? <nav className="deep-dive-completion-actions" aria-label="Continue your journey"><Link className="button" href={completionNavigation.nextHref!}>{completionNavigation.nextLabel}</Link><Link className="deep-dive-completion-actions__back" href={completionNavigation.backHref}>{completionNavigation.backLabel}</Link></nav> : <LessonTransitionForm action={finish} label="Complete lesson" />}
           </>}
         </footer>}
       </div>

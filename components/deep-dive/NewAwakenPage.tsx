@@ -3,7 +3,8 @@ import { requestA4Reframe } from '../../server/ai/a4-reframe';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { AwakenCompletionNav } from './AwakenCompletionNav';
-import { lessonState, advanceLessonSection, finishLesson } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
@@ -20,16 +21,17 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   const state = lessonState({ sections, pathname: prefix, groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { index, section, next } = state;
 
-  async function advance(formData: FormData) {
+  async function advance(_: LessonTransitionState, formData: FormData): Promise<LessonTransitionState> {
     'use server';
     const target = String(formData.get('section'));
-    const destination = await advanceLessonSection(sections, prefix, target, async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
-    if (destination) redirect(destination);
+    const result = await attemptLessonTransition(() => advanceLessonSection(sections, prefix, target, async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => { const progress = a3 ? await getA3() : await getA4(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
   async function reflection(_: NewReflectionSaveState, formData: FormData): Promise<NewReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(sections, prefix, 'practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
+      const destination = await advanceLessonSection(sections, prefix, 'practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => { const progress = a3 ? await getA3() : await getA4(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       if (destination) redirect(destination);
       return { saved: false };
     }
@@ -51,9 +53,11 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
     catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
     return { savedBody: body };
   }
-  async function finish() {
+  async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {
     'use server';
-    redirect(await finishLesson(sections, prefix, async () => { if (a3) await completeA3(); else await completeA4(); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt)));
+    const result = await attemptLessonTransition(() => finishLesson(sections, prefix, async () => { if (a3) await completeA3(); else await completeA4(); }, async () => { const progress = a3 ? await getA3() : await getA4(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
 
   async function generateReframe(statement: string) {
@@ -74,8 +78,8 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
         {a3 ? <A3Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={reflection} editReflection={editReflection} review={reviewReflection} /> : <A4Lesson section={section} reflection={progress?.reflection ?? null} saveReflection={reflection} editReflection={editReflection} review={reviewReflection} generateReframe={generateReframe} />}
         {(section.id !== 'reflection' || reviewReflection) ? <footer className="deep-dive-transition">
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
-            {review ? <Link className="button" href={`${prefix}?section=${next.id}`}>Continue</Link> : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">Continue</button></form>}
-          </> : <><p className="deep-dive-transition__title">{a3 ? 'Carry this thread with you.' : 'Awaken is complete. See Clearly is next.'}</p>{review ? <AwakenCompletionNav module={a3 ? 'a3' : 'a4'} /> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}</>}
+            {review ? <Link className="button" href={`${prefix}?section=${next.id}`}>Continue</Link> : <LessonTransitionForm action={advance} section={next.id} label="Continue" />}
+          </> : <><p className="deep-dive-transition__title">{a3 ? 'Carry this thread with you.' : 'Awaken is complete. See Clearly is next.'}</p>{review ? <AwakenCompletionNav module={a3 ? 'a3' : 'a4'} /> : <LessonTransitionForm action={finish} label="Complete lesson" />}</>}
         </footer> : null}
       </div>
     </div>

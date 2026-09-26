@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SY2Lesson, type SY2SaveState } from './SY2Lesson';
-import { lessonState, advanceLessonSection, finishLesson } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SY2_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sy2';
 import { sy2ChainFields } from '../../domain/deep-dive';
@@ -19,15 +20,16 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
     completedAt: progress?.completedAt, reflectionSection: 'reflection' });
   const { completed, index, section, next } = state;
 
-  async function advance(formData: FormData) {
+  async function advance(_: LessonTransitionState, formData: FormData): Promise<LessonTransitionState> {
     'use server';
-    const destination = await advanceLessonSection(SY2_SECTIONS, route, String(formData.get('section')), saveSY2Section, async () => Boolean((await getSY2()).progress?.completedAt));
-    if (destination) redirect(destination);
+    const result = await attemptLessonTransition(() => advanceLessonSection(SY2_SECTIONS, route, String(formData.get('section')), saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
   async function saveChain(_: SY2SaveState, formData: FormData): Promise<SY2SaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'distinction', saveSY2Section, async () => Boolean((await getSY2()).progress?.completedAt));
+      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'distinction', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       if (destination) redirect(destination);
       return {};
     }
@@ -45,7 +47,7 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
   async function saveReflection(_: SY2SaveState, formData: FormData): Promise<SY2SaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'practice', saveSY2Section, async () => Boolean((await getSY2()).progress?.completedAt));
+      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'practice', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
       if (destination) redirect(destination);
       return {};
     }
@@ -63,9 +65,11 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
     catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
     return { savedBody: body };
   }
-  async function finish() {
+  async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {
     'use server';
-    redirect(await finishLesson(SY2_SECTIONS, route, completeSY2, async () => Boolean((await getSY2()).progress?.completedAt)));
+    const result = await attemptLessonTransition(() => finishLesson(SY2_SECTIONS, route, completeSY2, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+    if (result.destination) redirect(result.destination);
+    return result;
   }
 
   return <AppShell stage="See Clearly"><section className="deep-dive-shell">
@@ -82,12 +86,12 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
         {(section.id !== 'trace' && section.id !== 'reflection' || completed || section.id === 'reflection' && state.reviewReflection) && <footer className="deep-dive-transition">
           {next ? <><div><p className="eyebrow">NEXT</p><p className="deep-dive-transition__title">{next.title}</p></div>
             {completed ? <Link className="button" href={`${route}?section=${next.id}`}>Continue</Link>
-              : <form action={advance}><input type="hidden" name="section" value={next.id} /><button className="button" type="submit">{index === 0 ? 'Begin' : 'Continue'}</button></form>}
+              : <LessonTransitionForm action={advance} section={next.id} label={index === 0 ? 'Begin' : 'Continue'} />}
           </> : <><p className="deep-dive-transition__title">See where the chain begins.</p>
             {completed ? <nav className="deep-dive-completion-actions" aria-label="Continue your journey">
               <Link className="button" href="/deep-dive/see-clearly#see-yourself-sy3">Return to See Yourself Clearly · SY3 is next</Link>
               <Link className="deep-dive-completion-actions__back" href={group}>Back to See Yourself Clearly</Link>
-            </nav> : <form action={finish}><button className="button" type="submit">Complete lesson</button></form>}
+            </nav> : <LessonTransitionForm action={finish} label="Complete lesson" />}
           </>}
         </footer>}
       </div>

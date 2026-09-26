@@ -15,6 +15,7 @@ type Props = Readonly<{
 }>;
 
 const chainLabels = ['WHAT I SEE', 'WHAT I BELIEVE', 'WHAT I EXPECT', 'WHAT I DESIRE', 'WHAT I INTEND', 'WHAT I CHOOSE', 'HOW I LIVE'];
+const shortLabels = ['SEE', 'BELIEVE', 'EXPECT', 'DESIRE', 'INTEND', 'CHOOSE', 'LIVE'];
 const prompts: Record<SY2ChainField, string> = {
   perception: 'What was I seeing in this moment?', belief: 'What did that make me believe was true?',
   expectation: 'What did I expect would happen next?', desire: 'What did I want most?',
@@ -47,6 +48,9 @@ function Trace({ record, source, completed, saveChain }: Pick<Props, 'record' | 
     {record?.sourceWasLinked && !record.sourceSc1RecordId ? <p role="status">Your earlier SY1 source is no longer available. Your own chain wording remains here.</p> : null}
     <input type="hidden" name="source_sc1_record_id" value={mode === 'source' ? source?.id ?? '' : ''} />
     {sy2ChainFields.map(item => <input key={item} type="hidden" name={item} value={words[item]} />)}
+    <ol className="sy2-trace__chain" aria-label="Your place in the formation chain">
+      {shortLabels.map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined} className={index < step ? 'sy2-trace__chain--passed' : undefined}><span className="sr-only">Link {index + 1}: </span>{label}</li>)}
+    </ol>
     <div className="sy2-trace__position" aria-live="polite">LINK {step + 1} OF {sy2ChainFields.length} · {chainLabels[step]}</div>
     <label className="sy2-trace__prompt" htmlFor={`sy2-${field}`}>{prompts[field]}
       <textarea id={`sy2-${field}`} rows={4} value={words[field]} onChange={event => setWords({ ...words, [field]: event.target.value })} placeholder="You may leave this open." />

@@ -120,6 +120,7 @@ jobs:
             test-results/**/formation-is-not-identity-*.png
             test-results/**/a3-completed-*.png
             test-results/**/a4-completed-*.png
+            test-results/**/sy2-trace-*.png
           if-no-files-found: error
           retention-days: 14
 

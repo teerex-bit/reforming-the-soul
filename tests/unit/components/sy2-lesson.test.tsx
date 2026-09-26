@@ -19,6 +19,10 @@ describe('SY2 authored flow', () => {
     expect(screen.getByLabelText('Use another recent moment')).toBeInTheDocument();
     expect(screen.getByLabelText('What was I seeing in this moment?')).toHaveValue('');
     expect(screen.getByRole('button', { name: 'Continue without saving this trace' })).toBeInTheDocument();
+    const context = screen.getByRole('list', { name: 'Your place in the formation chain' });
+    expect(context).toHaveTextContent('SEE');
+    expect(context).toHaveTextContent('LIVE');
+    expect(context.querySelectorAll('li[aria-current="step"]')).toHaveLength(1);
   });
   it('allows partial chain editing during completed review', () => {
     render(<SY2Lesson {...props} completed section={SY2_SECTIONS[3]} record={{ sourceSc1RecordId: null, sourceWasLinked: false, perception: 'I saw a pause.', belief: null, expectation: null, desire: null, intention: null, choice: null, outcome: null }} />);

@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { lessonState, advanceLessonSection, finishLesson } from '../../../components/deep-dive/lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from '../../../components/deep-dive/lesson-state';
 import { A1_SECTIONS } from '../../../content/deep-dive/v1';
 import { A2_SECTIONS } from '../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import { A3_SECTIONS, A4_SECTIONS } from '../../../content/deep-dive/v1/awaken/four-module-lessons';
 import { SC1_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sc1';
+import { SY2_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sy2';
 
 describe('shared lesson state across authored modules', () => {
   for (const [name, sections, group] of [
@@ -12,6 +13,7 @@ describe('shared lesson state across authored modules', () => {
     ['A3', A3_SECTIONS, '/deep-dive/awaken'],
     ['A4', A4_SECTIONS, '/deep-dive/awaken'],
     ['SY1', SC1_SECTIONS, '/deep-dive/see-clearly/see-yourself-clearly'],
+    ['SY2', SY2_SECTIONS, '/deep-dive/see-clearly'],
   ] as const) {
     const pathname = `/lesson/${name}`;
     const input = { sections: sections as readonly { id: string; eyebrow: string; title: string; paragraphs: readonly string[] }[], pathname, groupHref: group, reflectionSection: 'reflection' };
@@ -40,5 +42,41 @@ describe('shared lesson state across authored modules', () => {
       expect(await advanceLessonSection(input.sections, pathname, 'invalid', save, async () => false)).toBeNull();
       expect(save).toHaveBeenCalledOnce();
     });
+    it(`${name}: an incomplete participant cannot request a future section`, () => {
+      const current = sections[2].id;
+      expect(lessonState({ ...input, requestedSection: sections.at(-1)!.id }).section.id).toBe(sections[0].id);
+      expect(lessonState({ ...input, lastSectionId: current, requestedSection: sections.at(-1)!.id }).section.id).toBe(current);
+      expect(lessonState({ ...input, lastSectionId: current, requestedSection: sections[1].id }).section.id).toBe(sections[1].id);
+      expect(lessonState({ ...input, lastSectionId: current, requestedSection: 'not-a-section' }).section.id).toBe(current);
+      expect(lessonState({ ...input, completedAt: new Date(), requestedSection: sections.at(-1)!.id }).section.id).toBe(sections.at(-1)!.id);
+    });
   }
+});
+
+describe('shared lesson transition recovery', () => {
+  it('returns a retry message without claiming progress on a rejected save', async () => {
+    const result = await attemptLessonTransition(async () => { throw new Error('database detail'); });
+    expect(result).toEqual({ error: 'We could not save your place. Please try again.', signIn: false });
+  });
+  it('offers sign-in when the session expires and succeeds on retry', async () => {
+    const { AuthenticationRequiredError } = await import('../../../server/auth/require-actor');
+    expect(await attemptLessonTransition(async () => { throw new AuthenticationRequiredError(); })).toEqual({ error: 'Your session ended. Sign in, then return to this lesson.', signIn: true });
+    expect(await attemptLessonTransition(async () => '/lesson?section=next')).toEqual({ destination: '/lesson?section=next' });
+  });
+  it('does not rewind the reached boundary when continuing from a previous section', async () => {
+    const save = vi.fn(async () => {});
+    const sections = A1_SECTIONS;
+    const path = '/lesson/a1';
+    expect(await advanceLessonSection(sections, path, sections[1].id, save, async () => ({ completed: false, lastSectionId: sections[3].id }))).toBe(`${path}?section=${sections[1].id}`);
+    expect(save).not.toHaveBeenCalled();
+    expect(await advanceLessonSection(sections, path, sections[5].id, save, async () => ({ completed: false, lastSectionId: sections[3].id }))).toBeNull();
+    expect(save).not.toHaveBeenCalled();
+    expect(await advanceLessonSection(sections, path, sections[4].id, save, async () => ({ completed: false, lastSectionId: sections[3].id }))).toBe(`${path}?section=${sections[4].id}`);
+    expect(save).toHaveBeenCalledOnce();
+  });
+  it('does not complete before the final section has been reached', async () => {
+    const complete = vi.fn(async () => {});
+    await expect(finishLesson(A1_SECTIONS, '/lesson/a1', complete, async () => ({ completed: false, lastSectionId: A1_SECTIONS[2].id }))).rejects.toThrow('Final section not reached');
+    expect(complete).not.toHaveBeenCalled();
+  });
 });
