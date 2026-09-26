@@ -16,4 +16,12 @@ describe('SG2 functional expectation', () => {
     expect(screen.getAllByRole('textbox')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Continue without saving' })).toBeInTheDocument();
   });
+  it('shows an earlier SG1 picture only as optional read-only context', () => {
+    render(<SG2Lesson section={SG2_SECTIONS[2]} record={null} sg1Context={{ learnedGodImage: '  God seemed distant.  ', sourceInfluenceNote: null }} reflection={null}
+      completed={false} reviewReflection={false} saveRecord={vi.fn()} deleteRecord={vi.fn()}
+      saveReflection={vi.fn()} editReflection={vi.fn()} deleteReflection={vi.fn()} />);
+    expect(screen.getByText('Look back at my SG1 picture (optional)')).toBeInTheDocument();
+    expect(screen.getAllByRole('textbox')).toHaveLength(2);
+    expect(screen.getByLabelText('In that moment, I expected God to…')).toHaveValue('');
+  });
 });
