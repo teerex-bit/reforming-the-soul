@@ -44,6 +44,7 @@ test('SY2 saves a partial participant trace, resumes, and reviews without changi
       } else {
         await page.getByRole('button', { name: 'Complete lesson' }).click();
         await expect(page).toHaveURL(/section=carry-forward$/);
+        await expect(page.getByRole('link', { name: /Return to See Yourself Clearly · SY3 is next/ })).toBeVisible();
       }
     }
     const query = `select p.last_section_id,p.completed_at,p.updated_at,r.perception,r.belief,r.source_sc1_record_id,r.updated_at as record_updated_at,
