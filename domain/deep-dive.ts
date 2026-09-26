@@ -1,6 +1,6 @@
 export type A1SectionId = 'entry' | 'moment' | 'outside-inside' | 'teaching' | 'scripture' | 'reflection' | 'go-deeper' | 'practice' | 'carry-forward';
-export type DeepDiveModuleId = 'awaken.pay-attention' | 'awaken.catch-yourself-being-you' | 'awaken.your-reactions-have-a-history' | 'awaken.formation-is-not-identity' | 'see-clearly.sc1' | 'see-clearly.sy2' | 'see-clearly.sy3' | 'see-clearly.sy4' | 'see-clearly.sg1' | 'see-clearly.sg2';
-export type DeepDivePromptId = 'real-moment' | 'first-response' | 'formation-history' | 'formation-and-identity' | 'sc1-reflection' | 'sy2-reflection' | 'sy3-reflection' | 'sy4-reflection' | 'sg1-reflection' | 'sg2-reflection';
+export type DeepDiveModuleId = 'awaken.pay-attention' | 'awaken.catch-yourself-being-you' | 'awaken.your-reactions-have-a-history' | 'awaken.formation-is-not-identity' | 'see-clearly.sc1' | 'see-clearly.sy2' | 'see-clearly.sy3' | 'see-clearly.sy4' | 'see-clearly.sg1' | 'see-clearly.sg2' | 'see-clearly.sg3';
+export type DeepDivePromptId = 'real-moment' | 'first-response' | 'formation-history' | 'formation-and-identity' | 'sc1-reflection' | 'sy2-reflection' | 'sy3-reflection' | 'sy4-reflection' | 'sg1-reflection' | 'sg2-reflection' | 'sg3-reflection';
 export const A1_MODULE_ID: DeepDiveModuleId = 'awaken.pay-attention';
 export const A1_REFLECTION_PROMPT_ID: DeepDivePromptId = 'real-moment';
 export const A2_MODULE_ID: DeepDiveModuleId = 'awaken.catch-yourself-being-you';
@@ -21,6 +21,8 @@ export const SG1_MODULE_ID: DeepDiveModuleId = 'see-clearly.sg1';
 export const SG1_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sg1-reflection';
 export const SG2_MODULE_ID: DeepDiveModuleId = 'see-clearly.sg2';
 export const SG2_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sg2-reflection';
+export const SG3_MODULE_ID: DeepDiveModuleId = 'see-clearly.sg3';
+export const SG3_REFLECTION_PROMPT_ID: DeepDivePromptId = 'sg3-reflection';
 export const sy2ChainFields = ['perception', 'belief', 'expectation', 'desire', 'intention', 'choice', 'outcome'] as const;
 export type SY2ChainField = typeof sy2ChainFields[number];
 

@@ -6,7 +6,7 @@ select tables_are(
   array[
     'ai_artifact_sources', 'ai_artifacts', 'ai_context_grants', 'ai_threads',
     'audit_events', 'curriculum_nodes', 'curriculum_versions', 'formation_links',
-    'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'formation_records', 'journal_entries', 'practice_returns', 'practices',
+    'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'see_clearly_sg3_records', 'formation_records', 'journal_entries', 'practice_returns', 'practices',
     'profiles', 'user_curriculum_state'
   ],
   'Phase 1 creates only the approved public tables'
@@ -72,18 +72,18 @@ select ok(
 select is(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'public' and c.relname in (
-     'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'profiles', 'user_curriculum_state', 'journal_entries', 'formation_records', 'practices',
+     'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'see_clearly_sg3_records', 'profiles', 'user_curriculum_state', 'journal_entries', 'formation_records', 'practices',
      'practice_returns', 'formation_links', 'ai_threads', 'ai_artifacts', 'ai_artifact_sources',
      'ai_context_grants', 'audit_events'
    ) and c.relrowsecurity and c.relforcerowsecurity),
-  20,
+  21,
   'all user-owned tables enable and force RLS'
 );
 select ok(
   not exists (
     select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relname in (
-      'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'profiles', 'user_curriculum_state', 'journal_entries', 'formation_records', 'practices',
+      'deep_dive_module_progress', 'deep_dive_reflections', 'see_clearly_sc1_records', 'see_clearly_sy2_records', 'see_clearly_sy3_records', 'see_clearly_sy4_records', 'see_clearly_sg1_records', 'see_clearly_sg2_records', 'see_clearly_sg3_records', 'profiles', 'user_curriculum_state', 'journal_entries', 'formation_records', 'practices',
       'practice_returns', 'formation_links', 'ai_threads', 'ai_artifacts', 'ai_artifact_sources',
       'ai_context_grants', 'audit_events'
     ) and not exists (
