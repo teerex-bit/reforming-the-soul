@@ -24,7 +24,7 @@ export async function saveSY2Chain(values: SY2Chain) {
 export async function saveSY2Reflection(body: string, advance = true) {
   if (!body.trim()) throw new Error('Write a reflection or continue without writing.');
   const actor = await requireActor();
-  return seeClearlySY2Repository().saveReflection(actor.id, body.trim(), advance);
+  return seeClearlySY2Repository().saveReflection(actor.id, body, advance);
 }
 export async function completeSY2() {
   const actor = await requireActor();
