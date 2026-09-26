@@ -220,6 +220,23 @@ delete from public.see_clearly_sg1_records where user_id=current_setting('rts.te
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sg1-reflection'), 'SG1 picture deletion preserves reflection');
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sg1' and completed_at is not null), 'SG1 picture deletion preserves completion');
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sg2_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SG2 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+values (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sg2','carry-forward',now());
+insert into public.see_clearly_sg2_records(user_id,progress_id,situation,expectation)
+select user_id,id,'  Waiting for an answer.  ','  I expected silence.  '
+from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg2';
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sg2_records where situation='  Waiting for an answer.  ' and expectation='  I expected silence.  '), 'SG2 preserves the participant’s situation and expectation');
+insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+select user_id,id,'sg2-reflection','I notice it when I wait.' from public.deep_dive_module_progress
+where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg2';
+delete from public.see_clearly_sg2_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sg2-reflection'), 'SG2 record deletion preserves reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sg2' and completed_at is not null), 'SG2 record deletion preserves completion');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;
