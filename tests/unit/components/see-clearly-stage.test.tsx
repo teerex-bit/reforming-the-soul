@@ -20,8 +20,13 @@ describe('See Clearly movements', () => {
   it('opens completed SY1 from entry for review', () => {
     render(<SeeClearlyStage status="review" />);
     expect(screen.getByRole('link', { name: 'Review SY1' })).toHaveAttribute('href', '/deep-dive/see-clearly/facts-and-interpretation?section=entry');
-    expect(screen.getByText('Up next')).toBeInTheDocument();
-    expect(document.getElementById('see-yourself-sc2')).toHaveTextContent('Follow the Formation Chain');
-    expect(document.getElementById('see-god-sc5')).toHaveTextContent('The God I Learned');
+    expect(screen.getByRole('link', { name: 'Begin SY2' })).toBeInTheDocument();
+    expect(document.getElementById('see-yourself-sy2')).toHaveTextContent('Follow the Formation Chain');
+    expect(document.getElementById('see-god-sg1')).toHaveTextContent('The God I Learned');
+  });
+  it('offers SY2 after SY1 and keeps SY3 as the next group item', () => {
+    render(<SeeClearlyStage status="review" sy2Status="begin" />);
+    expect(screen.getByRole('link', { name: 'Begin SY2' })).toHaveAttribute('href', '/deep-dive/see-clearly/follow-the-formation-chain');
+    expect(document.getElementById('see-yourself-sy3')).toHaveTextContent('The Learned Self-Story');
   });
 });

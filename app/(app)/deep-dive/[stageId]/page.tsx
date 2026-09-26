@@ -5,14 +5,16 @@ import { AWAKEN_INTRODUCTION } from '../../../../content/deep-dive/v1';
 import { awakenModuleNavigation } from '../../../../components/deep-dive/awaken-module-navigation';
 import { getA1, getA2, getA3, getA4 } from '../../../../server/services/deep-dive-service';
 import { getSC1 } from '../../../../server/services/see-clearly-sc1-service';
+import { getSY2 } from '../../../../server/services/see-clearly-sy2-service';
 import { SeeClearlyStage } from '../../../../components/deep-dive/SeeClearlyStage';
 
 export default async function StagePage({ params }: { params: Promise<{ stageId: string }> }) {
   const { stageId } = await params;
   if (stageId === 'see-clearly') {
-    const { progress } = await getSC1();
+    const [{ progress }, { progress: sy2 }] = await Promise.all([getSC1(), getSY2()]);
     const status = progress?.completedAt ? 'review' : progress ? 'resume' : 'begin';
-    return <AppShell stage="See Clearly"><SeeClearlyStage status={status} /></AppShell>;
+    const sy2Status = sy2?.completedAt ? 'review' : sy2 ? 'resume' : 'begin';
+    return <AppShell stage="See Clearly"><SeeClearlyStage status={status} sy2Status={sy2Status} /></AppShell>;
   }
   if (stageId !== 'awaken') notFound();
   const [a1, a2, a3, a4] = await Promise.all([getA1(), getA2(), getA3(), getA4()]);

@@ -9,22 +9,23 @@ const lessons = [
   'Can I Trust God Here?',
 ] as const;
 
-export type SeeClearlyModule = 'sc1' | 'sc2' | 'sc3' | 'sc4' | 'sc5' | 'sc6' | 'sc7' | 'sc8';
+const modules = ['sc1', 'sy2', 'sy3', 'sy4', 'sg1', 'sg2', 'sg3', 'sg4'] as const;
+export type SeeClearlyModule = typeof modules[number];
 const groupRoute = '/deep-dive/see-clearly';
 
 export function seeClearlyNavigation(module: SeeClearlyModule) {
-  const index = Number(module.slice(2)) - 1;
+  const index = modules.indexOf(module);
   const self = index < 4;
   const group = self ? 'See Yourself Clearly' : 'See God Clearly';
   const nextIndex = index + 1;
-  const nextModule = nextIndex < lessons.length ? `sc${nextIndex + 1}` : null;
+  const nextModule = modules[nextIndex] ?? null;
   const nextGroup = nextIndex < 4 ? 'see-yourself' : 'see-god';
   return {
     backLabel: `Back to ${group}`,
     backHref: `${groupRoute}#${self ? 'see-yourself' : 'see-god'}-heading`,
     nextLabel: nextModule ? `Continue to ${lessons[nextIndex]}` : 'Continue to Become',
-    // Only SC1 exists today. The other destinations remain group anchors until their lessons are built.
-    nextHref: nextModule ? `${groupRoute}#${nextGroup}-${nextModule}` : null,
-    transition: module === 'sc4' ? 'You have finished See Yourself Clearly. Next: See God Clearly.' : module === 'sc8' ? 'You have finished See Clearly. Next: Become.' : null,
+    nextHref: module === 'sc1' ? '/deep-dive/see-clearly/follow-the-formation-chain'
+      : nextModule ? `${groupRoute}#${nextGroup}-${nextIndex < 4 ? `sy${nextIndex + 1}` : `sg${nextIndex - 3}`}` : null,
+    transition: module === 'sy4' ? 'You have finished See Yourself Clearly. Next: See God Clearly.' : module === 'sg4' ? 'You have finished See Clearly. Next: Become.' : null,
   };
 }

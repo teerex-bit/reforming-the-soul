@@ -53,7 +53,7 @@ test('SY1 teaches and saves a distinct fact and interpretation, resumes, and rev
     await expect(page).toHaveURL(/section=carry-forward$/);
     const forward = page.getByRole('link', { name: 'Continue to Follow the Formation Chain' });
     const backToGroup = page.getByRole('link', { name: 'Back to See Yourself Clearly' });
-    await expect(forward).toHaveAttribute('href', '/deep-dive/see-clearly#see-yourself-sc2');
+    await expect(forward).toHaveAttribute('href', '/deep-dive/see-clearly/follow-the-formation-chain');
     await expect(backToGroup).toHaveAttribute('href', '/deep-dive/see-clearly#see-yourself-heading');
     await expect(page.getByRole('link', { name: 'Back to See Clearly', exact: true })).toHaveCount(0);
     await forward.focus();
@@ -70,8 +70,8 @@ test('SY1 teaches and saves a distinct fact and interpretation, resumes, and rev
     expect(before.rows).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', event_facts: 'The message was read at 10:15.', automatic_interpretation: 'I had upset my friend.', body: 'I had already decided what the delay meant.' })]);
     expect(before.rows[0].completed_at).toBeTruthy();
     await forward.click();
-    await expect(page).toHaveURL(/\/deep-dive\/see-clearly#see-yourself-sc2$/);
-    await expect(page.locator('#see-yourself-sc2')).toContainText('Follow the Formation Chain');
+    await expect(page).toHaveURL(/\/deep-dive\/see-clearly\/follow-the-formation-chain$/);
+    await expect(page.getByRole('heading', { name: 'Follow the Formation Chain' })).toBeVisible();
     await page.goto(appRuntimeUrl(`${base}?section=carry-forward`));
     await page.getByRole('link', { name: 'Back to See Yourself Clearly' }).click();
     await expect(page).toHaveURL(/\/deep-dive\/see-clearly#see-yourself-heading$/);

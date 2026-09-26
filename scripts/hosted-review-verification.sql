@@ -133,6 +133,37 @@ select pg_temp.rts_test_raises(
   '23514', 'deep_dive_reflections_prompt_id_check', 'invalid prompt IDs are rejected'
 );
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sy2_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SY2 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id)
+values
+  (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sc1','carry-forward'),
+  (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sy2','trace');
+insert into public.see_clearly_sc1_records(user_id,progress_id,event_facts,automatic_interpretation)
+select current_setting('rts.test_actor_a')::uuid,id,'A test moment.','A test interpretation.'
+from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sc1';
+select set_config('rts.test_sy1_source_id',id::text,true) from public.see_clearly_sc1_records where user_id=current_setting('rts.test_actor_a')::uuid;
+insert into public.see_clearly_sy2_records(user_id,progress_id,source_sc1_record_id,source_was_linked,belief)
+select current_setting('rts.test_actor_a')::uuid,p.id,s.id,true,'My exact participant wording'
+from public.deep_dive_module_progress p cross join public.see_clearly_sc1_records s
+where p.user_id=current_setting('rts.test_actor_a')::uuid and p.module_id='see-clearly.sy2' and s.user_id=p.user_id;
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy2_records where belief='My exact participant wording'), 'owned SY1 source attaches to SY2');
+select set_config('request.jwt.claim.sub',current_setting('rts.test_actor_b'),true);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id)
+values (gen_random_uuid(),current_setting('rts.test_actor_b')::uuid,'phase-1-v1','see-clearly.sy2','trace');
+select pg_temp.rts_test_raises(
+  format('insert into public.see_clearly_sy2_records(user_id,progress_id,source_sc1_record_id,belief) select %L,p.id,%L,%L from public.deep_dive_module_progress p where p.user_id=%L and p.module_id=%L',
+    current_setting('rts.test_actor_b'), current_setting('rts.test_sy1_source_id'), 'cross-owner', current_setting('rts.test_actor_b'), 'see-clearly.sy2'),
+  '23503', null, 'same-owner SY1 source constraint rejects cross-owner link'
+);
+select pg_temp.rts_test_assert(not exists (select 1 from public.see_clearly_sy2_records where belief='My exact participant wording'), 'another user cannot read SY2 words');
+select set_config('request.jwt.claim.sub',current_setting('rts.test_actor_a'),true);
+delete from public.see_clearly_sc1_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy2_records where user_id=current_setting('rts.test_actor_a')::uuid and source_sc1_record_id is null and belief='My exact participant wording'), 'source deletion unlinks and preserves SY2 words');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sy2'), 'source deletion preserves SY2 progress');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;

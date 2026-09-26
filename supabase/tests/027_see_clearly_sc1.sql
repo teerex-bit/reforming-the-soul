@@ -51,7 +51,7 @@ select is((select count(*)::integer from public.deep_dive_module_progress where 
 select is((select count(*)::integer from public.deep_dive_reflections where prompt_id='sc1-reflection'),1,'source deletion preserves separately authored reflection');
 delete from public.see_clearly_sc1_records where user_id='00000000-0000-4000-8000-0000000000c2';
 select is((select count(*)::integer from public.deep_dive_module_progress where id='c1000000-0000-4000-8000-000000000002'),1,'deleting an unlinked SC1 record preserves its module progress');
-select throws_like($$insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id) values ('00000000-0000-4000-8000-0000000000c1','phase-1-v1','see-clearly.sc2','entry')$$,'%deep_dive_module_progress_module_id_check%','later See Clearly identifiers remain unapproved');
+select throws_like($$insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id) values ('00000000-0000-4000-8000-0000000000c1','phase-1-v1','see-clearly.sc3','entry')$$,'%deep_dive_module_progress_module_id_check%','later See Clearly identifiers remain unapproved');
 
 select * from finish();
 rollback;

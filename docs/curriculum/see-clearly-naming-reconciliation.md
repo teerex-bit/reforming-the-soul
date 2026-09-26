@@ -1,21 +1,21 @@
 # See Clearly naming reconciliation
 
-Status: reconciled against the review baseline `5a7d807cace977571dfce42d6cdb8b8ac95a1a4e`. This document records names; it changes no persisted identifier, route, curriculum content, or schema.
+Status: reconciled for SY2 against certified review baseline `60acee35d9270ad9d970e17bed02178c3296cddb`. Existing SY1 identifiers remain unchanged.
 
 ## Current Deep Dive structure
 
-The app has two movements. The eight-module plan supersedes the twelve-module count in `RTS_See_Clearly_Curriculum_Master_Map.docx` and the separate six-lesson counts in each movement of `RTS-Curriculum-Master-Clean.docx`. The older material contributes content, not one-to-one identifiers. `SY` means See Yourself Clearly; `SG` means See God Clearly. Only SY1 is implemented and persisted today.
+The app has two movements. The eight-module plan supersedes the twelve-module count in `RTS_See_Clearly_Curriculum_Master_Map.docx` and the separate six-lesson counts in each movement of `RTS-Curriculum-Master-Clean.docx`. The older material contributes content, not one-to-one identifiers. `SY` means See Yourself Clearly; `SG` means See God Clearly. SY1 is the existing persisted module; SY2 is implemented in the separate `202609260001_see_clearly_sy2.sql` migration.
 
 | Legacy source concept (content provenance) | Current concept | Permanent technical module ID | Participant label |
 | --- | --- | --- | --- |
 | Master map module 1, “The Lens Beneath the Reaction”; older `SC1` app shorthand | Part I, facts versus automatic interpretation | `see-clearly.sc1` **existing; preserve** | SY1 — Facts and Interpretation |
-| Master map module 2, “Trace the Formation Chain”; planned `SC2` shorthand | Part I, formation chain | `see-clearly.sc2` **proposed, not migrated** | SY2 — Follow the Formation Chain |
-| Master map modules 3–6; clean curriculum Part I lessons 1, 3–5 | Part I, learned self-story, performance, shame and protection | `see-clearly.sc3` **reserved proposal, not migrated** | SY3 — The Learned Self-Story |
-| Master map module 7; clean curriculum Part I lessons 2 and 6, review | Part I, grounded truth about self | `see-clearly.sc4` **reserved proposal, not migrated** | SY4 — What Is Actually True About Me |
-| Master map modules 8–9; clean curriculum Part II lesson 1 | Part II, learned picture of God and its sources | `see-clearly.sc5` **reserved proposal, not migrated** | SG1 — The God I Learned |
-| Master map modules 8–9; clean curriculum Part II lessons 2 and 4 | Part II, functional expectations of God | `see-clearly.sc6` **reserved proposal, not migrated** | SG2 — What I Expect From God |
-| Master map module 10; clean curriculum Part II lesson 5 | Part II, observations of Jesus | `see-clearly.sc7` **reserved proposal, not migrated** | SG3 — Jesus Shows Us the Father |
-| Master map modules 11–12; clean curriculum Part II lessons 3 and 6 | Part II, concrete trust situation, summary and Become handoff | `see-clearly.sc8` **reserved proposal, not migrated** | SG4 — Can I Trust God Here? |
+| Master map module 2, “Trace the Formation Chain”; planned `SC2` shorthand | Part I, formation chain | `see-clearly.sy2` **new SY2 migration** | SY2 — Follow the Formation Chain |
+| Master map modules 3–6; clean curriculum Part I lessons 1, 3–5 | Part I, learned self-story, performance, shame and protection | `see-clearly.sy3` **reserved proposal, not migrated** | SY3 — The Learned Self-Story |
+| Master map module 7; clean curriculum Part I lessons 2 and 6, review | Part I, grounded truth about self | `see-clearly.sy4` **reserved proposal, not migrated** | SY4 — What Is Actually True About Me |
+| Master map modules 8–9; clean curriculum Part II lesson 1 | Part II, learned picture of God and its sources | `see-clearly.sg1` **reserved proposal, not migrated** | SG1 — The God I Learned |
+| Master map modules 8–9; clean curriculum Part II lessons 2 and 4 | Part II, functional expectations of God | `see-clearly.sg2` **reserved proposal, not migrated** | SG2 — What I Expect From God |
+| Master map module 10; clean curriculum Part II lesson 5 | Part II, observations of Jesus | `see-clearly.sg3` **reserved proposal, not migrated** | SG3 — Jesus Shows Us the Father |
+| Master map modules 11–12; clean curriculum Part II lessons 3 and 6 | Part II, concrete trust situation, summary and Become handoff | `see-clearly.sg4` **reserved proposal, not migrated** | SG4 — Can I Trust God Here? |
 
 The source map calls Part I “See Myself Clearly.” The approved current app group is **See Yourself Clearly**. This group wording is a participant label; it does not rename stored data.
 
@@ -32,15 +32,17 @@ The source map calls Part I “See Myself Clearly.” The approved current app g
 | “See Clearly 1-2” | **Unresolved:** no exact occurrence in current repository, repository text history, or either controlling document inspected. May refer to another legacy source; do not treat as SY2 without that source. | None assigned | Legacy alias only; do not display |
 | “See Clearly 2-2” | **Unresolved:** same evidence boundary. Do not treat as SG2 without that source. | None assigned | Legacy alias only; do not display |
 | `SC1` in current app code, tests, and schema | Technical shorthand for the implemented first app module | `see-clearly.sc1`; reflection prompt `sc1-reflection`; record table `see_clearly_sc1_records` | SY1 — Facts and Interpretation |
-| `SC2` in current app navigation, tests and the pre-migration constraint test | Planned second app module, currently a group-row destination; no SC2 persistence or lesson route exists | `see-clearly.sc2` **proposed**, with `sc2-reflection` and distinct SC2 record table if approved | SY2 — Follow the Formation Chain |
+| `SC2` in historical navigation and the pre-migration constraint test | Older shorthand, not a persisted ID | `see-clearly.sy2`, `sy2-reflection`, `see_clearly_sy2_records` | SY2 — Follow the Formation Chain |
 
 The public Overview pages and the Deep Dive modules have independent numbering. Do not infer an app module ID from a public pathname, switcher number, or a clean curriculum lesson number.
 
-## Schema decision before SY2
+## Approved identifiers for SY2 and reserved future modules
 
-The narrow SC2 migration proposed earlier remains technically correct **if** the permanent ID is `see-clearly.sc2`: extend the progress and reflection check constraints with `see-clearly.sc2` and `sc2-reflection`, and create a separate same-owner, forced-RLS SC2 record for the formation-chain fields. Preserve every existing ID and row. The new participant shorthand is SY2 and should replace `SC2` in planning, status, and visible short labels, while `sc2` may remain in permanent technical identifiers, source filenames, and tests that explicitly verify those identifiers.
+SY2 uses `see-clearly.sy2`, `sy2-reflection`, and `see_clearly_sy2_records`. Its optional `source_sc1_record_id` points to the existing `see_clearly_sc1_records` table. Preserve SY1's `see-clearly.sc1`, `sc1-reflection`, and `see_clearly_sc1_records` because those identifiers are already persisted. Do not rename existing data for visual symmetry.
 
-No SC2 migration has been created. If `1-2` or `2-2` are found in a further historical source, verify their actual page/content before applying this proposal; do not silently make them technical aliases.
+The future module IDs and reflection IDs are reserved only: SY3 `see-clearly.sy3` / `sy3-reflection`; SY4 `see-clearly.sy4` / `sy4-reflection`; SG1 `see-clearly.sg1` / `sg1-reflection`; SG2 `see-clearly.sg2` / `sg2-reflection`; SG3 `see-clearly.sg3` / `sg3-reflection`; SG4 `see-clearly.sg4` / `sg4-reflection`. None of these later modules is implemented by SY2.
+
+The historical `SC2` shorthand in older navigation and tests is not a persisted identifier. Public Overview numbers are separate. If `1-2` or `2-2` appear in further source material, verify their meaning before assigning an alias.
 
 ## Evidence checked
 

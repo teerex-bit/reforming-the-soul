@@ -27,6 +27,12 @@ describe('current Deep Dive participant resume', () => {
     expect(currentJourneyDestination(done, done, done, done, done).href)
       .toBe('/deep-dive/see-clearly#see-yourself-heading');
   });
+  it('resumes an unfinished SY2 and returns completed SY2 to its group', () => {
+    expect(currentJourneyDestination(done, done, done, done, done, progress('trace')).href)
+      .toBe('/deep-dive/see-clearly/follow-the-formation-chain?section=trace');
+    expect(currentJourneyDestination(done, done, done, done, done, done).href)
+      .toBe('/deep-dive/see-clearly#see-yourself-heading');
+  });
   it('preserves existing SY1 work for accounts whose older Awaken progress has no new record', () => {
     expect(currentJourneyDestination(null, null, null, null, progress('practice')).href)
       .toBe('/deep-dive/see-clearly/facts-and-interpretation?section=practice');
