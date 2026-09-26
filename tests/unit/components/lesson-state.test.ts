@@ -6,6 +6,7 @@ import { A3_SECTIONS, A4_SECTIONS } from '../../../content/deep-dive/v1/awaken/f
 import { SC1_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sc1';
 import { SY2_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sy2';
 import { SY3_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sy3';
+import { SG1_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sg1';
 import { SY4_SECTIONS } from '../../../content/deep-dive/v1/see-clearly/sy4';
 
 describe('shared lesson state across authored modules', () => {
@@ -18,6 +19,7 @@ describe('shared lesson state across authored modules', () => {
     ['SY2', SY2_SECTIONS, '/deep-dive/see-clearly'],
     ['SY3', SY3_SECTIONS, '/deep-dive/see-clearly'],
     ['SY4', SY4_SECTIONS, '/deep-dive/see-clearly'],
+    ['SG1', SG1_SECTIONS, '/deep-dive/see-clearly'],
   ] as const) {
     const pathname = `/lesson/${name}`;
     const input = { sections: sections as readonly { id: string; eyebrow: string; title: string; paragraphs: readonly string[] }[], pathname, groupHref: group, reflectionSection: 'reflection' };

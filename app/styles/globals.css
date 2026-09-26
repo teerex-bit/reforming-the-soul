@@ -591,3 +591,23 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 .sy4-look-again > textarea { display: block; width: 100%; min-width: 0; min-height: 9rem; margin: 1rem 0; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font: inherit; resize: vertical; }
 .sy4-look-again .deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .7rem; }
 @media (max-width: 40rem) { .sy4-look-again .deep-dive-reflection__actions .button { width: 100%; } }
+
+/* SG1 lets the learned picture lead, with possible influences quieter beneath it. */
+.deep-dive-lesson--sg1 { max-width: 52rem; margin-inline: auto; }
+.deep-dive-lesson--sg1 > p:not(.eyebrow) { max-width: 65ch; }
+.deep-dive-content:has(.deep-dive-lesson--sg1) > .deep-dive-transition { max-width: 52rem; margin-inline: auto; }
+.sg1-recognition { max-width: 48rem; margin: 2rem 0; padding-top: 1.5rem; border-top: 1px solid var(--color-gold); }
+.sg1-recognition__frame { display: grid; gap: .35rem; margin-bottom: 1.8rem; padding: 1rem 0 1rem 1.3rem; border-left: 2px solid var(--color-gold); }
+.sg1-recognition__frame p { margin: 0; max-width: 62ch; }
+.sg1-recognition__frame .eyebrow:not(:first-child) { margin-top: .9rem; }
+.sg1-recognition__form > label { display: block; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.75rem); }
+.sg1-recognition__form > p { max-width: 60ch; }
+.sg1-recognition textarea { display: block; width: 100%; min-width: 0; margin: .8rem 0; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font: inherit; resize: vertical; }
+.sg1-recognition__form > textarea { min-height: 9rem; }
+.sg1-recognition__note { margin: 1.5rem 0; padding: 1rem 0 0; border-top: 1px solid var(--color-line); }
+.sg1-recognition__note label { display: block; font-size: 1rem; font-weight: 600; }
+.sg1-recognition__note label span { color: var(--color-text); font-weight: 400; opacity: .75; }
+.sg1-recognition__note textarea { min-height: 5rem; }
+.sg1-recognition .deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .7rem; }
+.sg1-recognition > form:last-child { margin-top: 1rem; }
+@media (max-width: 40rem) { .sg1-recognition .deep-dive-reflection__actions .button { width: 100%; } .sg1-recognition__frame { padding-left: .9rem; } }

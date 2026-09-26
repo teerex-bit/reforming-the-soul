@@ -203,6 +203,23 @@ select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy4_reco
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sy4-reflection'), 'SY3 deletion preserves SY4 reflection');
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sy4' and completed_at is not null), 'SY3 deletion preserves SY4 completion');
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sg1_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SG1 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+values (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sg1','carry-forward',now());
+insert into public.see_clearly_sg1_records(user_id,progress_id,learned_god_image,source_influence_note)
+select user_id,id,'  God seemed distant.  ','  Waiting may have shaped this.  '
+from public.deep_dive_module_progress where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg1';
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sg1_records where learned_god_image='  God seemed distant.  ' and source_influence_note='  Waiting may have shaped this.  '), 'SG1 preserves exact participant wording without prior-record linkage');
+insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+select user_id,id,'sg1-reflection','This feels familiar.' from public.deep_dive_module_progress
+where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sg1';
+delete from public.see_clearly_sg1_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sg1-reflection'), 'SG1 picture deletion preserves reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sg1' and completed_at is not null), 'SG1 picture deletion preserves completion');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;

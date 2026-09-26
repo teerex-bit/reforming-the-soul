@@ -123,6 +123,7 @@ jobs:
             test-results/**/sy2-trace-*.png
             test-results/**/sy3-recognition-*.png
             test-results/**/sy4-look-again-*.png
+            test-results/**/sg1-recognition-*.png
           if-no-files-found: error
           retention-days: 14
 
@@ -139,7 +140,7 @@ jobs:
           export NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           for repetition in 1 2; do
             npx supabase db reset --local --workdir .
-            npx playwright test tests/e2e/current-journey.spec.ts tests/e2e/a1-finish.spec.ts tests/e2e/sc1-guided.spec.ts tests/e2e/sy2-guided.spec.ts tests/e2e/sy3-guided.spec.ts tests/e2e/sy4-guided.spec.ts tests/e2e/user-isolation.spec.ts
+            npx playwright test tests/e2e/current-journey.spec.ts tests/e2e/a1-finish.spec.ts tests/e2e/sc1-guided.spec.ts tests/e2e/sy2-guided.spec.ts tests/e2e/sy3-guided.spec.ts tests/e2e/sy4-guided.spec.ts tests/e2e/sg1-guided.spec.ts tests/e2e/user-isolation.spec.ts
           done
 
       - name: Preserve browser evidence
