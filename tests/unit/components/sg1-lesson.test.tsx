@@ -25,6 +25,16 @@ describe('SG1 participant recognition', () => {
     expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete saved picture' })).toBeInTheDocument();
   });
+  it('clears both review fields when the saved picture is deleted, without leaving review mode', () => {
+    const view = render(<SG1Lesson {...props} section={SG1_SECTIONS[3]} completed
+      record={{ learnedGodImage: 'He seemed far away.', sourceInfluenceNote: 'Waiting shaped it.' }} />);
+    fireEvent.change(screen.getByLabelText('The God I learned seemed…'), { target: { value: 'A revision still in the editor.' } });
+    view.rerender(<SG1Lesson {...props} section={SG1_SECTIONS[3]} completed record={null} />);
+    expect(screen.getByLabelText('The God I learned seemed…')).toHaveValue('');
+    expect(screen.getByLabelText(/Some things that may have shaped this picture/)).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete saved picture' })).not.toBeInTheDocument();
+  });
   it('offers optional private reflection and clears it after deletion', () => {
     const view = render(<SG1Lesson {...props} section={SG1_SECTIONS[4]} completed reviewReflection reflection="It feels familiar." />);
     expect(screen.getByLabelText('What makes this picture of God feel familiar to you?')).toHaveValue('It feels familiar.');

@@ -68,7 +68,7 @@ export function SG1Lesson(props: Props) {
   return <article className={`deep-dive-lesson deep-dive-lesson--sg1 deep-dive-lesson--sg1-${section.id}`}>
     <p className="eyebrow deep-dive-section-label">{section.eyebrow}</p><h1>{section.title}</h1>
     {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
-    {section.id === 'recognition' ? <Recognition {...props} /> : null}
+    {section.id === 'recognition' ? <Recognition key={props.record ? `saved:${props.record.learnedGodImage}` : 'missing'} {...props} /> : null}
     {section.id === 'reflection' ? <Reflection {...props} /> : null}
   </article>;
 }

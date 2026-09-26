@@ -72,6 +72,13 @@ test('SG1 guided recognition, exact wording, independent deletion and no-write r
     await page.getByRole('button', { name: 'Delete saved picture' }).click();
     await expect(page.getByLabel('The God I learned seemed…')).toHaveValue('');
     expect((await pool.query(query, [user.email])).rows[0]).toMatchObject({ learned_god_image: null, body: before[0].body, completed_at: before[0].completed_at });
+    await page.reload();
+    await expect(page.getByLabel('The God I learned seemed…')).toHaveValue('');
+    await page.goto(appRuntimeUrl('/deep-dive/see-clearly'));
+    await expect(page.getByRole('link', { name: 'Review SG1' })).toBeVisible();
+    await page.getByRole('link', { name: 'Review SG1' }).click();
+    await page.goto(appRuntimeUrl(`${base}?section=recognition`));
+    await expect(page.getByLabel('The God I learned seemed…')).toHaveValue('');
     await page.goto(appRuntimeUrl(`${base}?section=reflection`));
     await page.getByRole('button', { name: 'Delete reflection' }).click();
     await expect(page.getByLabel(prompt)).toHaveValue('');
