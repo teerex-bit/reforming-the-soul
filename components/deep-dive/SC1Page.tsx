@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
 import { seeClearlyNavigation } from './see-clearly-navigation';
+import { lessonState } from './lesson-state';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
 import { completeSC1, editSC1Reflection, getSC1, saveSC1Reflection, saveSC1Response, saveSC1Section } from '../../server/services/see-clearly-sc1-service';
@@ -11,18 +12,15 @@ const route = '/deep-dive/see-clearly/facts-and-interpretation';
 
 export async function SC1Page({ query }: { query: { section?: string } }) {
   const { progress, record, sources } = await getSC1();
-  const completed = Boolean(progress?.completedAt);
-  const requested = query.section ?? (completed ? 'entry' : progress?.lastSectionId ?? 'entry');
-  const index = Math.max(0, SC1_SECTIONS.findIndex(section => section.id === requested));
-  const section = SC1_SECTIONS[index];
-  const next = SC1_SECTIONS[index + 1];
+  const completionNavigation = seeClearlyNavigation('sc1');
+  const state = lessonState({ sections: SC1_SECTIONS, pathname: route, groupHref: completionNavigation.backHref, requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
+  const { completed, index, section, next } = state;
 
   async function advance(formData: FormData) {
     'use server';
     const target = String(formData.get('section'));
-    if (!SC1_SECTIONS.some(item => item.id === target)) return;
-    await saveSC1Section(target);
-    redirect(`${route}?section=${target}`);
+    const destination = await state.advance(target, saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
+    if (destination) redirect(destination);
   }
   async function saveResponse(_: SC1SaveState, formData: FormData): Promise<SC1SaveState> {
     'use server';
@@ -40,7 +38,11 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   async function saveReflection(_: SC1SaveState, formData: FormData): Promise<SC1SaveState> {
     'use server';
     try {
-      if (formData.get('skip') === 'true') await saveSC1Section('practice');
+      if (formData.get('skip') === 'true') {
+        const destination = await state.advance('practice', saveSC1Section, async () => Boolean((await getSC1()).progress?.completedAt));
+        if (destination) redirect(destination);
+        return {};
+      }
       else {
         const body = String(formData.get('body') ?? '').trim();
         if (!body) return { error: 'Write a reflection or continue without writing.' };
@@ -61,15 +63,13 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
   }
   async function finish() {
     'use server';
-    await completeSC1();
-    redirect(`${route}?section=carry-forward`);
+    redirect(await state.finish(completeSC1, async () => Boolean((await getSC1()).progress?.completedAt)));
   }
 
-  const completionNavigation = seeClearlyNavigation('sc1');
-  const reviewReflection = completed || SC1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > SC1_SECTIONS.findIndex(item => item.id === 'reflection');
+  const reviewReflection = state.reviewReflection;
 
   return <AppShell stage="See Clearly"><section className="deep-dive-shell">
-    <div className="deep-dive-topline"><Link href={index ? `${route}?section=${SC1_SECTIONS[index - 1].id}` : completionNavigation.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SY1</span></div>
+    <div className="deep-dive-topline"><Link href={state.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> SY1</span></div>
     <div className="deep-dive-layout">
       <section className="deep-dive-progress" aria-label="SY1 lesson progress">
         <div className="deep-dive-progress__identity"><span className="eyebrow">SEE CLEARLY · SY1</span><span aria-hidden="true">/</span><strong>Facts and Interpretation</strong></div>

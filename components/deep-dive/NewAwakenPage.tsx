@@ -3,7 +3,7 @@ import { requestA4Reframe } from '../../server/ai/a4-reframe';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { AwakenCompletionNav } from './AwakenCompletionNav';
-import { awakenBackHref } from './awaken-back-navigation';
+import { lessonState } from './lesson-state';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { A3_SECTIONS, A4_SECTIONS } from '../../content/deep-dive/v1/awaken/four-module-lessons';
@@ -17,23 +17,21 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   const title = a3 ? 'Your Reactions Have a History' : 'Formation Is Not Identity';
   const prefix = `/deep-dive/awaken/${slug}`;
   const progress = a3 ? await getA3() : await getA4();
-  const requested = query.section ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
-  const index = Math.max(0, sections.findIndex(item => item.id === requested));
-  const section = sections[index];
-  const next = sections[index + 1];
+  const state = lessonState({ sections, pathname: prefix, groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
+  const { index, section, next } = state;
 
   async function advance(formData: FormData) {
     'use server';
     const target = String(formData.get('section'));
-    if (!sections.some(item => item.id === target)) return;
-    if (a3) await saveA3Section(target); else await saveA4Section(target);
-    redirect(`${prefix}?section=${target}`);
+    const destination = await state.advance(target, async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
+    if (destination) redirect(destination);
   }
   async function reflection(_: NewReflectionSaveState, formData: FormData): Promise<NewReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      if (a3) await saveA3Section('practice'); else await saveA4Section('practice');
-      redirect(`${prefix}?section=practice`);
+      const destination = await state.advance('practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt));
+      if (destination) redirect(destination);
+      return { saved: false };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
@@ -55,8 +53,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   }
   async function finish() {
     'use server';
-    if (a3) await completeA3(); else await completeA4();
-    redirect(`${prefix}?section=carry-forward`);
+    redirect(await state.finish(async () => { if (a3) await completeA3(); else await completeA4(); }, async () => Boolean((a3 ? await getA3() : await getA4())?.completedAt)));
   }
 
   async function generateReframe(statement: string) {
@@ -64,10 +61,10 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
     return requestA4Reframe(statement);
   }
 
-  const review = Boolean(progress?.completedAt);
-  const reviewReflection = review || sections.findIndex(item => item.id === progress?.lastSectionId) > sections.findIndex(item => item.id === 'reflection');
+  const review = state.completed;
+  const reviewReflection = state.reviewReflection;
   return <AppShell stage="Awaken"><section className="deep-dive-shell">
-    <div className="deep-dive-topline"><Link href={awakenBackHref(prefix, sections, index)}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> {a3 ? 'A3' : 'A4'}</span></div>
+    <div className="deep-dive-topline"><Link href={state.backHref}>← Back</Link><span>Formation Journey <span aria-hidden="true">/</span> {a3 ? 'A3' : 'A4'}</span></div>
     <div className="deep-dive-layout">
       <section className="deep-dive-progress" aria-label={`${a3 ? 'A3' : 'A4'} lesson progress`}>
         <div className="deep-dive-progress__identity"><span className="eyebrow">AWAKEN · {a3 ? 'A3' : 'A4'}</span><span aria-hidden="true">/</span><strong>{title}</strong></div>

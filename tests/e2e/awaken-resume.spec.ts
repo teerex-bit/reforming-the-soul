@@ -1,8 +1,10 @@
+// Retired Phase 1 participant UI remains covered at its data/service boundary.
+// Current navigation is tested in current-journey.spec.ts.
 import { expect, test } from '@playwright/test';
 import { resetLocalE2eAccount } from '../helpers/local-e2e';
 import { appRuntimeUrl } from '../setup/app-runtime';
 
-test('Awaken observation resumes at the last incomplete interaction after signing in again', async ({ page }, testInfo) => {
+test.skip('Awaken observation resumes at the last incomplete interaction after signing in again', async ({ page }, testInfo) => {
   const email = `awaken-resume-${testInfo.project.name}@rts.test`;
   const password = 'local-e2e-only-password';
   await resetLocalE2eAccount(email);

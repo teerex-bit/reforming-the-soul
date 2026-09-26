@@ -1,8 +1,10 @@
+// Retired Phase 1 participant UI remains covered at its data/service boundary.
+// Current navigation is tested in current-journey.spec.ts.
 import { expect, test } from '@playwright/test';
 import { resetLocalE2eAccount } from '../helpers/local-e2e';
 import { appRuntimeUrl } from '../setup/app-runtime';
 
-test('current-entry AI Reflect asks a bounded question and saves only confirmed user wording', async ({ page }, testInfo) => {
+test.skip('current-entry AI Reflect asks a bounded question and saves only confirmed user wording', async ({ page }, testInfo) => {
   const email = `ai-reflect-${testInfo.project.name}@rts.test`;
   const password = 'local-e2e-only-password';
   await resetLocalE2eAccount(email);

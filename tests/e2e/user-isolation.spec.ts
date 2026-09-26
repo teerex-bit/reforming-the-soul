@@ -51,7 +51,7 @@ test('User B sees none of User A formation data or practice metadata', async ({ 
     await page.getByLabel('Email').fill(userB.email);
     await page.getByLabel('Password').fill(userB.password);
     await Promise.all([page.waitForURL(/\/dashboard$/), page.getByRole('button', { name: 'Create account' }).click()]);
-    await expect(page.getByRole('link', { name: 'Resume' })).toHaveAttribute('href', '/formation/awaken.pay-attention.observe');
+    await expect(page.getByRole('link', { name: 'Resume' })).toHaveAttribute('href', '/deep-dive/awaken/pay-attention');
     await expect(page.getByText(VERTICAL_SLICE.isolation.privateNextStep)).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Return to this practice' })).toHaveCount(0);
     await page.goto(appRuntimeUrl('/history'));

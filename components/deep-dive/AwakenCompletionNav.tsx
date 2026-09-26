@@ -4,7 +4,7 @@ const handoffs = {
   a1: { label: 'Continue to A2', href: '/deep-dive/awaken/catch-yourself-being-you' },
   a2: { label: 'Continue to A3', href: '/deep-dive/awaken/your-reactions-have-a-history' },
   a3: { label: 'Continue to A4', href: '/deep-dive/awaken/formation-is-not-identity' },
-  a4: { label: 'Continue to See Clearly', href: '/see-clearly/' },
+  a4: { label: 'Continue to See Clearly', href: '/deep-dive/see-clearly' },
 } as const;
 
 export function AwakenCompletionNav({ module }: { module: keyof typeof handoffs }) {

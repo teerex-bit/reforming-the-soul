@@ -1,1 +1,5 @@
-﻿import { redirect } from 'next/navigation'; export default function Page() { redirect('/index.html'); }
+import { redirect } from 'next/navigation';
+
+export default function Page() {
+  redirect('/deep-dive');
+}

@@ -9,7 +9,7 @@ describe('completed Awaken lesson navigation', () => {
     ['a1', 'Continue to A2', '/deep-dive/awaken/catch-yourself-being-you'],
     ['a2', 'Continue to A3', '/deep-dive/awaken/your-reactions-have-a-history'],
     ['a3', 'Continue to A4', '/deep-dive/awaken/formation-is-not-identity'],
-    ['a4', 'Continue to See Clearly', '/see-clearly'],
+    ['a4', 'Continue to See Clearly', '/deep-dive/see-clearly'],
   ] as const;
 
   for (const [module, label, href] of handoffs) {

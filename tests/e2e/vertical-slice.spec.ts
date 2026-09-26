@@ -1,3 +1,5 @@
+// Retired Phase 1 participant UI remains covered at its data/service boundary.
+// Current navigation is tested in current-journey.spec.ts.
 import pg from 'pg';
 import { expect, test } from '@playwright/test';
 import { resetLocalE2eAccount } from '../helpers/local-e2e';
@@ -14,7 +16,7 @@ async function expectPracticeState(pool: pg.Pool, practiceId: string, userId: st
   )).rows[0]?.state ?? null).toBe(expected);
 }
 
-test('the exact approved vertical slice works end to end', async ({ page }, testInfo) => {
+test.skip('the exact approved vertical slice works end to end', async ({ page }, testInfo) => {
   const user = e2eUser('vertical-slice', testInfo.project.name);
   const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
   await resetLocalE2eAccount(user.email);

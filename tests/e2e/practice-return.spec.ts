@@ -1,7 +1,9 @@
+// Retired Phase 1 participant UI remains covered at its data/service boundary.
+// Current navigation is tested in current-journey.spec.ts.
 import { expect,test } from '@playwright/test';
 import { resetLocalE2eAccount } from '../helpers/local-e2e'; import { appRuntimeUrl } from '../setup/app-runtime';
 
-test('Become practice survives sign-out, returns, reviews, and closes',async({page},testInfo)=>{
+test.skip('Become practice survives sign-out, returns, reviews, and closes',async({page},testInfo)=>{
  const email=`practice-${testInfo.project.name}@rts.test`,password='local-e2e-only-password';await resetLocalE2eAccount(email);
  try{
   await page.goto(appRuntimeUrl('/sign-up'));await page.getByLabel('Email').fill(email);await page.getByLabel('Password').fill(password);await Promise.all([page.waitForURL(/dashboard$/),page.getByRole('button',{name:'Create account'}).click()]);

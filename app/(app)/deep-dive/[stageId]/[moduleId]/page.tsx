@@ -5,13 +5,13 @@ import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
 import type { ReviewReflectionState } from '../../../../../components/deep-dive/ReviewReflection';
 import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
-import { awakenBackHref } from '../../../../../components/deep-dive/awaken-back-navigation';
+import { lessonState } from '../../../../../components/deep-dive/lesson-state';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { SC1Page } from '../../../../../components/deep-dive/SC1Page';
 import { A1_SECTIONS } from '../../../../../content/deep-dive/v1';
-import { A2_SECTIONS, type A2SectionId } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
+import { A2_SECTIONS } from '../../../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import { completeA1, completeA2, editDeepDiveReflection, getA1, getA2, saveA1Reflection, saveA1Section, saveA2Reflection, saveA2Section } from '../../../../../server/services/deep-dive-service';
-import { A1_MODULE_ID, A1_REFLECTION_PROMPT_ID, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID, type A1SectionId } from '../../../../../domain/deep-dive';
+import { A1_MODULE_ID, A1_REFLECTION_PROMPT_ID, A2_MODULE_ID, A2_REFLECTION_PROMPT_ID } from '../../../../../domain/deep-dive';
 
 function LessonProgress({ module, title, index, total }: { module: 'A1' | 'A2'; title: string; index: number; total: number }) {
   return <section className="deep-dive-progress" aria-label={`${module} lesson progress`}>
@@ -22,23 +22,21 @@ function LessonProgress({ module, title, index, total }: { module: 'A1' | 'A2'; 
 
 async function A2Page({ query }: { query: { section?: string } }) {
   const progress = await getA2();
-  const candidate = query.section ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
-  const requestedIndex = A2_SECTIONS.findIndex(section => section.id === candidate);
-  const index = requestedIndex < 0 ? 0 : requestedIndex;
-  const section = A2_SECTIONS[index];
+  const state = lessonState({ sections: A2_SECTIONS, pathname: '/deep-dive/awaken/catch-yourself-being-you', groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
+  const { index, section, next } = state;
 
   async function saveSection(formData: FormData) {
     'use server';
     const value = String(formData.get('section'));
-    if (!A2_SECTIONS.some(item => item.id === value)) return;
-    await saveA2Section(value as A2SectionId);
-    redirect(`/deep-dive/awaken/catch-yourself-being-you?section=${value}`);
+    const destination = await state.advance(value, saveA2Section, async () => Boolean((await getA2())?.completedAt));
+    if (destination) redirect(destination);
   }
   async function saveReflection(_: A2ReflectionSaveState, formData: FormData): Promise<A2ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      await saveA2Section('go-deeper');
-      redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
+      const destination = await state.advance('go-deeper', saveA2Section, async () => Boolean((await getA2())?.completedAt));
+      if (destination) redirect(destination);
+      return { saved: false };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
@@ -52,8 +50,7 @@ async function A2Page({ query }: { query: { section?: string } }) {
   }
   async function finish() {
     'use server';
-    await completeA2();
-    redirect('/deep-dive/awaken/catch-yourself-being-you?section=carry-forward');
+    redirect(await state.finish(completeA2, async () => Boolean((await getA2())?.completedAt)));
   }
 
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
@@ -65,13 +62,12 @@ async function A2Page({ query }: { query: { section?: string } }) {
     return { savedBody: body };
   }
 
-  const next = A2_SECTIONS[index + 1];
-  const reviewReflection = Boolean(progress?.completedAt) || A2_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > A2_SECTIONS.findIndex(item => item.id === 'reflection');
+  const reviewReflection = state.reviewReflection;
   return (
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
         <div className="deep-dive-topline">
-          <Link href={awakenBackHref('/deep-dive/awaken/catch-yourself-being-you', A2_SECTIONS, index)}>← Back</Link>
+          <Link href={state.backHref}>← Back</Link>
           <span>Formation Journey <span aria-hidden="true">/</span> A2</span>
         </div>
         <div className="deep-dive-layout">
@@ -109,15 +105,15 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   if (stageId === 'awaken' && moduleId === 'formation-is-not-identity') return NewAwakenPage({ module: 'a4', query });
   if (stageId !== 'awaken' || moduleId !== 'pay-attention') notFound();
   const progress = await getA1();
-  const requested = query.section as A1SectionId | undefined;
-  const currentId = requested ?? (progress?.completedAt ? 'entry' : progress?.lastSectionId ?? 'entry');
-  const index = Math.max(0, A1_SECTIONS.findIndex(s => s.id === currentId)); const section = A1_SECTIONS[index];
-  async function saveSection(formData: FormData) { 'use server'; await saveA1Section(String(formData.get('section')) as A1SectionId); redirect(`/deep-dive/awaken/pay-attention?section=${String(formData.get('section'))}`); }
+  const state = lessonState({ sections: A1_SECTIONS, pathname: '/deep-dive/awaken/pay-attention', groupHref: '/deep-dive/awaken', requestedSection: query.section, lastSectionId: progress?.lastSectionId, completedAt: progress?.completedAt, reflectionSection: 'reflection' });
+  const { index, section, next } = state;
+  async function saveSection(formData: FormData) { 'use server'; const destination = await state.advance(String(formData.get('section')), saveA1Section, async () => Boolean((await getA1())?.completedAt)); if (destination) redirect(destination); }
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      await saveA1Section('go-deeper');
-      redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
+      const destination = await state.advance('go-deeper', saveA1Section, async () => Boolean((await getA1())?.completedAt));
+      if (destination) redirect(destination);
+      return { saved: false };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
@@ -129,7 +125,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     }
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
-  async function finish() { 'use server'; await completeA1(); redirect('/deep-dive/awaken/pay-attention?section=carry-forward'); }
+  async function finish() { 'use server'; redirect(await state.finish(completeA1, async () => Boolean((await getA1())?.completedAt))); }
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
     'use server';
     const body = String(formData.get('body') ?? '').trim();
@@ -138,13 +134,12 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
     return { savedBody: body };
   }
-  const next = A1_SECTIONS[index + 1];
-  const reviewReflection = Boolean(progress?.completedAt) || A1_SECTIONS.findIndex(item => item.id === progress?.lastSectionId) > A1_SECTIONS.findIndex(item => item.id === 'reflection');
+  const reviewReflection = state.reviewReflection;
   return (
     <AppShell stage="Awaken">
       <section className="deep-dive-shell">
         <div className="deep-dive-topline">
-          <Link href={awakenBackHref('/deep-dive/awaken/pay-attention', A1_SECTIONS, index)}>← Back</Link>
+          <Link href={state.backHref}>← Back</Link>
           <span>Formation Journey <span aria-hidden="true">/</span> A1</span>
         </div>
         <div className="deep-dive-layout">

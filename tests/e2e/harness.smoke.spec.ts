@@ -4,12 +4,10 @@ import { assertNoLiveAiCredentials } from '../setup/e2e';
 assertNoLiveAiCredentials();
 
 const authoritativeRoutes = [
-  '/',
   '/formation/',
   '/overview/',
   '/awaken/lesson-1/',
   '/awaken/lesson-2/',
-  '/see-clearly/',
 ];
 
 test('browser harness serves every authoritative Overview route and its assets', async ({ page }) => {
