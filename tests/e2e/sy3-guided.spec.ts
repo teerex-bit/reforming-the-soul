@@ -62,6 +62,18 @@ test('SY3 story, optional source, resume, review, deletion lineage, and handoff'
     await page.getByLabel('Use my SY2 trace').check();
     await expect(page.getByRole('complementary', { name: 'Your SY2 trace' })).toContainText('The room became quiet.');
     await page.getByRole('button', { name: 'Save changes' }).click();
+    if (await page.getByRole('alert').filter({ hasText: 'Your session ended.' }).count()) {
+      await expect(page.getByLabel('A story I sometimes carry is…')).toHaveValue('  I may have learned I disappoint people.  ');
+      await expect(page.getByLabel('Use my SY2 trace')).toBeChecked();
+      await page.getByRole('link', { name: 'Sign in' }).click();
+      await page.getByLabel('Email').fill(user.email);
+      await page.getByLabel('Password').fill(user.password);
+      await Promise.all([page.waitForURL(/\/dashboard$/), page.getByRole('button', { name: 'Sign in' }).click()]);
+      await page.goto(appRuntimeUrl(`${base}?section=recognition`));
+      await page.getByLabel('Use my SY2 trace').check();
+      await page.getByRole('button', { name: 'Save changes' }).click();
+    }
+    await expect(page.getByRole('status')).toContainText('Your words were saved.');
     expect((await pool.query(query, [user.email])).rows[0]).toMatchObject({ source_sy2_record_id: source, source_was_linked: true });
     await pool.query('delete from public.see_clearly_sy2_records where id=$1', [source]);
     await page.reload();

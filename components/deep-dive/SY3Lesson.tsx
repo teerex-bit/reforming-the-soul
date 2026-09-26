@@ -17,7 +17,7 @@ function Recognition({ record, source, completed, saveStory }: Pick<Props, 'reco
   const [state, action, pending] = useActionState(saveStory, {});
   const [wording, setWording] = useState(record?.selfStoryHypothesis ?? '');
   const [useSource, setUseSource] = useState(Boolean(record?.sourceSy2RecordId && source));
-  return <form className="sy3-recognition" action={action}>
+  return <form className="sy3-recognition" action={action} onReset={event => event.preventDefault()}>
     {source ? <fieldset className="sy2-trace__source"><legend>Where would you like to begin?</legend>
       <label><input type="radio" name="source_choice" checked={useSource} onChange={() => setUseSource(true)} />Use my SY2 trace</label>
       <label><input type="radio" name="source_choice" checked={!useSource} onChange={() => setUseSource(false)} />Start from what I have been noticing lately</label>
