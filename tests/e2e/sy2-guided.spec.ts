@@ -54,6 +54,9 @@ test('SY2 saves a partial participant trace, resumes, and reviews without changi
     const before = (await pool.query(query, [user.email])).rows;
     expect(before).toEqual([expect.objectContaining({ last_section_id: 'carry-forward', perception: '  The room became quiet.  ', belief: 'I had said too much.', source_sc1_record_id: null, body: '  I expected rejection.  ' })]);
     expect(before[0].completed_at).toBeTruthy();
+    const owner = (await pool.query<{ id: string }>('select id from auth.users where email=$1', [user.email])).rows[0].id;
+    const sy1Progress = (await pool.query<{ id: string }>(`insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+      values($1,'phase-1-v1','see-clearly.sc1','carry-forward',now()) returning id`, [owner])).rows[0].id;
     await page.goto(appRuntimeUrl('/deep-dive/see-clearly'));
     await page.getByRole('link', { name: 'Review SY2' }).click();
     for (const section of SY2_SECTIONS.slice(1)) {
@@ -62,9 +65,6 @@ test('SY2 saves a partial participant trace, resumes, and reviews without changi
       if (section.id === 'trace') await expect(page.getByLabel('What was I seeing in this moment?')).toHaveValue('  The room became quiet.  ');
     }
     expect((await pool.query(query, [user.email])).rows).toEqual(before);
-    const owner = (await pool.query<{ id: string }>('select id from auth.users where email=$1', [user.email])).rows[0].id;
-    const sy1Progress = (await pool.query<{ id: string }>(`insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id)
-      values($1,'phase-1-v1','see-clearly.sc1','carry-forward') returning id`, [owner])).rows[0].id;
     const source = (await pool.query<{ id: string }>(`insert into public.see_clearly_sc1_records(user_id,progress_id,event_facts,automatic_interpretation)
       values($1,$2,'The message arrived.','I thought it meant a change.') returning id`, [owner, sy1Progress])).rows[0].id;
     await page.goto(appRuntimeUrl(`${base}?section=trace`));
