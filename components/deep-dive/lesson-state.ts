@@ -63,8 +63,12 @@ export async function attemptLessonTransition(run: () => Promise<string | null>)
     const destination = await run();
     return destination ? { destination } : { error: 'We could not move forward. Please try again.', signIn: false };
   } catch (error) {
-    if (error instanceof Error && error.name === 'AuthenticationRequiredError')
-      return { error: 'Your session ended. Sign in, then return to this lesson.', signIn: true };
-    return { error: 'We could not save your place. Please try again.', signIn: false };
+    return lessonSaveFailure(error, 'We could not save your place. Please try again.');
   }
+}
+
+export function lessonSaveFailure(error: unknown, fallback: string) {
+  if (error instanceof Error && error.name === 'AuthenticationRequiredError')
+    return { error: 'Your session ended. Sign in, then return to this lesson.', signIn: true };
+  return { error: fallback, signIn: false };
 }

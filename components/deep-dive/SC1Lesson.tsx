@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import type { SC1Section } from '../../content/deep-dive/v1/see-clearly/sc1';
 import type { SC1Record, SC1Source } from '../../server/data/see-clearly-sc1-repository';
+import { LessonActionError } from './LessonTransitionForm';
 import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type SC1SaveState = Readonly<{ error?: string }>;
@@ -52,7 +53,7 @@ function Moment({ record, sources, completed, saveResponse }: Pick<Props, 'recor
     </div>
     <p className="sc1-moment__bridge">What happened <span aria-hidden="true">→</span> what I believed it meant</p>
     <button className="button" type="submit" disabled={pending || !facts.trim() || !meaning.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
-    {state.error ? <p className="field__error" role="alert">{state.error}</p> : null}
+    <LessonActionError error={state.error} />
   </form>;
 }
 
@@ -67,7 +68,7 @@ function Reflection({ reflection, reviewReflection, saveReflection, editReflecti
       <button className="button" type="submit" disabled={pending || !body.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
       <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>
     </div>
-    {state.error ? <p className="field__error" role="alert">{state.error}</p> : null}
+    <LessonActionError error={state.error} />
   </form>;
 }
 

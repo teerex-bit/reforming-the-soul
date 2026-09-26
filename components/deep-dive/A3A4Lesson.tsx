@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { A4Reframe } from './A4Reframe';
+import { LessonActionError } from './LessonTransitionForm';
 import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 import type { NewAwakenSection } from '../../content/deep-dive/v1/awaken/four-module-lessons';
 
@@ -25,7 +26,7 @@ function Reflection({ section, reflection, saveReflection, editReflection, revie
       <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>
     </div>
     <p className="status-message status-message--saved" role="status" aria-live="polite">{state.saved && !edited ? 'Reflection saved.' : ''}</p>
-    {state.error ? <p className="field__error" role="alert">{state.error}</p> : null}
+    <LessonActionError error={state.error} />
   </form>;
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from '../../../components/deep-dive/lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition, lessonSaveFailure } from '../../../components/deep-dive/lesson-state';
 import { A1_SECTIONS } from '../../../content/deep-dive/v1';
 import { A2_SECTIONS } from '../../../content/deep-dive/v1/awaken/catch-yourself-being-you';
 import { A3_SECTIONS, A4_SECTIONS } from '../../../content/deep-dive/v1/awaken/four-module-lessons';
@@ -78,5 +78,10 @@ describe('shared lesson transition recovery', () => {
     const complete = vi.fn(async () => {});
     await expect(finishLesson(A1_SECTIONS, '/lesson/a1', complete, async () => ({ completed: false, lastSectionId: A1_SECTIONS[2].id }))).rejects.toThrow('Final section not reached');
     expect(complete).not.toHaveBeenCalled();
+  });
+  it('identifies expired auth for a writing action without echoing private error details', async () => {
+    const { AuthenticationRequiredError } = await import('../../../server/auth/require-actor');
+    expect(lessonSaveFailure(new AuthenticationRequiredError(), 'Could not save your words.')).toEqual({ error: 'Your session ended. Sign in, then return to this lesson.', signIn: true });
+    expect(lessonSaveFailure(new Error('private SQL detail'), 'Could not save your words.')).toEqual({ error: 'Could not save your words.', signIn: false });
   });
 });

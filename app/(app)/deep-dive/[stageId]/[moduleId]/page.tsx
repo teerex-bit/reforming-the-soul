@@ -5,7 +5,7 @@ import { A1Lesson, type A1ReflectionSaveState } from '../../../../../components/
 import { A2Lesson, type A2ReflectionSaveState } from '../../../../../components/deep-dive/A2Lesson';
 import type { ReviewReflectionState } from '../../../../../components/deep-dive/ReviewReflection';
 import { AwakenCompletionNav } from '../../../../../components/deep-dive/AwakenCompletionNav';
-import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from '../../../../../components/deep-dive/lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition, lessonSaveFailure } from '../../../../../components/deep-dive/lesson-state';
 import { LessonTransitionForm, type LessonTransitionState } from '../../../../../components/deep-dive/LessonTransitionForm';
 import { NewAwakenPage } from '../../../../../components/deep-dive/NewAwakenPage';
 import { SC1Page } from '../../../../../components/deep-dive/SC1Page';
@@ -46,8 +46,8 @@ async function A2Page({ query }: { query: { section?: string } }) {
     try {
       await saveA2Reflection(body);
       await saveA2Section('go-deeper');
-    } catch {
-      return { saved: false, error: 'Could not save your reflection. Your words are still here; please try again.' };
+    } catch (error) {
+      return { saved: false, ...lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.') };
     }
     redirect('/deep-dive/awaken/catch-yourself-being-you?section=go-deeper');
   }
@@ -63,7 +63,7 @@ async function A2Page({ query }: { query: { section?: string } }) {
     const body = String(formData.get('body') ?? '').trim();
     if (!body) return { error: 'Write a reflection before saving.' };
     try { await editDeepDiveReflection(A2_MODULE_ID, A2_REFLECTION_PROMPT_ID, body); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     return { savedBody: body };
   }
 
@@ -123,8 +123,8 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     try {
       await saveA1Reflection(body);
       await saveA1Section('go-deeper');
-    } catch {
-      return { saved: false, error: 'Could not save your reflection. Your words are still here; please try again.' };
+    } catch (error) {
+      return { saved: false, ...lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.') };
     }
     redirect('/deep-dive/awaken/pay-attention?section=go-deeper');
   }
@@ -134,7 +134,7 @@ export default async function A1Page({ params, searchParams }: { params: Promise
     const body = String(formData.get('body') ?? '').trim();
     if (!body) return { error: 'Write a reflection before saving.' };
     try { await editDeepDiveReflection(A1_MODULE_ID, A1_REFLECTION_PROMPT_ID, body); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     return { savedBody: body };
   }
   const reviewReflection = state.reviewReflection;

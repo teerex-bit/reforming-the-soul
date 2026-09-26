@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SC1Lesson, type SC1SaveState } from './SC1Lesson';
 import { seeClearlyNavigation } from './see-clearly-navigation';
-import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition, lessonSaveFailure } from './lesson-state';
 import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SC1_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sc1';
@@ -32,8 +32,8 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     if (!eventFacts || !automaticInterpretation) return { error: 'Write what happened and the meaning that came to you.' };
     try {
       await saveSC1Response({ eventFacts, automaticInterpretation, sourceEntryId });
-    } catch {
-      return { error: 'Could not save your moment. Your words are still here; please try again.' };
+    } catch (error) {
+      return lessonSaveFailure(error, 'Could not save your moment. Your words are still here; please try again.');
     }
     redirect(`${route}?section=reflection`);
   }
@@ -49,8 +49,8 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
         if (!body) return { error: 'Write a reflection or continue without writing.' };
         await saveSC1Reflection(body);
       }
-    } catch {
-      return { error: 'Could not save your reflection. Your words are still here; please try again.' };
+    } catch (error) {
+      return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.');
     }
     redirect(destination ?? `${route}?section=practice`);
   }
@@ -59,7 +59,7 @@ export async function SC1Page({ query }: { query: { section?: string } }) {
     const body = String(formData.get('body') ?? '').trim();
     if (!body) return { error: 'Write a reflection before saving.' };
     try { await editSC1Reflection(body); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     return { savedBody: body };
   }
   async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {

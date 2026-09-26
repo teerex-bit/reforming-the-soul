@@ -3,7 +3,7 @@ import { requestA4Reframe } from '../../server/ai/a4-reframe';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { AwakenCompletionNav } from './AwakenCompletionNav';
-import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition, lessonSaveFailure } from './lesson-state';
 import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import { A3Lesson, A4Lesson, type NewReflectionSaveState } from './A3A4Lesson';
 import type { ReviewReflectionState } from './ReviewReflection';
@@ -40,8 +40,8 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
     try {
       if (a3) { await saveA3Reflection(body); await saveA3Section('practice'); }
       else { await saveA4Reflection(body); await saveA4Section('practice'); }
-    } catch {
-      return { saved: false, error: 'Could not save your reflection. Your words are still here; please try again.' };
+    } catch (error) {
+      return { saved: false, ...lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.') };
     }
     redirect(`${prefix}?section=practice`);
   }
@@ -50,7 +50,7 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
     const body = String(formData.get('body') ?? '').trim();
     if (!body) return { error: 'Write a reflection before saving.' };
     try { await editDeepDiveReflection(a3 ? A3_MODULE_ID : A4_MODULE_ID, a3 ? A3_REFLECTION_PROMPT_ID : A4_REFLECTION_PROMPT_ID, body); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     return { savedBody: body };
   }
   async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AppShell } from '../design-system/AppShell';
 import { SY2Lesson, type SY2SaveState } from './SY2Lesson';
-import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition } from './lesson-state';
+import { lessonState, advanceLessonSection, finishLesson, attemptLessonTransition, lessonSaveFailure } from './lesson-state';
 import { LessonTransitionForm, type LessonTransitionState } from './LessonTransitionForm';
 import type { ReviewReflectionState } from './ReviewReflection';
 import { SY2_SECTIONS } from '../../content/deep-dive/v1/see-clearly/sy2';
@@ -40,7 +40,7 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
     const chain: SY2Chain = { ...values, sourceSc1RecordId: String(formData.get('source_sc1_record_id') ?? '') || null };
     if (!sy2ChainFields.some(field => chain[field])) return { error: 'Write a link or continue without saving this trace.' };
     try { await saveSY2Chain(chain); }
-    catch { return { error: 'Could not save your trace. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your trace. Your words are still here; please try again.'); }
     if (completed) return { saved: true };
     redirect(`${route}?section=distinction`);
   }
@@ -54,7 +54,7 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { error: 'Write a reflection or continue without writing.' };
     try { await saveSY2Reflection(body); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     redirect(`${route}?section=practice`);
   }
   async function editReflection(_: ReviewReflectionState, formData: FormData): Promise<ReviewReflectionState> {
@@ -62,7 +62,7 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { error: 'Write a reflection before saving.' };
     try { await saveSY2Reflection(body, false); }
-    catch { return { error: 'Could not save your reflection. Your words are still here; please try again.' }; }
+    catch (error) { return lessonSaveFailure(error, 'Could not save your reflection. Your words are still here; please try again.'); }
     return { savedBody: body };
   }
   async function finish(_: LessonTransitionState, __: FormData): Promise<LessonTransitionState> {

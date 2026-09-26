@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import type { SY2Section } from '../../content/deep-dive/v1/see-clearly/sy2';
 import { sy2ChainFields, type SY2ChainField } from '../../domain/deep-dive';
 import type { SY2Record, SY2Source } from '../../server/data/see-clearly-sy2-repository';
+import { LessonActionError } from './LessonTransitionForm';
 import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type SY2SaveState = Readonly<{ error?: string; saved?: boolean }>;
@@ -64,7 +65,7 @@ function Trace({ record, source, completed, saveChain }: Pick<Props, 'record' | 
       {!completed ? <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without saving this trace</button> : null}
     </div>
     {state.saved ? <p role="status">Your trace was saved.</p> : null}
-    {state.error ? <p className="field__error" role="alert">{state.error}</p> : null}
+    <LessonActionError error={state.error} />
   </form>;
 }
 
@@ -79,7 +80,7 @@ function Reflection({ reflection, reviewReflection, saveReflection, editReflecti
       <button className="button" type="submit" disabled={pending || !body.trim()}>{pending ? 'Saving…' : 'Save & continue'}</button>
       <button className="button button--secondary" type="submit" name="skip" value="true" disabled={pending}>Continue without writing</button>
     </div>
-    {state.error ? <p className="field__error" role="alert">{state.error}</p> : null}
+    <LessonActionError error={state.error} />
   </form>;
 }
 

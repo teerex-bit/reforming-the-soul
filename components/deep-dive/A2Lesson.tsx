@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import type { A2Section } from '../../content/deep-dive/v1/awaken/catch-yourself-being-you';
+import { LessonActionError } from './LessonTransitionForm';
 import { ReviewReflection, type ReviewReflectionAction } from './ReviewReflection';
 
 export type A2ReflectionSaveState = Readonly<{ saved: boolean; error?: string }>;
@@ -155,7 +156,7 @@ export function A2Lesson({ section, reflection, saveReflection, editReflection, 
             <p className="status-message status-message--saved" role="status" aria-live="polite" aria-atomic="true">
               {saveState.saved && !editedSinceSave ? 'Reflection saved.' : ''}
             </p>
-            {saveState.error ? <p className="field__error" role="alert">{saveState.error}</p> : null}
+            <LessonActionError error={saveState.error} />
           </form>}
         </>
       ) : section.id === 'go-deeper' ? (
