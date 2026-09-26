@@ -29,9 +29,9 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
   async function saveChain(_: SY2SaveState, formData: FormData): Promise<SY2SaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'distinction', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
-      if (destination) redirect(destination);
-      return {};
+      const result = await attemptLessonTransition(() => advanceLessonSection(SY2_SECTIONS, route, 'distinction', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+      if (result.destination) redirect(result.destination);
+      return { error: result.error };
     }
     const values = Object.fromEntries(sy2ChainFields.map(field => {
       const wording = String(formData.get(field) ?? '');
@@ -47,9 +47,9 @@ export async function SY2Page({ query }: { query: { section?: string } }) {
   async function saveReflection(_: SY2SaveState, formData: FormData): Promise<SY2SaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(SY2_SECTIONS, route, 'practice', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
-      if (destination) redirect(destination);
-      return {};
+      const result = await attemptLessonTransition(() => advanceLessonSection(SY2_SECTIONS, route, 'practice', saveSY2Section, async () => { const { progress } = await getSY2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+      if (result.destination) redirect(result.destination);
+      return { error: result.error };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { error: 'Write a reflection or continue without writing.' };

@@ -37,9 +37,9 @@ async function A2Page({ query }: { query: { section?: string } }) {
   async function saveReflection(_: A2ReflectionSaveState, formData: FormData): Promise<A2ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', 'go-deeper', saveA2Section, async () => { const progress = await getA2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
-      if (destination) redirect(destination);
-      return { saved: false };
+      const result = await attemptLessonTransition(() => advanceLessonSection(A2_SECTIONS, '/deep-dive/awaken/catch-yourself-being-you', 'go-deeper', saveA2Section, async () => { const progress = await getA2(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+      if (result.destination) redirect(result.destination);
+      return { saved: false, error: result.error };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
@@ -114,9 +114,9 @@ export default async function A1Page({ params, searchParams }: { params: Promise
   async function saveReflection(_: A1ReflectionSaveState, formData: FormData): Promise<A1ReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', 'go-deeper', saveA1Section, async () => { const progress = await getA1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
-      if (destination) redirect(destination);
-      return { saved: false };
+      const result = await attemptLessonTransition(() => advanceLessonSection(A1_SECTIONS, '/deep-dive/awaken/pay-attention', 'go-deeper', saveA1Section, async () => { const progress = await getA1(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+      if (result.destination) redirect(result.destination);
+      return { saved: false, error: result.error };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };

@@ -31,9 +31,9 @@ export async function NewAwakenPage({ module, query }: { module: 'a3' | 'a4'; qu
   async function reflection(_: NewReflectionSaveState, formData: FormData): Promise<NewReflectionSaveState> {
     'use server';
     if (formData.get('skip') === 'true') {
-      const destination = await advanceLessonSection(sections, prefix, 'practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => { const progress = a3 ? await getA3() : await getA4(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; });
-      if (destination) redirect(destination);
-      return { saved: false };
+      const result = await attemptLessonTransition(() => advanceLessonSection(sections, prefix, 'practice', async id => { if (a3) await saveA3Section(id); else await saveA4Section(id); }, async () => { const progress = a3 ? await getA3() : await getA4(); return { completed: Boolean(progress?.completedAt), lastSectionId: progress?.lastSectionId }; }));
+      if (result.destination) redirect(result.destination);
+      return { saved: false, error: result.error };
     }
     const body = String(formData.get('body') ?? '');
     if (!body.trim()) return { saved: false, error: 'Write a reflection or continue without writing.' };
