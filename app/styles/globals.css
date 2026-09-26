@@ -256,27 +256,27 @@ a { color: var(--color-navy); text-underline-offset: 0.25em; }
 
 /* SY2: a single connected movement, with participant words entered one link at a time. */
 .deep-dive-lesson--sy2 { max-width: 70rem; }
-.sc2-chain { counter-reset: chain; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; max-width: 72rem; margin: 2.5rem 0; padding: 0; list-style: none; border-top: 1px solid var(--color-gold); border-bottom: 1px solid var(--color-line); }
-.sc2-chain li { position: relative; min-width: 0; padding: 1.25rem .5rem 1.5rem; color: var(--color-navy); }
-.sc2-chain li:not(:last-child)::after { content: '→'; position: absolute; right: -.35rem; top: 2.5rem; color: var(--color-gold); font-size: 1.1rem; }
-.sc2-chain__index { display: block; margin-bottom: .9rem; color: var(--color-green); font-size: .7rem; letter-spacing: .12em; }
-.sc2-chain strong { display: block; max-width: 7rem; font-size: clamp(.73rem, 1vw, .95rem); line-height: 1.35; letter-spacing: .04em; }
-.sc2-trace { max-width: 49rem; margin: 2rem 0; padding: 1.5rem 0; border-top: 1px solid var(--color-gold); }
-.sc2-trace__source { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin: 0 0 1.2rem; padding: 0; border: 0; }
-.sc2-trace__source legend { width: 100%; margin-bottom: .5rem; color: var(--color-navy); font-weight: 700; }
-.sc2-trace__source label { display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
-.sc2-trace__source input { accent-color: var(--color-green); }
-.sc2-trace__source-note { margin-bottom: 1.2rem; }
-.sc2-trace__reference { margin: 1rem 0 1.7rem; padding: 1rem 1.2rem; border-left: 2px solid var(--color-gold); background: var(--color-paper); }
-.sc2-trace__reference p { margin: .4rem 0; }
-.sc2-trace__position { margin: 1.5rem 0 .7rem; color: var(--color-green); font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
-.sc2-trace__prompt { display: block; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.3rem, 2.2vw, 1.8rem); }
-.sc2-trace__prompt textarea { display: block; width: 100%; min-width: 0; margin: 1rem 0; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font-family: var(--font-body); font-size: 1rem; resize: vertical; }
-.sc2-trace__steps, .sc2-trace .deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .7rem; margin: 1rem 0; }
-.sc2-distinction { display: flex; flex-wrap: wrap; gap: 1rem 2rem; max-width: 55rem; margin: 2rem 0; padding: 1.2rem 0; border-top: 1px solid var(--color-gold); border-bottom: 1px solid var(--color-line); }
-.sc2-distinction p { flex: 1 1 16rem; margin: 0; }
-.sc2-distinction strong { display: block; margin-bottom: .4rem; color: var(--color-green); font-size: .7rem; letter-spacing: .12em; }
-@media (max-width: 56rem) { .sc2-chain { grid-template-columns: minmax(0, 1fr); margin: 2rem 0; border-left: 1px solid var(--color-gold); border-top: 0; } .sc2-chain li { padding: .8rem 1.2rem 1.25rem; } .sc2-chain li:not(:last-child)::after { content: '↓'; left: 1.2rem; right: auto; top: auto; bottom: -.6rem; } .sc2-chain__index { margin-bottom: .2rem; } .sc2-chain strong { max-width: none; font-size: .95rem; } }
+.sy2-chain { counter-reset: chain; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; max-width: 72rem; margin: 2.5rem 0; padding: 0; list-style: none; border-top: 1px solid var(--color-gold); border-bottom: 1px solid var(--color-line); }
+.sy2-chain li { position: relative; min-width: 0; padding: 1.25rem .5rem 1.5rem; color: var(--color-navy); }
+.sy2-chain li:not(:last-child)::after { content: '→'; position: absolute; right: -.35rem; top: 2.5rem; color: var(--color-gold); font-size: 1.1rem; }
+.sy2-chain__index { display: block; margin-bottom: .9rem; color: var(--color-green); font-size: .7rem; letter-spacing: .12em; }
+.sy2-chain strong { display: block; max-width: 7rem; font-size: clamp(.73rem, 1vw, .95rem); line-height: 1.35; letter-spacing: .04em; }
+.sy2-trace { max-width: 49rem; margin: 2rem 0; padding: 1.5rem 0; border-top: 1px solid var(--color-gold); }
+.sy2-trace__source { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin: 0 0 1.2rem; padding: 0; border: 0; }
+.sy2-trace__source legend { width: 100%; margin-bottom: .5rem; color: var(--color-navy); font-weight: 700; }
+.sy2-trace__source label { display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
+.sy2-trace__source input { accent-color: var(--color-green); }
+.sy2-trace__source-note { margin-bottom: 1.2rem; }
+.sy2-trace__reference { margin: 1rem 0 1.7rem; padding: 1rem 1.2rem; border-left: 2px solid var(--color-gold); background: var(--color-paper); }
+.sy2-trace__reference p { margin: .4rem 0; }
+.sy2-trace__position { margin: 1.5rem 0 .7rem; color: var(--color-green); font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+.sy2-trace__prompt { display: block; color: var(--color-navy); font-family: var(--font-display); font-size: clamp(1.3rem, 2.2vw, 1.8rem); }
+.sy2-trace__prompt textarea { display: block; width: 100%; min-width: 0; margin: 1rem 0; padding: .85rem 1rem; border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-text); font-family: var(--font-body); font-size: 1rem; resize: vertical; }
+.sy2-trace__steps, .sy2-trace .deep-dive-reflection__actions { display: flex; flex-wrap: wrap; gap: .7rem; margin: 1rem 0; }
+.sy2-distinction { display: flex; flex-wrap: wrap; gap: 1rem 2rem; max-width: 55rem; margin: 2rem 0; padding: 1.2rem 0; border-top: 1px solid var(--color-gold); border-bottom: 1px solid var(--color-line); }
+.sy2-distinction p { flex: 1 1 16rem; margin: 0; }
+.sy2-distinction strong { display: block; margin-bottom: .4rem; color: var(--color-green); font-size: .7rem; letter-spacing: .12em; }
+@media (max-width: 56rem) { .sy2-chain { grid-template-columns: minmax(0, 1fr); margin: 2rem 0; border-left: 1px solid var(--color-gold); border-top: 0; } .sy2-chain li { padding: .8rem 1.2rem 1.25rem; } .sy2-chain li:not(:last-child)::after { content: '↓'; left: 1.2rem; right: auto; top: auto; bottom: -.6rem; } .sy2-chain__index { margin-bottom: .2rem; } .sy2-chain strong { max-width: none; font-size: .95rem; } }
 .deep-dive-introduction { max-width: 52rem; margin: 0 0 clamp(2rem, 4vw, 3rem); font-size: clamp(1.12rem, 1.8vw, 1.35rem); line-height: 1.75; }
 .deep-dive-topline { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-line); color: var(--color-green); font-size: .75rem; }
 .deep-dive-topline a { color: var(--color-navy); font-weight: 700; text-decoration: none; }
