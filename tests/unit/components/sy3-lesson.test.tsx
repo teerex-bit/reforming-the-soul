@@ -38,4 +38,11 @@ describe('SY3 authored story', () => {
     render(<SY3Lesson {...props} section={SY3_SECTIONS[4]} />);
     expect(screen.getByLabelText('When this story shows up, what do you notice it changes in the way you respond?')).toBeInTheDocument();
   });
+  it('clears a review editor after the private reflection is deleted', () => {
+    const view = render(<SY3Lesson {...props} section={SY3_SECTIONS[4]} completed reviewReflection reflection="I seek reassurance." />);
+    expect(screen.getByLabelText('When this story shows up, what do you notice it changes in the way you respond?')).toHaveValue('I seek reassurance.');
+    view.rerender(<SY3Lesson {...props} section={SY3_SECTIONS[4]} completed reviewReflection reflection={null} />);
+    expect(screen.getByLabelText('When this story shows up, what do you notice it changes in the way you respond?')).toHaveValue('');
+    expect(screen.queryByRole('button', { name: 'Delete reflection' })).not.toBeInTheDocument();
+  });
 });

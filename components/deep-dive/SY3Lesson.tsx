@@ -44,7 +44,7 @@ function Reflection({ reflection, reviewReflection, saveReflection, editReflecti
   const label = 'When this story shows up, what do you notice it changes in the way you respond?';
   const [state, action, pending] = useActionState(saveReflection, {});
   const [body, setBody] = useState(reflection ?? '');
-  if (reviewReflection) return <><ReviewReflection id="sy3-reflection" label={label} reflection={reflection} action={editReflection} />
+  if (reviewReflection) return <><ReviewReflection key={reflection ?? 'empty'} id="sy3-reflection" label={label} reflection={reflection} action={editReflection} />
     {reflection ? <DeleteReflection action={deleteReflection} /> : null}</>;
   return <form className="deep-dive-reflection" action={action}>
     <label htmlFor="sy3-reflection">{label}</label>
