@@ -45,6 +45,9 @@ test('SY3 story, optional source, resume, review, deletion lineage, and handoff'
     const before = (await pool.query(query, [user.email])).rows;
     expect(before).toEqual([expect.objectContaining({ self_story_hypothesis: '  I may have learned I disappoint people.  ', source_sy2_record_id: null, body: '  I seek reassurance.  ' })]);
     expect(before[0].completed_at).toBeTruthy();
+    const owner = (await pool.query<{ id: string }>('select id from auth.users where email=$1', [user.email])).rows[0].id;
+    const sy2Progress = (await pool.query<{ id: string }>(`insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+      values($1,'phase-1-v1','see-clearly.sy2','carry-forward',now()) returning id`, [owner])).rows[0].id;
     await page.goto(appRuntimeUrl('/deep-dive/see-clearly'));
     await expect(page.getByText('What Is Actually True About Me')).toBeVisible();
     await page.getByRole('link', { name: 'Review SY3' }).click();
@@ -53,9 +56,6 @@ test('SY3 story, optional source, resume, review, deletion lineage, and handoff'
       await expect(page).toHaveURL(new RegExp(`section=${section.id}$`));
     }
     expect((await pool.query(query, [user.email])).rows).toEqual(before);
-    const owner = (await pool.query<{ id: string }>('select id from auth.users where email=$1', [user.email])).rows[0].id;
-    const sy2Progress = (await pool.query<{ id: string }>(`insert into public.deep_dive_module_progress(user_id,curriculum_version_id,module_id,last_section_id,completed_at)
-      values($1,'phase-1-v1','see-clearly.sy2','carry-forward',now()) returning id`, [owner])).rows[0].id;
     const source = (await pool.query<{ id: string }>(`insert into public.see_clearly_sy2_records(user_id,progress_id,perception,belief)
       values($1,$2,'The room became quiet.','I had said too much.') returning id`, [owner, sy2Progress])).rows[0].id;
     await page.goto(appRuntimeUrl(`${base}?section=recognition`));
