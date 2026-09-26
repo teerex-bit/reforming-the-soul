@@ -36,6 +36,12 @@ describe('See Clearly movements', () => {
     cleanup();
     render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="review" />);
     expect(screen.getByRole('link', { name: 'Review SY3' })).toHaveAttribute('href', '/deep-dive/see-clearly/the-learned-self-story?section=entry');
-    expect(document.getElementById('see-yourself-sy4')).toHaveTextContent('Up next');
+    expect(screen.getByRole('link', { name: 'Begin SY4' })).toHaveAttribute('href', '/deep-dive/see-clearly/what-is-actually-true-about-me');
+  });
+  it('marks See God Clearly next after SY4 completion without opening SG1', () => {
+    render(<SeeClearlyStage status="review" sy2Status="review" sy3Status="review" sy4Status="review" />);
+    expect(screen.getByRole('link', { name: 'Review SY4' })).toHaveAttribute('href', '/deep-dive/see-clearly/what-is-actually-true-about-me?section=entry');
+    expect(screen.getByText('Up next: SG1 — The God I Learned')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /SG1/ })).not.toBeInTheDocument();
   });
 });

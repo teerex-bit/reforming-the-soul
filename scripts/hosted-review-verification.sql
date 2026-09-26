@@ -184,6 +184,25 @@ select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy3_reco
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sy3-reflection'), 'SY2 deletion retains SY3 reflection');
 select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sy3' and completed_at is not null), 'SY2 deletion retains SY3 completion');
 
+select pg_temp.rts_test_assert(
+  exists (select 1 from pg_class where oid='public.see_clearly_sy4_records'::regclass and relrowsecurity and relforcerowsecurity),
+  'SY4 records have enabled and forced RLS'
+);
+insert into public.deep_dive_module_progress(id,user_id,curriculum_version_id,module_id,last_section_id,completed_at)
+values (gen_random_uuid(),current_setting('rts.test_actor_a')::uuid,'phase-1-v1','see-clearly.sy4','carry-forward',now());
+insert into public.see_clearly_sy4_records(user_id,progress_id,source_sy3_record_id,source_was_linked,truth_to_live_from)
+select p.user_id,p.id,s.id,true,'  I want to live from what God has made new.  '
+from public.deep_dive_module_progress p join public.see_clearly_sy3_records s on s.user_id=p.user_id
+where p.user_id=current_setting('rts.test_actor_a')::uuid and p.module_id='see-clearly.sy4';
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy4_records where truth_to_live_from='  I want to live from what God has made new.  '), 'SY4 links owned SY3 and preserves exact wording');
+insert into public.deep_dive_reflections(user_id,progress_id,prompt_id,body)
+select user_id,id,'sy4-reflection','I notice that the old story feels familiar.' from public.deep_dive_module_progress
+where user_id=current_setting('rts.test_actor_a')::uuid and module_id='see-clearly.sy4';
+delete from public.see_clearly_sy3_records where user_id=current_setting('rts.test_actor_a')::uuid;
+select pg_temp.rts_test_assert(exists (select 1 from public.see_clearly_sy4_records where user_id=current_setting('rts.test_actor_a')::uuid and source_sy3_record_id is null and source_was_linked and truth_to_live_from='  I want to live from what God has made new.  '), 'SY3 deletion unlinks and preserves SY4 wording');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_reflections where prompt_id='sy4-reflection'), 'SY3 deletion preserves SY4 reflection');
+select pg_temp.rts_test_assert(exists (select 1 from public.deep_dive_module_progress where module_id='see-clearly.sy4' and completed_at is not null), 'SY3 deletion preserves SY4 completion');
+
 reset role;
 select pg_temp.rts_test_finish();
 rollback;

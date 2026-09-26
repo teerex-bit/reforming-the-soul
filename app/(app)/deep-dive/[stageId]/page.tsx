@@ -7,16 +7,18 @@ import { getA1, getA2, getA3, getA4 } from '../../../../server/services/deep-div
 import { getSC1 } from '../../../../server/services/see-clearly-sc1-service';
 import { getSY2 } from '../../../../server/services/see-clearly-sy2-service';
 import { getSY3 } from '../../../../server/services/see-clearly-sy3-service';
+import { getSY4 } from '../../../../server/services/see-clearly-sy4-service';
 import { SeeClearlyStage } from '../../../../components/deep-dive/SeeClearlyStage';
 
 export default async function StagePage({ params }: { params: Promise<{ stageId: string }> }) {
   const { stageId } = await params;
   if (stageId === 'see-clearly') {
-    const [{ progress }, { progress: sy2 }, { progress: sy3 }] = await Promise.all([getSC1(), getSY2(), getSY3()]);
+    const [{ progress }, { progress: sy2 }, { progress: sy3 }, { progress: sy4 }] = await Promise.all([getSC1(), getSY2(), getSY3(), getSY4()]);
     const status = progress?.completedAt ? 'review' : progress ? 'resume' : 'begin';
     const sy2Status = sy2?.completedAt ? 'review' : sy2 ? 'resume' : 'begin';
     const sy3Status = sy3?.completedAt ? 'review' : sy3 ? 'resume' : 'begin';
-    return <AppShell stage="See Clearly"><SeeClearlyStage status={status} sy2Status={sy2Status} sy3Status={sy3Status} /></AppShell>;
+    const sy4Status = sy4?.completedAt ? 'review' : sy4 ? 'resume' : 'begin';
+    return <AppShell stage="See Clearly"><SeeClearlyStage status={status} sy2Status={sy2Status} sy3Status={sy3Status} sy4Status={sy4Status} /></AppShell>;
   }
   if (stageId !== 'awaken') notFound();
   const [a1, a2, a3, a4] = await Promise.all([getA1(), getA2(), getA3(), getA4()]);
